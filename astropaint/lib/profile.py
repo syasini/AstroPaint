@@ -12,7 +12,40 @@ from astropy.constants import sigma_T
 c = 299792. #km/s
 
 
-def projected_NFW():
+#########################################################
+#                Profiles
+#########################################################
+
+# ------------------------
+#           3D
+# ------------------------
+
+def NFW_mass(r, rho_s, R_s):
+    """
+    Calculate the NFW profile #TODO: add reference Eq.
+
+    Parameters
+    ----------
+    r:
+        distance from the center
+    rho_s:
+        density at radius R_s
+    R_s:
+        characterisic radius R_200c/c_200c
+
+    Returns
+    -------
+    rho = 4 * rho_s * R_s ** 3 / r / (r + R_s) ** 2
+    """
+
+    rho = 4 * rho_s * R_s ** 3 / r / (r + R_s) ** 2
+
+    return rho
+# ------------------------
+#        Projected
+# ------------------------
+
+def projected_NFW_mass(r, rho_s):
 
     """
     projected NFW profile
