@@ -69,7 +69,7 @@ def M_200c_to_c_200c(M_200c, z):
     return c_200c
 
 
-def M_200_to_Rho_s(M_200c, z, R_200c=None, c_200c=None):
+def M_200_to_rho_s(M_200c, z, R_200c=None, c_200c=None):
     """calculate the NFW rho_s parameter from M_200c at redshift z
     if R_200c and c_200c are not given, calculate them"""
 
@@ -80,9 +80,9 @@ def M_200_to_Rho_s(M_200c, z, R_200c=None, c_200c=None):
 
     R_s = R_200c / c_200c
     A_c = np.log(1+c_200c) - c_200c/(1+c_200c)
-    Rho_s = M_200c / (16*np.pi*(R_s**3)*A_c)
+    rho_s = M_200c / (16*np.pi*(R_s**3)*A_c)
 
-    return Rho_s
+    return rho_s
 
 def D_c_to_D_a(D_c, z):
     """calculate the angular diameter distance (D_a) from comoving distance (D_c) and redshift (

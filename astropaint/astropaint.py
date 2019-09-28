@@ -69,9 +69,11 @@ class Catalog:
     @data.setter
     def data(self, val):
         self._data = val
+        self.size = len(self._data)
         print("Input data has been modified. Rebuild the dataframe using catalog.build_dataframe "
               "to "
               "update the other parameters as well.")
+
 
     # ------------------------
     #         methods
@@ -103,8 +105,13 @@ class Catalog:
         self.data['c_200c'] = transform.M_200c_to_c_200c(self.data['M_200c'], self.redshift)
         self.data['R_th_200c'] = transform.radius_to_angsize(self.data['R_200c'],
                                                              self.data['D_a'], arcmin=True)
+        #TODO: change redshift to nonuniversal value
+        self.data["rho_s"] = transform.M_200_to_rho_s(self.data["M_200c"],
+                                                      self.redshift,
+                                                      self.data["R_200c"],
+                                                      self.data["c_200c"])
 
-
+        self.data["R_s"] = np.true_divide(self.data["R_200c"], self.data["c_200c"])
 
         # find the cartesian to spherical coords transformation matrix
         J_cart2sph = transform.get_cart2sph_jacobian(self.data['theta'].values,
@@ -196,8 +203,8 @@ class Canvas:
         self.centers_D_a = self.catalog.data.D_a
 
 
-        assert isinstance(catalog, Catalog), "input catalog has to be an instance of " \
-                                             "astroPaint.Catalog"
+        #assert isinstance(catalog, Catalog), "input catalog has to be an instance of " \
+        #                                     "astroPaint.Catalog"
 
         self._proj_dict = {"mollweide": hp.mollview,
                            "mollview": hp.mollview,
@@ -494,9 +501,34 @@ class Painter:
     #         methods
     # ------------------------
 
-    def spray(self, canvas, distance_units="Mpc", **template_kwargs):
+    def spray(self,
+              canvas,
+              distance_units="Mpc",
+              extra_params=None,
+              **template_kwargs):
 
         #TODO: check the arg list and if the parameter is not in the catalog add it there
+
+        # TODO: check the length and type of the extra_params
+
+        # if it's a scalar dictionary extend it to the size of the catalog
+        # also make sure the length matches the size of the catalog
+
+
+        # check the canvas catalog and make sure all the template arguments are already there
+        for parameter in self.template_args_list[1:]:
+            try:
+                canvas.catalog.data[parameter]
+            except KeyError:
+                try:
+                    extra_params[parameter]
+                except KeyError:
+                    print(f"Parameter {parameter} was not found either in the canvas.catalog.data "
+                          f"or the extra_params.")
+                    raise
+
+        # add the extra_params to the catalog
+        canvas.catalog.data = pd.concat((canvas.catalog.data, pd.DataFrame(extra_params)), axis=1)
 
         # check the units
         if distance_units.lower() == "mpc":
@@ -507,14 +539,30 @@ class Painter:
             raise KeyError("distance_units must be either 'mpc' or 'radians'.")
 
 
-        #FIXME: list comprehension
-        [np.add.at(canvas.pixels, canvas.discs_indx[halo],
-                   self.template(r[halo],
-                                 canvas.catalog.data.loc[halo],
-                                 ))
-         for halo in range(canvas.catalog.size)]
+        # make sure r (distance) is in the argument list
+        assert 'r' in self.template_args_list
+
+        #TODO: think about how to redo this
+        if len(self.template_args_list) == 1:
+
+            #FIXME: list comprehension
+            [np.add.at(canvas.pixels,
+                       canvas.discs_indx[halo],
+                       self.template(r[halo]))
+             for halo in range(canvas.catalog.size)]
+
+        else:
+            catalog_param_slice = canvas.catalog.data[self.template_args_list[1:]]
+            # FIXME: list comprehension
+            [np.add.at(canvas.pixels,
+                       canvas.discs_indx[halo],
+                       self.template(r[halo],
+                                     *catalog_param_slice.loc[halo]))
+             for halo in range(canvas.catalog.size)]
 
         print("Your artwork is fininshed. Check it out with Canvas.show_map()")
+
+
 
     def _announce_template(self):
         """
