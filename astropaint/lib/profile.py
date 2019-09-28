@@ -45,7 +45,8 @@ def NFW_mass(r, rho_s, R_s):
 #        Projected
 # ------------------------
 
-def projected_NFW_mass(r, rho_s):
+
+def projected_NFW_mass(r, rho_s, R_s):
 
     """
     projected NFW profile
@@ -55,8 +56,11 @@ def projected_NFW_mass(r, rho_s):
     -------
 
     """
+    x = np.asarray(r/R_s, dtype=np.complex)
+    f = 1 - 2 / np.sqrt(1 - x ** 2) * np.arctanh(np.sqrt((1 - x) / (1 + x)))
+    f = np.true_divide(f, x ** 2 - 1)
 
-    pass
+    return 8 * rho_s * R_s * f
 
 
 def projected_solid_sphere(r, M_tot, R_tot):
@@ -139,3 +143,10 @@ def kSZ_T_solid_sphere(r, catalog_dataframe):
     dT_T = Sigma * v_r
     return dT_T
 
+def kSZ_T_NFW(r, rho_s, R_s, v_r):
+
+
+    Sigma = projected_NFW_mass(r, rho_s, R_s)
+
+    dT_T = -Sigma * v_r
+    return dT_T
