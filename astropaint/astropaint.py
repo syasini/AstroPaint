@@ -403,6 +403,8 @@ class Canvas:
     def show_halo_centers(self,
                           projection="mollweide",
                           graticule=True,
+                          *args,
+                          **kwargs,
                           ):
 
         # TODO: implement quiver on the sphere
@@ -417,7 +419,10 @@ class Canvas:
             cbar = False
             self._viewer(map_,
                          projection=projection,
-                         cbar=cbar)
+                         cbar=cbar,
+                         *args,
+                         **kwargs,
+                         )
 
         if graticule: hp.graticule()
 
@@ -455,11 +460,15 @@ class Canvas:
 
     def show_map(self,
                  projection="mollweide",
-                 graticule=True):
+                 graticule=True,
+                 *args,
+                 **kwargs):
 
         self._viewer(self.pixels,
                      projection=projection,
                      #graticule=graticule,
+                     *args,
+                     **kwargs,
                      )
         #TODO: add min max args
 
