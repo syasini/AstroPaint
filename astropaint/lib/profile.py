@@ -7,8 +7,12 @@ __email__ = "yasini@usc.edu"
 
 
 import numpy as np
-
-from astropy.constants import sigma_T
+from . import transform
+from astropy.constants import sigma_T, m_p
+from astropy.cosmology import Planck15 as cosmo
+sigma_T = sigma_T.value # [m^2]
+m_p = m_p.value # [kg]
+f_b = cosmo.Ob0/cosmo.Om0
 c = 299792. #km/s
 
 
@@ -41,29 +45,52 @@ def NFW_mass(r, rho_s, R_s):
     rho = 4 * rho_s * R_s ** 3 / r / (r + R_s) ** 2
 
     return rho
+
 # ------------------------
 #        Projected
 # ------------------------
 
 
-def projected_NFW_mass(r, rho_s, R_s):
+def NFW_mass_density_proj(r, rho_s, R_s):
 
     """
-    projected NFW profile
+    projected NFW mass profile
     Eq. 7 in Bartlemann 1996: https://arxiv.org/abs/astro-ph/9602053
 
     Returns
     -------
-
+    surface mass density: [M_sun/Mpc^2]
     """
+
+    #FIXME: remove this
+    r[r < 0.2] = 0.2  # flatten the core
+
     x = np.asarray(r/R_s, dtype=np.complex)
     f = 1 - 2 / np.sqrt(1 - x ** 2) * np.arctanh(np.sqrt((1 - x) / (1 + x)))
     f = np.true_divide(f, x ** 2 - 1)
+    Sigma = 8 * rho_s * R_s * f
+    return Sigma
 
-    return 8 * rho_s * R_s * f
+def NFW_tau_density_proj(r, rho_s, R_s):
 
+    """
+    projected NFW tau profile
+    Eq. 7 in Battaglia 2016 :
 
-def projected_solid_sphere(r, M_tot, R_tot):
+    Returns
+    -------
+    tau: [NA]
+    """
+    X_H = 0.76
+    x_e = (X_H+1)/2*X_H
+    f_s = 0.02
+    mu = 4/(2*X_H+1+X_H*x_e)
+
+    Sigma = NFW_mass_density_proj(r, rho_s, R_s)
+    tau = sigma_T * x_e * X_H * (1-f_s) * f_b * Sigma / mu / m_p
+    return tau
+
+def solid_sphere_proj(r, M_200c, R_200c):
     """
     projected mass density of uniform sphere
 
@@ -71,17 +98,17 @@ def projected_solid_sphere(r, M_tot, R_tot):
     ----------
     r: [Mpc]
         distance from the center
-    M_tot: [M_sun]
+    M_200c: [M_sun]
         total mass of the sphere
-    R_tot: [Mpc]
+    R_200c: [Mpc]
         total radius (edge) of the sphere
 
     Returns
     -------
-    Sigma = M_tot /2/pi * sqrt(R_tot**2 - r**2)/R_tot**3
+    Sigma = M_200c /2/pi * sqrt(R_tot**2 - r**2)/R_tot**3
 
     """
-    Sigma = M_tot / 2/np.pi * np.sqrt(R_tot ** 2 - r ** 2) / R_tot ** 3
+    Sigma = M_200c / 2 / np.pi * np.sqrt(R_200c ** 2 - r ** 2) / R_200c ** 3
 
     return Sigma
 
@@ -131,22 +158,17 @@ def linear_density(r, intercept, slope):
 
 # tests:
 
-def kSZ_T_solid_sphere(r, catalog_dataframe):
-
-
-    M_200c = catalog_dataframe["M_200c"]
-    R_200c = catalog_dataframe["R_200c"]
-    v_r = catalog_dataframe["v_r"]
+def kSZ_T_solid_sphere(r, M_200c, R_200c, v_r):
 
     Sigma = projected_solid_sphere(r, M_200c, R_200c)
+    tau = transform.M_to_tau(Sigma)
+    dT_over_T = -tau * v_r
 
-    dT_T = Sigma * v_r
-    return dT_T
+    return dT_over_T
 
 def kSZ_T_NFW(r, rho_s, R_s, v_r):
 
+    tau = NFW_tau_density_proj(r, rho_s, R_s)
+    dT_over_T = -tau * v_r
 
-    Sigma = projected_NFW_mass(r, rho_s, R_s)
-
-    dT_T = -Sigma * v_r
-    return dT_T
+    return dT_over_T

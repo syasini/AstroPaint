@@ -19,7 +19,7 @@ logger.setLevel(logging.ERROR)
 # ------------------------
 #        constants
 # ------------------------
-
+from astropy.constants import sigma_T, m_p
 from astropy.cosmology import Planck15 as cosmo
 from astropy import units as u
 
@@ -32,6 +32,11 @@ Gcm2 = 4.785E-20 #(Mpc/M_sun)
 h = cosmo.H(0).value/100.
 crit_dens_0 = cosmo.critical_density0.to(u.solMass/u.Mpc**3).value #M_sun/Mpc**3
 
+sigma_T = sigma_T.to(u.Mpc**2).value # [Mpc^2]
+m_p = m_p.to(u.M_sun).value # [M_sun]
+#sigma_T_over_mp = sigma_T.to(value/m_p.to(u.M_sun).value # m^2
+f_b = cosmo.Ob0/cosmo.Om0
+c = 299792. #km/s
 #########################################################
 #                Halo Transformations
 #########################################################
@@ -105,6 +110,16 @@ def radius_to_angsize(radius, D_a, arcmin=True):
 
     return ang_size
 
+def M_to_tau(M):
+
+    X_H = 0.76
+    x_e = (X_H+1)/2*X_H
+    f_s = 0.02
+    mu = 4/(2*X_H+1+X_H*x_e)
+
+    tau = sigma_T * x_e * X_H * (1-f_s) * f_b * M / mu / m_p
+
+    return tau
 
 #########################################################
 #           Coordinate Transformations
@@ -204,3 +219,5 @@ def convert_velocity_cart2sph(th, ph, v_x, v_y, v_z):
     v_cart = np.array([v_x, v_y, v_z])
     v_r, v_th, v_ph = np.einsum('ij...,i...->j...', J_cart2sph, v_cart)
     # TODO: add columns or v_lat and v_lon
+
+    return v_r, v_th, v_ph
