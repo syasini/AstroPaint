@@ -25,6 +25,7 @@ from astropaint.lib import transform
 #                  Halo Catalog Object
 #########################################################
 
+
 class Catalog:
 
     """halo catalog containing halo masses, locations, velocities, and redshifts
@@ -48,7 +49,7 @@ class Catalog:
 
         # if no input is provided generate a random catalog
         if self.data is None:
-            self.data = self.generate_random_halos()
+            self.data = self.generate_random_box()
 
         # TODO: check input type/columns/etc
         self.size = len(self.data)
@@ -70,9 +71,9 @@ class Catalog:
     def data(self, val):
         self._data = val
         self.size = len(self._data)
-        print("Input data has been modified. Rebuild the dataframe using catalog.build_dataframe "
-              "to "
-              "update the other parameters as well.")
+        print("Input data has been modified. Rebuilding the dataframe using "
+              "catalog.build_dataframe to update all the parameters...\n")
+        self.build_dataframe()
 
 
     # ------------------------
@@ -126,7 +127,7 @@ class Catalog:
         self.data['v_lat'] = -self.data['v_th']
         self.data['v_lon'] = self.data['v_ph']
 
-
+        print("Done!")
 
     @staticmethod
     def _initialize_catalog(n_tot):
@@ -139,7 +140,7 @@ class Catalog:
         return catalog
 
     @staticmethod
-    def generate_random_halos(box_size=100,
+    def generate_random_box(box_size=100,
                               v_max=100,
                               mass_min=1E10,
                               mass_max=1E15,
@@ -174,7 +175,6 @@ class Catalog:
         return pd.DataFrame(catalog)  # convert catalog to pandas data frame
 
 
-
 #########################################################
 #                  Canvas Object
 #########################################################
@@ -185,7 +185,10 @@ class Canvas:
     def __init__(self,
                  catalog,
                  nside,
-                 mode="healpy"):
+                 mode="healpy",
+                 analyze=True,
+                 R_times=1, # the discs will be found around R_times x virial radius
+                 ):
 
         #TODO: define attribute dictionary with __slots__
 
@@ -194,15 +197,17 @@ class Canvas:
         self._nside = nside
         self._npix = hp.nside2npix(self.nside)
         self._cmap = cm.Greys_r
+        self.R_times = R_times
 
         self.pixels = np.zeros(self.npix)
 
+        self._catalog = catalog
+        self.centers_D_a = self._catalog.data.D_a
 
+        if analyze:
+            self.analyze()
 
-        self.catalog = catalog
-        self.centers_D_a = self.catalog.data.D_a
-
-
+        #TODO: remove this
         #assert isinstance(catalog, Catalog), "input catalog has to be an instance of " \
         #                                     "astroPaint.Catalog"
 
@@ -229,11 +234,21 @@ class Canvas:
     # Mutables:
 
     @property
+    def catalog(self):
+        return self._catalog
+
+    @catalog.setter
+    def catalog(self, val):
+        self._catalog = val
+        self.analyze()
+
+    @property
     def cmap(self):
         return self._cmap
 
     @cmap.setter
     def cmap(self, val):
+        #FIXME: find the parent class of cm
         assert type(val) is type(cm.Greys), "cmap must be an instance of cm. \n" \
                                             "You can import it using:\n" \
                                             "from matplotlib import cm"
@@ -243,6 +258,26 @@ class Canvas:
     # ------------------------
     #         methods
     # ------------------------
+
+    def analyze(self,):
+        """
+        Analyze the catalog and find the relevant pixels on the canvas
+
+        Returns
+        -------
+        None
+        """
+
+        self.centers_D_a = self.catalog.data.D_a
+
+        # update the index and angular location of the center pixel
+        self.find_centers_indx()
+        self.find_centers_ang()
+
+        self.find_discs_indx(self.R_times)
+        self.find_discs_ang()
+        self.find_discs_2center_distance()
+
 
     def clean(self):
         """
@@ -273,13 +308,13 @@ class Canvas:
 
         print("Done! You can now get the center pixels using Canvas.centers_indx.")
 
-    def find_discs_indx(self, k):
+    def find_discs_indx(self, R_times):
         """
         Find the pixel indices of discs of size k times R_200 around halo centers
 
         Parameters
         ----------
-        k: int
+        R_times: int
             multiplicative factor indicating the extent of the queried disc in units of R_200
 
         Returns
@@ -292,12 +327,14 @@ class Canvas:
         """
 
         #FIXME: list comprehension
+        self.R_times = R_times
         self.discs_indx = ([np.asarray(
                                     hp.query_disc(self.nside,
                                                   (self.catalog.data.x[halo],
                                     self.catalog.data.y[halo],
                                     self.catalog.data.z[halo]),
-                                                  k * transform.arcmin2rad(self.catalog.data.R_th_200c[halo]))
+                                                  R_times * transform.arcmin2rad(
+                                                      self.catalog.data.R_th_200c[halo]))
                                        )
                                 for halo in range(self.catalog.size)])
 
@@ -403,6 +440,9 @@ class Canvas:
     def show_halo_centers(self,
                           projection="mollweide",
                           graticule=True,
+                          marker="o",
+                          color=None,
+                          s=None,
                           *args,
                           **kwargs,
                           ):
@@ -426,9 +466,12 @@ class Canvas:
 
         if graticule: hp.graticule()
 
+        if s is None: s=np.log(self.catalog.data.M_200c),
         hp.projscatter(self.catalog.data.theta,
                        self.catalog.data.phi,
-                       s=np.log(self.catalog.data.M_200c),
+                       color=color,
+                       s=s,
+                       marker=marker,
                        )
 
     def show_discs(self,
@@ -515,7 +558,7 @@ class Painter:
               distance_units="Mpc",
               extra_params=None,
               **template_kwargs):
-
+        print("Painting the canvas...")
         #TODO: check the arg list and if the parameter is not in the catalog add it there
 
         # TODO: check the length and type of the extra_params
