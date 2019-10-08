@@ -63,6 +63,7 @@ def NFW_mass_density_proj(r, rho_s, R_s):
     """
 
     #FIXME: remove this
+    #print("flattening")
     r[r < 0.2] = 0.2  # flatten the core
 
     x = np.asarray(r/R_s, dtype=np.complex)
@@ -166,7 +167,7 @@ def kSZ_T_solid_sphere(r, M_200c, R_200c, v_r):
 
     return dT_over_T
 
-def kSZ_T_NFW(r, rho_s, R_s, v_r):
+def kSZ_T_NFW( r, rho_s, R_s, v_r, *, T_cmb=2.725,):
 
     tau = NFW_tau_density_proj(r, rho_s, R_s)
     dT_over_T = -tau * v_r
