@@ -8,10 +8,11 @@ __email__ = "yasini@usc.edu"
 
 import numpy as np
 from . import transform
+from astropy import units as u
 from astropy.constants import sigma_T, m_p
 from astropy.cosmology import Planck15 as cosmo
-sigma_T = sigma_T.value # [m^2]
-m_p = m_p.value # [kg]
+sigma_T = sigma_T.to(u.Mpc**2).value # [Mpc^2]
+m_p = m_p.to(u.M_sun).value # [M_sun]
 f_b = cosmo.Ob0/cosmo.Om0
 c = 299792. #km/s
 
@@ -64,7 +65,7 @@ def NFW_mass_density_proj(r, rho_s, R_s):
 
     #FIXME: remove this
     #print("flattening")
-    r[r < 0.2] = 0.2  # flatten the core
+    r[r < 0.1] = 0.1  # flatten the core
 
     x = np.asarray(r/R_s, dtype=np.complex)
     f = 1 - 2 / np.sqrt(1 - x ** 2) * np.arctanh(np.sqrt((1 - x) / (1 + x)))
