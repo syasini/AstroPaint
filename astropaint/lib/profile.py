@@ -5,7 +5,7 @@ library containing [projected] halo profiles
 __author__ = "Siavash Yasini"
 __email__ = "yasini@usc.edu"
 
-
+from copy import deepcopy
 import numpy as np
 from . import transform
 from astropy import units as u
@@ -65,10 +65,13 @@ def NFW_mass_density_proj(r, rho_s, R_s):
 
     #FIXME: remove this
     #print("flattening")
+
+    r = deepcopy(r)
     r[r < 0.1] = 0.1  # flatten the core
 
     x = np.asarray(r/R_s, dtype=np.complex)
     f = 1 - 2 / np.sqrt(1 - x ** 2) * np.arctanh(np.sqrt((1 - x) / (1 + x)))
+    f = f.real
     f = np.true_divide(f, x ** 2 - 1)
     Sigma = 8 * rho_s * R_s * f
     return Sigma
@@ -171,6 +174,6 @@ def kSZ_T_solid_sphere(r, M_200c, R_200c, v_r):
 def kSZ_T_NFW( r, rho_s, R_s, v_r, *, T_cmb=2.725,):
 
     tau = NFW_tau_density_proj(r, rho_s, R_s)
-    dT_over_T = -tau * v_r
+    dT_over_T = -tau * v_r/c
 
     return dT_over_T
