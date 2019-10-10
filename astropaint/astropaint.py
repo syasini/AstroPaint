@@ -531,8 +531,8 @@ class Painter:
                  template,
                  ):
 
-        self._template = template
-        self._announce_template()
+        self.template = template
+        #self._analyze_template()
 
     # ------------------------
     #       properties
@@ -547,7 +547,8 @@ class Painter:
     @template.setter
     def template(self, val):
         self._template = val
-        self._announce_template()
+        self._analyze_template()
+        #self._check_template()
 
     # ------------------------
     #         methods
@@ -556,8 +557,21 @@ class Painter:
     def spray(self,
               canvas,
               distance_units="Mpc",
-              extra_params=None,
               **template_kwargs):
+
+        """
+        #TODO: add example
+
+        Parameters
+        ----------
+        canvas
+        distance_units
+        template_kwargs
+
+        Returns
+        -------
+
+        """
         print("Painting the canvas...")
         #TODO: check the arg list and if the parameter is not in the catalog add it there
 
@@ -567,23 +581,39 @@ class Painter:
         # also make sure the length matches the size of the catalog
 
 
-        # check the canvas catalog and make sure all the template arguments are already there
-        for parameter in self.template_args_list[1:]:
-            try:
-                canvas.catalog.data[parameter]
-            except KeyError:
-                try:
-                    extra_params[parameter]
-                except KeyError:
-                    print(f"Parameter {parameter} was not found either in the canvas.catalog.data "
-                          f"or the extra_params.")
-                    raise
+        # convert the template_kwargs into a dataframe
+        template_kwargs_df = self._check_template_kwargs(**template_kwargs)
+        # use template args to grab the relevant columns from the catalog dataframe
+        template_args_df = self._check_template_args(canvas.catalog)
 
-        # add the extra_params to the catalog
-        canvas.catalog.data = pd.concat((canvas.catalog.data, pd.DataFrame(extra_params)), axis=1)
+        #TODO: remove this block
+        # check the canvas catalog and make sure all the template arguments are already there
+        # for parameter in self.template_args_list[1:]:
+        #     try:
+        #         canvas.catalog.data[parameter]
+        #     except KeyError:
+        #         try:
+        #             template_kwargs[parameter]
+        #         except KeyError:
+        #             raise KeyError(f"Parameter {parameter} was not found either in the canvas.catalog.data "
+        #                   f"or the extra_params.")
+
+        # match the size of the args and kwargs dataframes
+        # if template kwargs are scalars, extend then to the size of the catalog
+        if template_kwargs_df is None:
+            pass
+        elif len(template_kwargs_df) == 1:
+            template_kwargs_df = pd.concat([template_kwargs_df]*len(template_args_df),
+                                           ignore_index=True)
+
+        #TODO: check for other conditions (e.g. longer len, shorter, etc.)
+
+        # concatenate the two dataframes together
+        spray_df = pd.concat((template_args_df, template_kwargs_df), axis=1)
+        print(f"spray_df.columns = {spray_df.columns}")
 
         # check the units
-        if distance_units.lower() == "mpc":
+        if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
             r = canvas.discs_2center_mpc
         elif distance_units.lower() in ["radians", "rad", "rads"]:
             r = canvas.discs_2center_rad
@@ -591,10 +621,11 @@ class Painter:
             raise KeyError("distance_units must be either 'mpc' or 'radians'.")
 
 
+        #TODO: this has been checked elsewhere... remove it
         # make sure r (distance) is in the argument list
         assert 'r' in self.template_args_list
 
-        #TODO: think about how to redo this
+        #TODO: think about how to redo this part
         if len(self.template_args_list) == 1:
 
             #FIXME: list comprehension
@@ -604,19 +635,18 @@ class Painter:
              for halo in range(canvas.catalog.size)]
 
         else:
-            catalog_param_slice = canvas.catalog.data[self.template_args_list[1:]]
-            # FIXME: list comprehension
+            #FIXME: list comprehension
             [np.add.at(canvas.pixels,
                        canvas.discs_indx[halo],
                        self.template(r[halo],
-                                     *catalog_param_slice.loc[halo]))
+                                     **spray_df.loc[halo]))
              for halo in range(canvas.catalog.size)]
 
         print("Your artwork is fininshed. Check it out with Canvas.show_map()")
 
 
 
-    def _announce_template(self):
+    def _analyze_template(self):
         """
         Get the template name and list of arguments
 
@@ -626,12 +656,70 @@ class Painter:
         """
 
         self.template_name = self.template.__name__
-        self.template_args_list = inspect.getfullargspec(self.template)[0]
 
+        # get the list of args and keyword args
+        self.template_args_list = inspect.getfullargspec(self.template).args
+        self.template_kwargs_list = inspect.getfullargspec(self.template).kwonlyargs
+
+        # print out the list of args and kwargs
         message = f"The template '{self.template_name}' takes in the following arguments:\n" \
-                  f"{self.template_args_list}"
+                  f"{self.template_args_list}\n" \
+                  f"and the following keyword-only arguments:\n" \
+                  f"{self.template_kwargs_list}"
+
+        # ensure the first argument of the profile template is 'r'
+        assert self.template_args_list[0] == "r", "The first argument of the profile template " \
+                                                  "must be 'r' (the distance from the center of " \
+                                                  "the halo)."
         print(message)
 
+    def _check_template_kwargs(self, **template_kwargs):
+        """Ensure the template_kwargs is pandas compatible"""
+
+        if template_kwargs:
+            try:
+                #TODO: find the type of input (scalar, array, DF)?
+                for key, value in template_kwargs.items():
+                    if not hasattr(value, "__len__"):
+                        template_kwargs[key] = [value]
+
+                template_kwargs_df = pd.DataFrame(template_kwargs)
+                return template_kwargs_df
+
+                #self.template_kwargs_data = pd.DataFrame(template_kwargs)
+            except:
+                raise
+        else:
+            #TODO: add warning if template has kwargs but no template_kwargs are provided
+            print("No template_kwargs provided")
+
+            return None
+
+
+    def _check_template_args(self, catalog):
+        """Check to see if the template profile function arguments exist in the catalog """
+
+        # check the canvas catalog and make sure all the template arguments are already there
+        params_not_found = []
+        #params_not_found_anywhere = []
+        for parameter in self.template_args_list[1:]:
+            try:
+                catalog.data[parameter]
+            except KeyError:
+                params_not_found.append(parameter)
+
+        if len(params_not_found) > 0:
+            print("The following parameters were not found in the canvas.catalog.data\n"
+                  f"{params_not_found}\n"
+                  "Make sure you pass them as kwargs (key=value), dictionary (**dict), or Pandas "
+                  "DataFrame (**df) in the .spray method. Check the spray docstring"
+                  "(.spray.__doc__) for examples. ")
+
+
+        parameters = list(set(self.template_args_list[1:]) - set(params_not_found))
+
+        template_args_df = catalog.data[parameters]
+        return template_args_df
 
 if __name__ == "__main__":
 
