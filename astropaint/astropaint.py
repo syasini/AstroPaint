@@ -187,7 +187,8 @@ class Canvas:
                  nside,
                  mode="healpy",
                  analyze=True,
-                 R_times=1, # the discs will be found around R_times x virial radius
+                 R_times=1,  # the discs will be found around R_times x virial radius,
+                 inclusive=True,
                  ):
 
         #TODO: define attribute dictionary with __slots__
@@ -198,6 +199,7 @@ class Canvas:
         self._npix = hp.nside2npix(self.nside)
         self._cmap = cm.Greys_r
         self.R_times = R_times
+        self.inclusive = inclusive
 
         self.pixels = np.zeros(self.npix)
 
@@ -216,6 +218,8 @@ class Canvas:
                            "cartesian": hp.cartview,
                            "cartview": hp.cartview,
                            }
+
+        self.template_name = None
 
     # ------------------------
     #       properties
@@ -331,10 +335,12 @@ class Canvas:
         self.discs_indx = ([np.asarray(
                                     hp.query_disc(self.nside,
                                                   (self.catalog.data.x[halo],
-                                    self.catalog.data.y[halo],
-                                    self.catalog.data.z[halo]),
+                                                   self.catalog.data.y[halo],
+                                                   self.catalog.data.z[halo]),
                                                   R_times * transform.arcmin2rad(
-                                                      self.catalog.data.R_th_200c[halo]))
+                                                             self.catalog.data.R_th_200c[halo]),
+                                                  inclusive=True,
+                                                  )
                                        )
                                 for halo in range(self.catalog.size)])
 
@@ -430,12 +436,12 @@ class Canvas:
         #if graticule: hp.graticule()
 
         hp_viewer(map_,
-                        cmap=self.cmap,
-                        min=min,
-                        max=max,
-                        *args,
-                        **kwargs,
-                        )
+                  cmap=self.cmap,
+                  min=min,
+                  max=max,
+                  *args,
+                  **kwargs,
+                  )
 
     def show_halo_centers(self,
                           projection="mollweide",
@@ -448,7 +454,6 @@ class Canvas:
                           ):
 
         # TODO: implement quiver on the sphere
-
 
         try:
             # draw and empty map
@@ -464,9 +469,12 @@ class Canvas:
                          **kwargs,
                          )
 
-        if graticule: hp.graticule()
+        if graticule:
+            hp.graticule()
 
-        if s is None: s=np.log(self.catalog.data.M_200c),
+        if s is None:
+            s = np.log(self.catalog.data.M_200c)
+
         hp.projscatter(self.catalog.data.theta,
                        self.catalog.data.phi,
                        color=color,
@@ -500,7 +508,6 @@ class Canvas:
 
         del junk_pixels
 
-
     def show_map(self,
                  projection="mollweide",
                  graticule=True,
@@ -515,7 +522,15 @@ class Canvas:
                      )
         #TODO: add min max args
 
+    def save_to_file(self,
+                     filename=None):
 
+        if filename is None:
+            #TODO: complete this
+            filename = f"{self.template_name}_NSIDE={self.nside}.fits"
+
+        hp.write_map(filename,
+                     self.pixels)
 
 #########################################################
 #                   Painter Object
@@ -573,6 +588,10 @@ class Painter:
 
         """
         print("Painting the canvas...")
+
+        #
+        canvas.template_name = self.template.__name__
+
         #TODO: check the arg list and if the parameter is not in the catalog add it there
 
         # TODO: check the length and type of the extra_params
