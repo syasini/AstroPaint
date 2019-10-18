@@ -10,6 +10,8 @@ import pandas as pd
 from matplotlib import cm
 from warnings import warn
 import inspect
+from itertools import product
+import operator
 
 try:
     import healpy as hp
@@ -45,14 +47,27 @@ class Catalog:
         #TODO: define attribute dictionary with __slots__
 
         self.redshift = redshift
-        self._data = data
-
         # if no input is provided generate a random catalog
-        if self.data is None:
+        if data is None:
             self.data = self.generate_random_box()
+        else:
+            self.data = data
+
+        # .................
+        # octant signatures
+        # .................
+
+        # (x,y,z) signatures for each octant e.g. (+,+,+) , (+,+,-) etc.
+        self.octant_signature = self._get_octant_signatures(mode="user")
+
+        # same thing but for use in calculations
+        self._octant_shift_signature = self._get_octant_signatures(mode="shift")
+        self._octant_mirror_signature = self._get_octant_signatures(mode="mirror")
+        self._octant_rotate_signature = self._get_octant_signatures(mode="rotate")
+
 
         # TODO: check input type/columns/etc
-        self.size = len(self.data)
+        #self.size = len(self.data)
 
         # build the complete data frame
         # e.g. angular distances, radii, etc.
@@ -71,10 +86,10 @@ class Catalog:
     def data(self, val):
         self._data = val
         self.size = len(self._data)
+        self.box_size = self._get_box_size()
         print("Input data has been modified. Rebuilding the dataframe using "
               "catalog.build_dataframe to update all the parameters...\n")
         self.build_dataframe()
-
 
     # ------------------------
     #         methods
@@ -129,6 +144,56 @@ class Catalog:
 
         print("Done!")
 
+    def _get_box_size(self):
+        """find the catalog box size from x, y, z coordinates"""
+
+        Lx = self.data["x"].max() - self.data["x"].min()
+        Ly = self.data["y"].max() - self.data["y"].min()
+        Lz = self.data["z"].max() - self.data["z"].min()
+
+        return Lx, Ly, Lz
+
+    @staticmethod
+    def _get_octant_signatures(mode="user"):
+        """calculate the octant signatures to be used in replication function later"""
+
+        # set up the octant signature with +1, -1 indicating the sign of each axis
+        # e.g. (+1,+1,+1) is the first octant/ (-1,+1,+1) is the second octant etc.
+        x_signs = np.sign(np.exp(1.j * (np.arange(8) * np.pi / 2 + np.pi / 4)).real).astype(int)
+        y_signs = np.sign(np.exp(1.j * (np.arange(8) * np.pi / 2 + np.pi / 4)).imag).astype(int)
+        z_signs = np.array(4 * [1] + 4 * [-1])
+
+        # put them together as a reference dictionary
+        oct_sign_dict = dict(enumerate(zip(x_signs, y_signs, z_signs)))
+
+        if mode == "user":
+            sign_dict = {1: "+",
+                         -1: "-"}
+            # (x,y,z) signatures for each octant e.g. (+,+,+) , (+,+,-) etc.
+            octant_signature = [(sign_dict[i], sign_dict[j], sign_dict[k])
+                                for (i, j, k) in oct_sign_dict.values()]
+
+        elif mode == "shift":
+            sign_dict = {1 : 0,
+                         -1: -1}
+            octant_signature = [(sign_dict[i], sign_dict[j], sign_dict[k])
+                                for (i, j, k) in oct_sign_dict.values()]
+
+
+        elif mode == "mirror":
+            octant_signature = product((+1, -1), repeat=3)
+
+        elif mode == "rotate":
+            # octant signature for replication by rotation
+            octant_signature = sorted(product([0, 1, 2, 3], [1, -1]),
+                                                              key=operator.itemgetter(1),
+                                                              reverse=True)
+        else:
+            raise KeyError("octant signature mode not defined")
+
+        octant_signature = dict(enumerate(octant_signature))
+        return octant_signature
+
     @staticmethod
     def _initialize_catalog(n_tot):
         """initialize an empty catalog with x, y, z, v_x, v_y, v_z, M_200c columns"""
@@ -162,8 +227,8 @@ class Catalog:
 
         # generate random velocities
         v_x, v_y, v_z = np.random.uniform(low=-v_max,
-                                           high=v_max,
-                                           size=(3, n_tot))
+                                          high=v_max,
+                                          size=(3, n_tot))
 
         catalog["v_x"], catalog["v_y"], catalog["v_z"] = v_x, v_y, v_z
 
@@ -174,6 +239,127 @@ class Catalog:
 
         return pd.DataFrame(catalog)  # convert catalog to pandas data frame
 
+    @staticmethod
+    def _set_octant(df, octant):
+        """Affix an octant column to a copy of the data frame """
+        df_copy = df.copy() #FIXME: Make sure shallow copy is safe
+        df_copy["octant"] = octant
+        return df_copy
+
+    @staticmethod
+    def _tile_by_shifting(coords, boxsize, move_signature):
+        """tile a 3d box by shifting coordinates according to the move signatures in
+        _octant_shift_signature
+        e.g. (0,0,-1) shifts the box down one unit in the -z direction"""
+
+        #TODO: assert 3d arrays
+        #TODO: assert array move signature
+        x, y, z = coords
+        dx, dy, dz = move_signature * boxsize
+
+        x += dx
+        y += dy
+        z += dz
+
+        return pd.Series([x, y, z])
+
+    @staticmethod
+    def _tile_by_mirroring(coords, boxsize, move_signature):
+        """tile a 3d box by reflecting coordinates according to the move signatures in
+        _octant_mirror_signature
+        e.g. (+1,+1,-1) reflects the box along the x-y plane (in the -z direction)"""
+
+        # TODO: assert 3d arrays
+        # TODO: assert array move signature
+        x, y, z = coords
+        # boxsize is redundant and is used for consistency
+        dx, dy, dz = move_signature
+
+        x *= dx
+        y *= dy
+        z *= dz
+
+        return pd.Series([x, y, z])
+
+    @staticmethod
+    def _tile_by_rotating(coords, boxsize, move_signature):
+        """tile a 3d box by rotating coordinates according to the move signatures in
+        _octant_rotate_signature
+        e.g. (1,1) rotates the box counter-clockwise around the z axis"""
+
+        # TODO: assert 3d arrays
+        # TODO: assert array move signature
+        x, y, z = coords
+        # boxsize is redundant and is used for consistency
+        n, z_sign = move_signature
+
+        # rotate the coordinates according to the transformation in Sehgah 2010 Eq 28
+        xiy = (x + np.sign(z_sign)*1.j*y)*np.exp(1.j*(n-0.5*np.sign(z_sign)+0.5)*np.pi/2)
+        x = xiy.real
+        y = xiy.imag
+        z *= z_sign
+
+        return pd.Series([x, y, z])
+
+    def replicate(self,
+                  mode="rotate"):
+        """
+        Replicate an octant to get a whole-sky box
+
+        Parameters
+        ----------
+        mode
+
+        Returns
+        -------
+
+        """
+        assert mode in ["shift", "rotate", "mirror"], "mode can be either 'shift', 'rotate', " \
+                                                      "or 'mirror."
+
+        # add the octant column to data
+        # define local variable data to force catalog rebuilding at the end
+        data = pd.concat([self._set_octant(f, i) for (i, f) in enumerate(8*[self.data])],
+                              axis=0, ignore_index=True)
+
+        # set the replication mode and signature based on the given kwarg
+        if mode.lower() == "shift":
+            tile = self._tile_by_shifting
+            move_signature = self._octant_shift_signature
+        elif mode.lower() == "mirror":
+            tile = self._tile_by_mirroring
+            move_signature = self._octant_mirror_signature
+        elif mode.lower() == "rotate":
+            tile = self._tile_by_rotating
+            move_signature = self._octant_rotate_signature
+
+        # replicate the octants using the tiling function set above
+        data[["x", "y", "z"]] = \
+            data.apply(lambda row:
+                            tile(
+                                row[["x", "y", "z"]],
+                                self.box_size,
+                                np.array(move_signature[row["octant"]])
+                                ),
+                            axis=1)
+
+        # reset data and rebuild the dataframe
+        self.data = data
+
+    def move_to_box_center(self):
+        """move the observer from (0,0,0) to the center of the box (Lx/2, Ly/2, Lz/2) to make
+        coordinates symmetric
+        *Not recommended for light-cone catalogs"""
+
+        data = self.data  # trick for forcing catalog rebuilding at the end
+        Lx, Ly, Lz = self.box_size
+
+        data["x"] -= Lx / 2
+        data["y"] -= Ly / 2
+        data["z"] -= Lz / 2
+
+        # reset data and rebuild the dataframe
+        self.data = data
 
 #########################################################
 #                  Canvas Object
@@ -188,7 +374,7 @@ class Canvas:
                  mode="healpy",
                  analyze=True,
                  R_times=1,  # the discs will be found around R_times x virial radius,
-                 inclusive=True,
+                 inclusive=False,
                  ):
 
         #TODO: define attribute dictionary with __slots__
@@ -339,7 +525,7 @@ class Canvas:
                                                    self.catalog.data.z[halo]),
                                                   R_times * transform.arcmin2rad(
                                                              self.catalog.data.R_th_200c[halo]),
-                                                  inclusive=True,
+                                                  inclusive=self.inclusive,
                                                   )
                                        )
                                 for halo in range(self.catalog.size)])
