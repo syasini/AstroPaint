@@ -58,18 +58,12 @@ class Catalog:
         # .................
 
         # (x,y,z) signatures for each octant e.g. (+,+,+) , (+,+,-) etc.
-        self.octant_signature = dict(enumerate(product(("+", "-"), repeat=3)))
-        # translate octant signature to replication action
-        sign_dict = {"+": 0, "-": -1}  # just for reference
+        self.octant_signature = self._get_octant_signatures(mode="user")
 
         # same thing but for use in calculations
-        self._octant_shift_signature = dict(enumerate(product((0, -1), repeat=3)))
-        self._octant_mirror_signature = dict(enumerate(product((+1, -1), repeat=3)))
-
-        # octant signature for replication by rotation
-        self._octant_rotate_signature = dict(enumerate(sorted(product([0, 1, 2, 3], [1, -1]),
-                                                              key=operator.itemgetter(1),
-                                                              reverse=True)))
+        self._octant_shift_signature = self._get_octant_signatures(mode="shift")
+        self._octant_mirror_signature = self._get_octant_signatures(mode="mirror")
+        self._octant_rotate_signature = self._get_octant_signatures(mode="rotate")
 
 
         # TODO: check input type/columns/etc
@@ -158,6 +152,47 @@ class Catalog:
         Lz = self.data["z"].max() - self.data["z"].min()
 
         return Lx, Ly, Lz
+
+    @staticmethod
+    def _get_octant_signatures(mode="user"):
+        """calculate the octant signatures to be used in replication function later"""
+
+        # set up the octant signature with +1, -1 indicating the sign of each axis
+        # e.g. (+1,+1,+1) is the first octant/ (-1,+1,+1) is the second octant etc.
+        x_signs = np.sign(np.exp(1.j * (np.arange(8) * np.pi / 2 + np.pi / 4)).real).astype(int)
+        y_signs = np.sign(np.exp(1.j * (np.arange(8) * np.pi / 2 + np.pi / 4)).imag).astype(int)
+        z_signs = np.array(4 * [1] + 4 * [-1])
+
+        # put them together as a reference dictionary
+        oct_sign_dict = dict(enumerate(zip(x_signs, y_signs, z_signs)))
+
+        if mode == "user":
+            sign_dict = {1: "+",
+                         -1: "-"}
+            # (x,y,z) signatures for each octant e.g. (+,+,+) , (+,+,-) etc.
+            octant_signature = [(sign_dict[i], sign_dict[j], sign_dict[k])
+                                for (i, j, k) in oct_sign_dict.values()]
+
+        elif mode == "shift":
+            sign_dict = {1 : 0,
+                         -1: -1}
+            octant_signature = [(sign_dict[i], sign_dict[j], sign_dict[k])
+                                for (i, j, k) in oct_sign_dict.values()]
+
+
+        elif mode == "mirror":
+            octant_signature = product((+1, -1), repeat=3)
+
+        elif mode == "rotate":
+            # octant signature for replication by rotation
+            octant_signature = sorted(product([0, 1, 2, 3], [1, -1]),
+                                                              key=operator.itemgetter(1),
+                                                              reverse=True)
+        else:
+            raise KeyError("octant signature mode not defined")
+
+        octant_signature = dict(enumerate(octant_signature))
+        return octant_signature
 
     @staticmethod
     def _initialize_catalog(n_tot):
@@ -297,8 +332,6 @@ class Catalog:
         elif mode.lower() == "rotate":
             tile = self._tile_by_rotating
             move_signature = self._octant_rotate_signature
-
-        print("here")
 
         # replicate the octants using the tiling function set above
         data[["x", "y", "z"]] = \
