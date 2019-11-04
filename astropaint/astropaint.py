@@ -5,6 +5,7 @@ library for simulating semi-analytic mock maps of CMB secondary anisotropies
 __author__ = "Siavash Yasini"
 __email__ = "yasini@usc.edu"
 
+import os
 import numpy as np
 import pandas as pd
 from matplotlib import cm
@@ -42,7 +43,7 @@ class Catalog:
     def __init__(self,
                  data=None,
                  redshift=0,
-                 build_dataframe=False):
+                 ):
 
         #TODO: define attribute dictionary with __slots__
 
@@ -50,7 +51,10 @@ class Catalog:
         # if no input is provided generate a random catalog
         if data is None:
             self.data = self.generate_random_box()
+        elif isinstance(data, str):
+            self.load_sample(data)
         else:
+            #FIXME: check data type and columns
             self.data = data
 
         # .................
@@ -65,14 +69,7 @@ class Catalog:
         self._octant_mirror_signature = self._get_octant_signatures(mode="mirror")
         self._octant_rotate_signature = self._get_octant_signatures(mode="rotate")
 
-
         # TODO: check input type/columns/etc
-        #self.size = len(self.data)
-
-        # build the complete data frame
-        # e.g. angular distances, radii, etc.
-        if build_dataframe:
-            self.build_dataframe()
 
     # ------------------------
     #       properties
@@ -85,11 +82,27 @@ class Catalog:
     @data.setter
     def data(self, val):
         self._data = val
+        self._data = pd.DataFrame(self.data).reset_index(drop=True)
+
         self.size = len(self._data)
         self.box_size = self._get_box_size()
         print("Input data has been modified. Rebuilding the dataframe using "
               "catalog.build_dataframe to update all the parameters...\n")
+
+        # build the complete data frame
+        # e.g. angular distances, radii, etc.
         self.build_dataframe()
+
+    # ------------------------
+    #         sample data
+    # ------------------------
+
+    #TODO: support inputs other than csv
+    def load_sample(self, sample_name="MICE"):
+        """load sample data using the name of dataset"""
+        fname = os.path.join("astropaint", "data", f"{sample_name}.csv")
+
+        self.data = pd.read_csv(fname, index_col=0)
 
     # ------------------------
     #         methods
