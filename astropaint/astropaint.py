@@ -481,7 +481,6 @@ class Canvas:
         self.find_discs_ang()
         self.find_discs_2center_distance()
 
-
     def clean(self):
         """
         Clean the canvas and set all pixels to zero
@@ -649,7 +648,7 @@ class Canvas:
 
     def find_discs_2center_vec(self):
         """
-        Find the 3D vector pointing from the disc pixels to the halo center pixel
+        Find the 3D unit vector pointing from the disc pixels to the halo center pixel
 
         Returns
         -------
@@ -669,8 +668,17 @@ class Canvas:
             self.find_centers_vec()
 
         #FIXME: list comprehension
-        self.discs_2center_vec = [self.discs_vec[halo] - self.centers_vec[halo]
+        self.discs_2center_vec = [self.normalize(self.discs_vec[halo] - self.centers_vec[halo],
+                                                 axis=-1)
                                   for halo in range(self.catalog.size)]
+
+    @staticmethod
+    def normalize(vec, axis=-1):
+        """normalize the input vector along the given axis"""
+
+        norm = np.linalg.norm(vec, axis=axis)
+
+        return np.true_divide(vec, np.expand_dims(norm, axis=axis))
 
     # ------------------------
     #  visualization  methods
