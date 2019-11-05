@@ -589,6 +589,7 @@ class Canvas:
         except AttributeError:
             print("Canvas.discs_indx is not defined. Use Canvas.find_discs_indx to set it up.")
 
+        #FIXME: list comprehension
         self.discs_ang = [np.asarray(
             hp.pix2ang(self.nside, indx)
             )
@@ -609,6 +610,7 @@ class Canvas:
         except AttributeError:
             print("Canvas.discs_indx is not defined. Use Canvas.find_discs_indx to set it up.")
 
+        #FIXME: list comprehension
         self.discs_vec = [np.asarray(
             hp.pix2vec(self.nside, indx)
             ).T
@@ -643,6 +645,31 @@ class Canvas:
 
         #FIXME: list comprehension
         self.discs_2center_mpc = [self.centers_D_a[halo]*self.discs_2center_rad[halo]
+                                  for halo in range(self.catalog.size)]
+
+    def find_discs_2center_vec(self):
+        """
+        Find the 3D vector pointing from the disc pixels to the halo center pixel
+
+        Returns
+        -------
+        None
+        """
+
+        # if discs_vec does not exist, find it
+        try:
+            self.discs_vec
+        except AttributeError:
+            self.find_discs_vec()
+
+        # if centers_vec does not exist, find it
+        try:
+            self.centers_vec
+        except AttributeError:
+            self.find_centers_vec()
+
+        #FIXME: list comprehension
+        self.discs_2center_vec = [self.discs_vec[halo] - self.centers_vec[halo]
                                   for halo in range(self.catalog.size)]
 
     # ------------------------
