@@ -15,7 +15,7 @@ sigma_T = sigma_T.to(u.Mpc**2).value # [Mpc^2]
 m_p = m_p.to(u.M_sun).value # [M_sun]
 f_b = cosmo.Ob0/cosmo.Om0
 c = 299792. #km/s
-
+T_cmb = 2.7251
 
 #########################################################
 #                       Profiles
@@ -167,16 +167,16 @@ def solid_sphere_proj(r, M_200c, R_200c):
 # ------------------------
 
 
-def kSZ_T_solid_sphere(r, M_200c, R_200c, v_r, T_cmb=2.725):
+def kSZ_T_solid_sphere(r, M_200c, R_200c, v_r, T_cmb=T_cmb):
 
     Sigma = solid_sphere_proj(r, M_200c, R_200c)
     tau = transform.M_to_tau(Sigma)
-    dT = -tau * v_r *T_cmb
+    dT = -tau * v_r * T_cmb
 
     return dT
 
 
-def kSZ_T_NFW(r, rho_s, R_s, v_r, *, T_cmb=2.725,):
+def kSZ_T_NFW(r, rho_s, R_s, v_r, *, T_cmb=T_cmb):
 
     tau = tau_density_NFW_proj(r, rho_s, R_s)
     dT = -tau * v_r/c * T_cmb
