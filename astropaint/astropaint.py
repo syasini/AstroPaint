@@ -481,7 +481,6 @@ class Canvas:
         self.find_discs_ang()
         self.find_discs_2center_distance()
 
-
     def clean(self):
         """
         Clean the canvas and set all pixels to zero
@@ -510,6 +509,37 @@ class Canvas:
                                        self.catalog.data.phi.to_list())
 
         print("Done! You can now get the center pixels using Canvas.centers_indx.")
+
+    def find_centers_ang(self):
+        """
+        Store the theta and phi coordinates of the halos in Canvas.centers_ang
+
+        Returns
+        -------
+        None
+        """
+
+        self.centers_ang = np.asarray([self.catalog.data.theta.to_list(),
+                                     self.catalog.data.phi.to_list()])
+
+        print("Done! You can now get the angular position of the discs using Canvas.centers_ang.")
+
+    def find_centers_vec(self):
+        """
+        Find the unit vectors pointing to the halo centers
+
+        Returns
+        -------
+        None
+        Sets Canvas.centers_vec to array of pixels.
+        Element [i] of the array points to the center of halo [i].
+
+        """
+
+        self.centers_vec = hp.ang2vec(self.catalog.data.theta.to_list(),
+                                      self.catalog.data.phi.to_list())
+
+        print("Done! You can now get the center pixel vectors using Canvas.centers_vec.")
 
     def find_discs_indx(self, R_times):
         """
@@ -545,21 +575,6 @@ class Canvas:
 
         print("Done! You can now get the discs using Canvas.discs_indx.")
 
-    def find_centers_ang(self):
-        """
-        Store the theta and phi coordinates of the halos in Canvas.centers_ang
-
-        Returns
-        -------
-        None
-        """
-
-        self.centers_ang = np.asarray([self.catalog.data.theta.to_list(),
-                                     self.catalog.data.phi.to_list()])
-
-        print("Done! You can now get the angular position of the discs using Canvas.centers_ang.")
-
-
     def find_discs_ang(self):
         """
         Find the angular coordinates of the disc pixels
@@ -573,12 +588,35 @@ class Canvas:
         except AttributeError:
             print("Canvas.discs_indx is not defined. Use Canvas.find_discs_indx to set it up.")
 
+        #FIXME: list comprehension
         self.discs_ang = [np.asarray(
             hp.pix2ang(self.nside, indx)
             )
             for indx in self.discs_indx]
 
         print("Done! You can now get the angular position of the discs using Canvas.discs_ang.")
+
+    def find_discs_vec(self):
+        """
+        Find the unit vectors pointing to the disc pixels
+
+        Returns
+        -------
+        None
+        """
+        try:
+            self.discs_indx
+        except AttributeError:
+            print("Canvas.discs_indx is not defined. Use Canvas.find_discs_indx to set it up.")
+
+        #FIXME: list comprehension
+        self.discs_vec = [np.asarray(
+            hp.pix2vec(self.nside, indx)
+            ).T
+            for indx in self.discs_indx]
+
+        print("Done! You can now get the vectots pointing to the disc pixels using "
+              "Canvas.discs_vec.")
 
     def find_discs_2center_distance(self):
         """
@@ -607,6 +645,40 @@ class Canvas:
         #FIXME: list comprehension
         self.discs_2center_mpc = [self.centers_D_a[halo]*self.discs_2center_rad[halo]
                                   for halo in range(self.catalog.size)]
+
+    def find_discs_2center_vec(self):
+        """
+        Find the 3D unit vector pointing from the disc pixels to the halo center pixel
+
+        Returns
+        -------
+        None
+        """
+
+        # if discs_vec does not exist, find it
+        try:
+            self.discs_vec
+        except AttributeError:
+            self.find_discs_vec()
+
+        # if centers_vec does not exist, find it
+        try:
+            self.centers_vec
+        except AttributeError:
+            self.find_centers_vec()
+
+        #FIXME: list comprehension
+        self.discs_2center_vec = [self.normalize(self.discs_vec[halo] - self.centers_vec[halo],
+                                                 axis=-1)
+                                  for halo in range(self.catalog.size)]
+
+    @staticmethod
+    def normalize(vec, axis=-1):
+        """normalize the input vector along the given axis"""
+
+        norm = np.linalg.norm(vec, axis=axis)
+
+        return np.true_divide(vec, np.expand_dims(norm, axis=axis))
 
     # ------------------------
     #  visualization  methods
