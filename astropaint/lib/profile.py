@@ -224,3 +224,11 @@ def kSZ_T_NFW(r, rho_s, R_s, v_r, *, T_cmb=T_cmb):
 
     return dT
 
+
+def BG_NFW(r, r_hat, c_200c, R_200c, M_200c, theta, phi, v_th, v_ph, *, T_cmb=T_cmb):
+
+    alpha = deflect_angle_NFW(r, c_200c, R_200c, M_200c)
+    v_vec = transform.convert_velocity_sph2cart(theta, phi, 0, v_th, v_ph)
+    dT = -alpha * np.dot(r_hat, v_vec)/c * T_cmb
+
+    return dT

@@ -218,12 +218,12 @@ class Catalog:
         return catalog
 
     @staticmethod
-    def generate_random_box(box_size=100,
-                              v_max=100,
-                              mass_min=1E10,
-                              mass_max=1E15,
-                              n_tot=100,
-                              put_on_shell=True):
+    def generate_random_box(box_size=50,
+                            v_max=100,
+                            mass_min=1E14,
+                            mass_max=1E15,
+                            n_tot=50000,
+                            put_on_shell=True):
 
         catalog = Catalog._initialize_catalog(n_tot)
 
@@ -923,6 +923,17 @@ class Painter:
                        canvas.discs_indx[halo],
                        self.template(r[halo]))
              for halo in range(canvas.catalog.size)]
+
+        #TODO: unify this with the other two conditions
+        elif 'r_hat' in self.template_args_list:
+            r_hat = canvas.discs_2center_vec
+
+            [np.add.at(canvas.pixels,
+                   canvas.discs_indx[halo],
+                   self.template(r[halo],
+                                 r_hat[halo],
+                                 **spray_df.loc[halo]))
+            for halo in range(canvas.catalog.size)]
 
         else:
             #FIXME: list comprehension
