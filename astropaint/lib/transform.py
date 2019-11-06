@@ -202,9 +202,12 @@ def convert_velocity_sph2cart(th, ph, v_r, v_th, v_ph):
     vij_cart = np.einsum('ij...,i...->j...', J, vij_sph)
     logger.info(f"v_ij.shape = {vij_cart.shape}")
 
-    v_x = vij_cart[0, :]
-    v_y = vij_cart[1, :]
-    v_z = vij_cart[2, :]
+    #v_x = vij_cart[0, :]
+    #v_y = vij_cart[1, :]
+    #v_z = vij_cart[2, :]
+    v_x = vij_cart[0]
+    v_y = vij_cart[1]
+    v_z = vij_cart[2]
 
     return v_x, v_y, v_z
 
