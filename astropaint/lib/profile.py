@@ -16,6 +16,7 @@ m_p = m_p.to(u.M_sun).value # [M_sun]
 f_b = cosmo.Ob0/cosmo.Om0
 c = 299792. #km/s
 T_cmb = 2.7251
+Gcm2 = 4.785E-20 #(Mpc/M_sun)
 
 #########################################################
 #                       Profiles
@@ -162,12 +163,52 @@ def solid_sphere_proj(r, M_200c, R_200c):
     return Sigma
 
 
+def deflect_angle_NFW(r, c_200c, R_200c, M_200c, *, suppress=True):
+    """
+    calculate the deflection angle of a halo with NFW profile
+    Use Eq 6 in Baxter et al 2015 (1412.7521)
+
+    Parameters
+    ----------
+    c_200c:
+        halo concentration parameter
+    R_200c:
+        halo virial radius in [Mpc]
+    M_200c:
+        virial mass of halo in M_sun
+    r:
+        distance from the center of halo [Mpc]
+
+    Returns
+    -------
+        the deflection angle at distance r from the center of halo
+    """
+
+    A = M_200c*c_200c**2/(np.log(1+c_200c)-c_200c/(1+c_200c))/4./np.pi
+    C = 16*np.pi*Gcm2*A/c_200c/R_200c
+
+    R_s = R_200c / c_200c
+    x = r/R_s
+    x = x.astype(np.complex)
+
+    f = np.true_divide(1, x) * (np.log(x/2) + 2/np.sqrt(1-x**2) *
+                          np.arctanh(np.sqrt(np.true_divide(1-x, 1+x))))
+
+    alpha = C*f
+
+    # suppress alpha at large radii
+    if suppress:
+        suppress_radius = 8*R_200c
+        alpha *= np.exp(-(r/suppress_radius)**3)
+
+    return alpha.real
+
 # ------------------------
 #         tests
 # ------------------------
 
 
-def kSZ_T_solid_sphere(r, M_200c, R_200c, v_r, T_cmb=T_cmb):
+def kSZ_T_solid_sphere(r, M_200c, R_200c, v_r, *, T_cmb=T_cmb):
 
     Sigma = solid_sphere_proj(r, M_200c, R_200c)
     tau = transform.M_to_tau(Sigma)
@@ -182,3 +223,4 @@ def kSZ_T_NFW(r, rho_s, R_s, v_r, *, T_cmb=T_cmb):
     dT = -tau * v_r/c * T_cmb
 
     return dT
+
