@@ -11,6 +11,29 @@ You can install **AstroPaint** by running the following in the command line:
 
 the `-e` argument will install the package in editable mode which is suitable for developement. If you want to modify the code use this option.
 
+
+# Workflow
+
+Converting catalogs to mock maps with AstroPaint is extremely simple. Here is what an example session looks like:
+
+```
+From astropaint import Catalog, Canvas, Painter
+
+catalog = Catalog(your_input_data)
+
+canvas = Canvas(catalog, nside)
+
+painter = Painter(template=your_radial_profile)
+
+painter.spray(canvas)
+```
+
+That's it! Now you can check out your masterpiece using
+
+`canvas.show_map()`
+
+
+
 # How to contribute
 
 If you would like to contribute to AstroPaint, take the following steps:
