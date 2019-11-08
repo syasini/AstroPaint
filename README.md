@@ -16,10 +16,10 @@ the `-e` argument will install the package in editable mode which is suitable fo
 
 Converting catalogs to mock maps with AstroPaint is extremely simple. Here is what an example session looks like:
 
-```
+```python
 from astropaint import Catalog, Canvas, Painter
 
-catalog = Catalog(your_input_data)
+catalog = Catalog(data=your_input_data)
 
 canvas = Canvas(catalog, nside)
 
