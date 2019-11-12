@@ -13,6 +13,7 @@ from warnings import warn
 import inspect
 from itertools import product
 import operator
+from numba import jit
 
 try:
     import healpy as hp
@@ -396,6 +397,7 @@ class Canvas:
 
         self._nside = nside
         self._npix = hp.nside2npix(self.nside)
+        self._lmax = 3 * self.nside-1
         self._cmap = cm.Greys_r
         self.R_times = R_times
         self.inclusive = inclusive
@@ -433,6 +435,10 @@ class Canvas:
     @property
     def npix(self):
         return self._npix
+
+    @property
+    def lmax(self):
+        return self._lmax
 
     # Mutables:
 
@@ -491,6 +497,7 @@ class Canvas:
         """
 
         self.pixels = np.zeros(self.npix)
+        self.Cl = np.zeros(self.lmax+1)
 
     def find_centers_indx(self):
         """
@@ -668,13 +675,13 @@ class Canvas:
             self.find_centers_vec()
 
         #FIXME: list comprehension
-        self.discs_2center_vec = [self.normalize(self.discs_vec[halo] - self.centers_vec[halo],
-                                                 axis=-1)
+        self.discs_2center_vec = [self._normalize_vec(self.discs_vec[halo] - self.centers_vec[halo],
+                                                     axis=-1)
                                   for halo in range(self.catalog.size)]
 
     @staticmethod
-    def normalize(vec, axis=-1):
-        """normalize the input vector along the given axis"""
+    def _normalize_vec(vec, axis=-1):
+        """normalize_vec the input vector along the given axis"""
 
         norm = np.linalg.norm(vec, axis=axis)
 
@@ -793,15 +800,40 @@ class Canvas:
                      )
         #TODO: add min max args
 
-    def save_to_file(self,
-                     filename=None):
+    def save_map_to_file(self,
+                         prefix=None,
+                         suffix=None,
+                         filename=None):
+        """save the healpy map to file
+
+        Parameters
+        ----------
+        prefix: str
+            prefix string to be added to the beginning of the default file name
+
+        suffix: str
+            suffix string to be added to the end of default file name
+
+        filename: str
+            custom file name; overrides the prefix and suffix and default file name
+        """
 
         if filename is None:
             #TODO: complete this
-            filename = f"{self.template_name}_NSIDE={self.nside}.fits"
+            filename = f"{str(prefix or '')}" \
+                       f"{self.template_name}" \
+                       f"_NSIDE={self.nside}" \
+                       f"{str(suffix or '')}" \
+                       f".fits"
 
         hp.write_map(filename,
                      self.pixels)
+
+    def get_Cl(self):
+        """find the power spectrum of the map (.pixels)"""
+
+        self.Cl = hp.anafast(self.pixels)
+
 
 #########################################################
 #                   Painter Object
@@ -839,6 +871,7 @@ class Painter:
     # ------------------------
     #         methods
     # ------------------------
+
 
     def spray(self,
               canvas,
