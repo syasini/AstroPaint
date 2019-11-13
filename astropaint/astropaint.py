@@ -13,6 +13,7 @@ from warnings import warn
 import inspect
 from itertools import product
 import operator
+from numba import jit
 
 try:
     import healpy as hp
@@ -396,11 +397,15 @@ class Canvas:
 
         self._nside = nside
         self._npix = hp.nside2npix(self.nside)
+        self._lmax = 3 * self.nside-1
+        self._ell = np.arange(self.lmax+1)
         self._cmap = cm.Greys_r
         self.R_times = R_times
         self.inclusive = inclusive
 
-        self.pixels = np.zeros(self.npix)
+        self._pixels = np.zeros(self.npix)
+        self._Cl = np.zeros(self.lmax+1)
+        self._Cl_is_outdated = False
 
         self._catalog = catalog
         self.centers_D_a = self._catalog.data.D_a
@@ -434,6 +439,25 @@ class Canvas:
     def npix(self):
         return self._npix
 
+    @property
+    def lmax(self):
+        return self._lmax
+
+    @property
+    def ell(self):
+        return self._ell
+
+    @property
+    def Cl(self):
+        if self._Cl_is_outdated:
+            self.get_Cl()
+        return self._Cl
+
+    @property
+    def Dl(self):
+        Dl = self.ell*(self.ell+1)*self.Cl/(2*np.pi)
+        return Dl
+
     # Mutables:
 
     @property
@@ -457,6 +481,15 @@ class Canvas:
                                             "from matplotlib import cm"
         self._cmap = val
         self._cmap.set_under("white")
+
+    @property
+    def pixels(self):
+        return self._pixels
+
+    @pixels.setter
+    def pixels(self, val):
+        self._pixels = val
+        self._Cl_is_outdated = True
 
     # ------------------------
     #         methods
@@ -491,6 +524,7 @@ class Canvas:
         """
 
         self.pixels = np.zeros(self.npix)
+
 
     def find_centers_indx(self):
         """
@@ -668,17 +702,25 @@ class Canvas:
             self.find_centers_vec()
 
         #FIXME: list comprehension
-        self.discs_2center_vec = [self.normalize(self.discs_vec[halo] - self.centers_vec[halo],
-                                                 axis=-1)
+        self.discs_2center_vec = [self._normalize_vec(self.discs_vec[halo] - self.centers_vec[halo],
+                                                     axis=-1)
                                   for halo in range(self.catalog.size)]
 
     @staticmethod
-    def normalize(vec, axis=-1):
-        """normalize the input vector along the given axis"""
+    def _normalize_vec(vec, axis=-1):
+        """normalize_vec the input vector along the given axis"""
 
         norm = np.linalg.norm(vec, axis=axis)
 
         return np.true_divide(vec, np.expand_dims(norm, axis=axis))
+
+    def get_Cl(self):
+        """find the power spectrum of the map (.pixels)"""
+
+        self._Cl = hp.anafast(self.pixels,
+                              lmax=self.lmax)
+
+        self._Cl_is_outdated = False
 
     # ------------------------
     #  visualization  methods
@@ -793,15 +835,69 @@ class Canvas:
                      )
         #TODO: add min max args
 
-    def save_to_file(self,
-                     filename=None):
+    # ------------------------
+    #  saving/loading  methods
+    # ------------------------
+
+    def save_map_to_file(self,
+                         prefix=None,
+                         suffix=None,
+                         filename=None):
+        """save the healpy map to file
+
+        Parameters
+        ----------
+        prefix: str
+            prefix string to be added to the beginning of the default file name
+
+        suffix: str
+            suffix string to be added to the end of default file name
+
+        filename: str
+            custom file name; overrides the prefix and suffix and default file name
+        """
 
         if filename is None:
             #TODO: complete this
-            filename = f"{self.template_name}_NSIDE={self.nside}.fits"
+            filename = f"{str(prefix or '')}" \
+                       f"{self.template_name}" \
+                       f"_NSIDE={self.nside}" \
+                       f"{str(suffix or '')}" \
+                       f".fits"
 
         hp.write_map(filename,
                      self.pixels)
+
+
+    def save_Cl_to_file(self,
+                         prefix=None,
+                         suffix=None,
+                         filename=None):
+        """save the map power spectrum to file
+
+        Parameters
+        ----------
+        prefix: str
+            prefix string to be added to the beginning of the default file name
+
+        suffix: str
+            suffix string to be added to the end of default file name
+
+        filename: str
+            custom file name; overrides the prefix and suffix and default file name
+        """
+
+        if filename is None:
+            #TODO: complete this
+            filename = f"{str(prefix or '')}" \
+                       f"{self.template_name}" \
+                       f"_NSIDE={self.nside}" \
+                       f"{str(suffix or '')}"
+
+        np.savez(filename,
+                 ell=self.ell,
+                 Cl=self.Cl,
+                 Dl=self.Dl)
 
 #########################################################
 #                   Painter Object
@@ -839,6 +935,7 @@ class Painter:
     # ------------------------
     #         methods
     # ------------------------
+
 
     def spray(self,
               canvas,
@@ -945,6 +1042,8 @@ class Painter:
 
         print("Your artwork is fininshed. Check it out with Canvas.show_map()")
 
+        # acticate the canvas.pixels setter
+        canvas.pixels = canvas.pixels
 
 
     def _analyze_template(self):
