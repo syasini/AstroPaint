@@ -398,11 +398,14 @@ class Canvas:
         self._nside = nside
         self._npix = hp.nside2npix(self.nside)
         self._lmax = 3 * self.nside-1
+        self._ell = np.arange(self.lmax+1)
         self._cmap = cm.Greys_r
         self.R_times = R_times
         self.inclusive = inclusive
 
-        self.pixels = np.zeros(self.npix)
+        self._pixels = np.zeros(self.npix)
+        self._Cl = np.zeros(self.lmax+1)
+        self._Cl_is_outdated = False
 
         self._catalog = catalog
         self.centers_D_a = self._catalog.data.D_a
@@ -440,6 +443,21 @@ class Canvas:
     def lmax(self):
         return self._lmax
 
+    @property
+    def ell(self):
+        return self._ell
+
+    @property
+    def Cl(self):
+        if self._Cl_is_outdated:
+            self.get_Cl()
+        return self._Cl
+
+    @property
+    def Dl(self):
+        Dl = self.ell*(self.ell+1)*self.Cl/(2*np.pi)
+        return Dl
+
     # Mutables:
 
     @property
@@ -463,6 +481,15 @@ class Canvas:
                                             "from matplotlib import cm"
         self._cmap = val
         self._cmap.set_under("white")
+
+    @property
+    def pixels(self):
+        return self._pixels
+
+    @pixels.setter
+    def pixels(self, val):
+        self._pixels = val
+        self._Cl_is_outdated = True
 
     # ------------------------
     #         methods
@@ -497,7 +524,7 @@ class Canvas:
         """
 
         self.pixels = np.zeros(self.npix)
-        self.Cl = np.zeros(self.lmax+1)
+
 
     def find_centers_indx(self):
         """
@@ -687,6 +714,14 @@ class Canvas:
 
         return np.true_divide(vec, np.expand_dims(norm, axis=axis))
 
+    def get_Cl(self):
+        """find the power spectrum of the map (.pixels)"""
+
+        self._Cl = hp.anafast(self.pixels,
+                              lmax=self.lmax)
+
+        self._Cl_is_outdated = False
+
     # ------------------------
     #  visualization  methods
     # ------------------------
@@ -800,6 +835,10 @@ class Canvas:
                      )
         #TODO: add min max args
 
+    # ------------------------
+    #  saving/loading  methods
+    # ------------------------
+
     def save_map_to_file(self,
                          prefix=None,
                          suffix=None,
@@ -829,11 +868,36 @@ class Canvas:
         hp.write_map(filename,
                      self.pixels)
 
-    def get_Cl(self):
-        """find the power spectrum of the map (.pixels)"""
 
-        self.Cl = hp.anafast(self.pixels)
+    def save_Cl_to_file(self,
+                         prefix=None,
+                         suffix=None,
+                         filename=None):
+        """save the map power spectrum to file
 
+        Parameters
+        ----------
+        prefix: str
+            prefix string to be added to the beginning of the default file name
+
+        suffix: str
+            suffix string to be added to the end of default file name
+
+        filename: str
+            custom file name; overrides the prefix and suffix and default file name
+        """
+
+        if filename is None:
+            #TODO: complete this
+            filename = f"{str(prefix or '')}" \
+                       f"{self.template_name}" \
+                       f"_NSIDE={self.nside}" \
+                       f"{str(suffix or '')}"
+
+        np.savez(filename,
+                 ell=self.ell,
+                 Cl=self.Cl,
+                 Dl=self.Dl)
 
 #########################################################
 #                   Painter Object
@@ -978,6 +1042,8 @@ class Painter:
 
         print("Your artwork is fininshed. Check it out with Canvas.show_map()")
 
+        # acticate the canvas.pixels setter
+        canvas.pixels = canvas.pixels
 
 
     def _analyze_template(self):
