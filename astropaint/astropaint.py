@@ -13,7 +13,7 @@ from warnings import warn
 import inspect
 from itertools import product
 import operator
-from numba import jit
+from memory_profiler import profile
 
 try:
     import healpy as hp
@@ -22,8 +22,10 @@ except ModuleNotFoundError:
     warn("Healpy is not installed. You cannot use the full sky canvas without it.")
 
 from astropy.coordinates import cartesian_to_spherical
-from astropaint.lib import transform
+from .lib import transform
 
+# find the package path; same as __path__
+path = os.path.dirname(os.path.abspath(__file__))
 
 #########################################################
 #                  Halo Catalog Object
@@ -101,7 +103,7 @@ class Catalog:
     #TODO: support inputs other than csv
     def load_sample(self, sample_name="MICE"):
         """load sample data using the name of dataset"""
-        fname = os.path.join("astropaint", "data", f"{sample_name}.csv")
+        fname = os.path.join(path, "data", f"{sample_name}.csv")
 
         self.data = pd.read_csv(fname, index_col=0)
 
@@ -651,7 +653,7 @@ class Canvas:
 
         print("Done! You can now get the vectots pointing to the disc pixels using "
               "Canvas.discs_vec.")
-
+    @profile
     def find_discs_2center_distance(self):
         """
         Find the angular distance [radians] of disc pixels to the halo center pixel
@@ -713,7 +715,7 @@ class Canvas:
         norm = np.linalg.norm(vec, axis=axis)
 
         return np.true_divide(vec, np.expand_dims(norm, axis=axis))
-
+    @profile
     def get_Cl(self):
         """find the power spectrum of the map (.pixels)"""
 
@@ -857,6 +859,13 @@ class Canvas:
             custom file name; overrides the prefix and suffix and default file name
         """
 
+        if prefix:
+            if str(prefix)[-1] != "_":
+                prefix = "".join(prefix, "_")
+        if suffix:
+            if str(suffix)[0] != "_":
+                suffix = "".join("_", suffix)
+
         if filename is None:
             #TODO: complete this
             filename = f"{str(prefix or '')}" \
@@ -886,6 +895,12 @@ class Canvas:
         filename: str
             custom file name; overrides the prefix and suffix and default file name
         """
+        if prefix:
+            if str(prefix)[-1] != "_":
+                prefix = "".join(prefix, "_")
+        if suffix:
+            if str(suffix)[0] != "_":
+                suffix = "".join("_", suffix)
 
         if filename is None:
             #TODO: complete this
@@ -894,6 +909,7 @@ class Canvas:
                        f"_NSIDE={self.nside}" \
                        f"{str(suffix or '')}"
 
+        print(filename)
         np.savez(filename,
                  ell=self.ell,
                  Cl=self.Cl,
@@ -936,7 +952,7 @@ class Painter:
     #         methods
     # ------------------------
 
-
+    @profile
     def spray(self,
               canvas,
               distance_units="Mpc",
@@ -1123,8 +1139,10 @@ class Painter:
 
 if __name__ == "__main__":
 
-    catalog = Catalog()
+    #catalog = Catalog()
 
-    canvas = Canvas(catalog=catalog, nside=32)
-    canvas.show_halo_centers()
+    #canvas = Canvas(catalog=catalog, nside=32)
+    #canvas.show_halo_centers()
+
+    print(__path__)
 
