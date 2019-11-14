@@ -21,11 +21,13 @@ try:
 except ModuleNotFoundError:
     warn("Healpy is not installed. You cannot use the full sky canvas without it.")
 
+#import sys
+#print(sys.path)
 from astropy.coordinates import cartesian_to_spherical
 from .lib import transform
 
 # find the package path; same as __path__
-path = os.path.dirname(os.path.abspath(__file__))
+path_dir = os.path.dirname(os.path.abspath(__file__))
 
 #########################################################
 #                  Halo Catalog Object
@@ -103,7 +105,7 @@ class Catalog:
     #TODO: support inputs other than csv
     def load_sample(self, sample_name="MICE"):
         """load sample data using the name of dataset"""
-        fname = os.path.join(path, "data", f"{sample_name}.csv")
+        fname = os.path.join(path_dir, "data", f"{sample_name}.csv")
 
         self.data = pd.read_csv(fname, index_col=0)
 
@@ -861,10 +863,10 @@ class Canvas:
 
         if prefix:
             if str(prefix)[-1] != "_":
-                prefix = "".join(prefix, "_")
+                prefix = "".join([prefix, "_"])
         if suffix:
             if str(suffix)[0] != "_":
-                suffix = "".join("_", suffix)
+                suffix = "".join(["_", suffix])
 
         if filename is None:
             #TODO: complete this
@@ -897,10 +899,10 @@ class Canvas:
         """
         if prefix:
             if str(prefix)[-1] != "_":
-                prefix = "".join(prefix, "_")
+                prefix = "".join([prefix, "_"])
         if suffix:
             if str(suffix)[0] != "_":
-                suffix = "".join("_", suffix)
+                suffix = "".join(["_", suffix])
 
         if filename is None:
             #TODO: complete this
@@ -1137,12 +1139,5 @@ class Painter:
         template_args_df = catalog.data[parameters]
         return template_args_df
 
-if __name__ == "__main__":
 
-    #catalog = Catalog()
-
-    #canvas = Canvas(catalog=catalog, nside=32)
-    #canvas.show_halo_centers()
-
-    print(__path__)
 
