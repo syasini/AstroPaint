@@ -34,6 +34,7 @@ That's it! Now you can check out your masterpiece using
 
 ![BG](BG_sample.png)
 
+
 # How to contribute
 
 If you would like to contribute to AstroPaint, take the following steps:
