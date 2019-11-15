@@ -1,5 +1,5 @@
 # AstroPaint
-A python package for creating mock maps of astrophysical signals from halo catalog
+_A python package for creating mock maps of astrophysical signals from a halo catalog_
 
 You can install **AstroPaint** by running the following in the command line:
 
