@@ -32,7 +32,8 @@ That's it! Now you can check out your masterpiece using
 
 `canvas.show_map()`
 
-![BG](BG_sample.jpeg)
+![BG](BG_sample.png)
+
 
 # How to contribute
 
