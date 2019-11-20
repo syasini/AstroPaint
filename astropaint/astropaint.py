@@ -414,7 +414,7 @@ class Canvas:
         self._catalog = catalog
         self.centers_D_a = self._catalog.data.D_a
 
-        self.discs = self.Disc(self.catalog, self.nside, self.R_times, self.inclusive)
+        self.generate_discs()
 
         if analyze:
             self.discs.analyze()
@@ -502,7 +502,18 @@ class Canvas:
     # ------------------------
 
     class Disc:
-
+        __slots__ = ['catalog',
+                     'nside',
+                     'R_times',
+                     'inclusive',
+                     'center_D_a',
+                     'center_index',
+                     'center_ang',
+                     'pixel_index',
+                     'pixel_ang',
+                     'pix2cent_rad',
+                     'pix2cent_mpc',
+                     ]
         def __init__(self,
                      catalog,
                      nside,
@@ -510,15 +521,7 @@ class Canvas:
                      inclusive,
                      ):
 
-            __slots__ = ['catalog',
-                         'nside',
-                         'R_times',
-                         'inclusive',
-                         'center',
-                         'index',
-                         'ang',
-                         'centers_ang',
-                         ]
+
 
             #FIXME: the whole catalog does not need to be passed to disc here
             #Check if this affects performance
@@ -540,8 +543,7 @@ class Canvas:
             None
             """
 
-            self.centers_D_a = self.catalog.data.D_a
-
+            self.center_D_a = self.catalog.data.D_a
             # update the index and angular location of the center pixel
             self.find_centers_indx()
             self.find_centers_ang()
@@ -549,8 +551,6 @@ class Canvas:
             self.find_discs_indx(self.R_times)
             self.find_discs_ang()
             self.find_discs_2center_distance()
-
-
 
 
         def find_centers_indx(self):
@@ -565,7 +565,7 @@ class Canvas:
 
             """
 
-            self.centers_indx = hp.ang2pix(self.nside,
+            self.center_index = hp.ang2pix(self.nside,
                                            self.catalog.data.theta.to_list(),
                                            self.catalog.data.phi.to_list())
 
@@ -581,7 +581,7 @@ class Canvas:
             None
             """
 
-            self.centers_ang = np.asarray([self.catalog.data.theta.to_list(),
+            self.center_ang = np.asarray([self.catalog.data.theta.to_list(),
                                            self.catalog.data.phi.to_list()])
 
             print(
@@ -625,7 +625,7 @@ class Canvas:
 
             # FIXME: list comprehension
             self.R_times = R_times
-            self.discs_indx = ([np.asarray(
+            self.pixel_index = ([np.asarray(
                 hp.query_disc(self.nside,
                               (self.catalog.data.x[halo],
                                self.catalog.data.y[halo],
@@ -648,15 +648,15 @@ class Canvas:
             None
             """
             try:
-                self.discs_indx
+                self.pixel_index
             except AttributeError:
                 print("Canvas.discs_indx is not defined. Use Canvas.find_discs_indx to set it up.")
 
             # FIXME: list comprehension
-            self.discs_ang = [np.asarray(
+            self.pixel_ang = [np.asarray(
                 hp.pix2ang(self.nside, indx)
                 )
-                for indx in self.discs_indx]
+                for indx in self.pixel_index]
 
             print("Done! You can now get the angular position of the discs using Canvas.discs_ang.")
 
@@ -701,16 +701,16 @@ class Canvas:
             # TODO: update this and post issue on healpy github
 
             # FIXME: list comprehension
-            self.discs_ang = [np.squeeze(self.discs_ang[
+            self.pixel_ang = [np.squeeze(self.pixel_ang[
                                              halo]) for halo in range(self.catalog.size)]
 
             # FIXME: list comprehension
-            self.discs_2center_rad = [hp.rotator.angdist(self.discs_ang[halo], \
-                                                         self.centers_ang[:, halo])
+            self.pix2cent_rad = [hp.rotator.angdist(self.pixel_ang[halo],
+                                                         self.center_ang[:, halo])
                                       for halo in range(self.catalog.size)]
 
             # FIXME: list comprehension
-            self.discs_2center_mpc = [self.centers_D_a[halo] * self.discs_2center_rad[halo]
+            self.pix2cent_mpc = [self.center_D_a[halo] * self.pix2cent_rad[halo]
                                       for halo in range(self.catalog.size)]
 
         def find_discs_2center_vec(self):
@@ -739,6 +739,12 @@ class Canvas:
                                                           self.centers_vec[halo],
                                           axis=-1)
                                           for halo in range(self.catalog.size)]
+
+    def generate_discs(self):
+        """instantiate the discs attribute using the Disc class
+        Useful when the disc generators are exhausted and need to be reset"""
+
+        self.discs = self.Disc(self.catalog, self.nside, self.R_times, self.inclusive)
 
     @staticmethod
     def _normalize_vec(vec, axis=-1):
@@ -1061,9 +1067,9 @@ class Painter:
 
         # check the units
         if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
-            r = canvas.discs.discs_2center_mpc
+            r = canvas.discs.pix2cent_mpc
         elif distance_units.lower() in ["radians", "rad", "rads"]:
-            r = canvas.discs.discs_2center_rad
+            r = canvas.discs.pix2cent_rad
         else:
             raise KeyError("distance_units must be either 'mpc' or 'radians'.")
 
@@ -1095,7 +1101,7 @@ class Painter:
         else:
             #FIXME: list comprehension
             [np.add.at(canvas.pixels,
-                       canvas.discs.discs_indx[halo],
+                       canvas.discs.pixel_index[halo],
                        self.template(r[halo],
                                      **spray_df.loc[halo]))
              for halo in range(canvas.catalog.size)]
