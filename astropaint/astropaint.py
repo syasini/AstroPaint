@@ -414,8 +414,10 @@ class Canvas:
         self._catalog = catalog
         self.centers_D_a = self._catalog.data.D_a
 
+        self.discs = self.Disc(self.catalog, self.nside, self.R_times, self.inclusive)
+
         if analyze:
-            self.analyze()
+            self.discs.analyze()
 
         #TODO: remove this
         #assert isinstance(catalog, Catalog), "input catalog has to be an instance of " \
@@ -471,7 +473,7 @@ class Canvas:
     @catalog.setter
     def catalog(self, val):
         self._catalog = val
-        self.analyze()
+        self.discs.analyze()
 
     @property
     def cmap(self):
@@ -496,27 +498,255 @@ class Canvas:
         self._Cl_is_outdated = True
 
     # ------------------------
-    #         methods
+    #     Disc inner class
     # ------------------------
 
-    def analyze(self,):
-        """
-        Analyze the catalog and find the relevant pixels on the canvas
+    class Disc:
 
-        Returns
-        -------
-        None
-        """
+        def __init__(self,
+                     catalog,
+                     nside,
+                     R_times,
+                     inclusive,
+                     ):
 
-        self.centers_D_a = self.catalog.data.D_a
+            __slots__ = ['catalog',
+                         'nside',
+                         'R_times',
+                         'inclusive',
+                         'center',
+                         'index',
+                         'ang',
+                         'centers_ang',
+                         ]
 
-        # update the index and angular location of the center pixel
-        self.find_centers_indx()
-        self.find_centers_ang()
+            #FIXME: the whole catalog does not need to be passed to disc here
+            #Check if this affects performance
+            self.catalog = catalog
+            self.nside = nside
+            self.R_times = R_times
+            self.inclusive = inclusive
 
-        self.find_discs_indx(self.R_times)
-        self.find_discs_ang()
-        self.find_discs_2center_distance()
+        # ------------------------
+        #         methods
+        # ------------------------
+
+        def analyze(self,):
+            """
+            Analyze the catalog and find the relevant pixels on the canvas
+
+            Returns
+            -------
+            None
+            """
+
+            self.centers_D_a = self.catalog.data.D_a
+
+            # update the index and angular location of the center pixel
+            self.find_centers_indx()
+            self.find_centers_ang()
+
+            self.find_discs_indx(self.R_times)
+            self.find_discs_ang()
+            self.find_discs_2center_distance()
+
+
+
+
+        def find_centers_indx(self):
+            """
+            Find the pixel indices of the halo centers
+
+            Returns
+            -------
+            None
+            Sets Canvas.centers_indx to array of pixels.
+            Element [i] of the array points to the center of halo [i].
+
+            """
+
+            self.centers_indx = hp.ang2pix(self.nside,
+                                           self.catalog.data.theta.to_list(),
+                                           self.catalog.data.phi.to_list())
+
+            print("Done! You can now get the center pixels using Canvas.centers_indx.")
+
+        def find_centers_ang(self):
+            """
+            Store the theta and phi coordinates of the halos in
+            Canvas.centers_ang
+
+            Returns
+            -------
+            None
+            """
+
+            self.centers_ang = np.asarray([self.catalog.data.theta.to_list(),
+                                           self.catalog.data.phi.to_list()])
+
+            print(
+                "Done! You can now get the angular position of the discs using Canvas.centers_ang.")
+
+        def find_centers_vec(self):
+            """
+            Find the unit vectors pointing to the halo centers
+
+            Returns
+            -------
+            None
+            Sets Canvas.centers_vec to array of pixels.
+            Element [i] of the array points to the center of halo [i].
+
+            """
+
+            self.centers_vec = hp.ang2vec(self.catalog.data.theta.to_list(),
+                                          self.catalog.data.phi.to_list())
+
+            print("Done! You can now get the center pixel vectors using Canvas.centers_vec.")
+
+        def find_discs_indx(self, R_times):
+            """
+            Find the pixel indices of discs of size k times R_200 around halo centers
+
+            Parameters
+            ----------
+            R_times: int
+            multiplicative factor indicating the extent of the queried disc in units of R_200
+
+            Returns
+            -------
+            None
+
+            Sets Canvas.discs_indx to a list of pixel index arrays. Element [i] of the list holds
+            the
+            pixel indices around halo [i].
+
+            """
+
+            # FIXME: list comprehension
+            self.R_times = R_times
+            self.discs_indx = ([np.asarray(
+                hp.query_disc(self.nside,
+                              (self.catalog.data.x[halo],
+                               self.catalog.data.y[halo],
+                               self.catalog.data.z[halo]),
+                              R_times * transform.arcmin2rad(
+                                  self.catalog.data.R_th_200c[halo]),
+                              inclusive=self.inclusive,
+                              )
+                )
+                for halo in range(self.catalog.size)])
+
+            print("Done! You can now get the discs using Canvas.discs_indx.")
+
+        def find_discs_ang(self):
+            """
+            Find the angular coordinates of the disc pixels
+
+            Returns
+            -------
+            None
+            """
+            try:
+                self.discs_indx
+            except AttributeError:
+                print("Canvas.discs_indx is not defined. Use Canvas.find_discs_indx to set it up.")
+
+            # FIXME: list comprehension
+            self.discs_ang = [np.asarray(
+                hp.pix2ang(self.nside, indx)
+                )
+                for indx in self.discs_indx]
+
+            print("Done! You can now get the angular position of the discs using Canvas.discs_ang.")
+
+        def find_discs_vec(self):
+            """
+            Find the unit vectors pointing to the disc pixels
+
+            Returns
+            -------
+            None
+            """
+            try:
+                self.discs_indx
+            except AttributeError:
+                print("Canvas.discs_indx is not defined. Use Canvas"
+                  ".find_discs_indx to set it up.")
+
+            # FIXME: list comprehension
+            self.discs_vec = [np.asarray(
+                hp.pix2vec(self.nside, indx)
+                ).T
+                              for indx in self.discs_indx]
+
+            print("Done! You can now get the vectots pointing to the disc pixels using "
+                  "Canvas.discs_vec.")
+
+        @profile
+        def find_discs_2center_distance(self):
+            """
+            Find the angular distance [radians] of disc pixels to the halo center pixel
+
+            Returns
+            -------
+            None
+            """
+
+            # squeeze the disc_ang arrays to remove redundant second dimensions
+            # this is necessary at the moment to avoid a bug in healpy.rotator.angdist
+            # when calculating the angdist o=for arrays of shape (2,1) and (2,)
+            # the returned results is 3 dimensional instead of 1
+            # squeezing the array will resolve the issue though
+            # TODO: update this and post issue on healpy github
+
+            # FIXME: list comprehension
+            self.discs_ang = [np.squeeze(self.discs_ang[
+                                             halo]) for halo in range(self.catalog.size)]
+
+            # FIXME: list comprehension
+            self.discs_2center_rad = [hp.rotator.angdist(self.discs_ang[halo], \
+                                                         self.centers_ang[:, halo])
+                                      for halo in range(self.catalog.size)]
+
+            # FIXME: list comprehension
+            self.discs_2center_mpc = [self.centers_D_a[halo] * self.discs_2center_rad[halo]
+                                      for halo in range(self.catalog.size)]
+
+        def find_discs_2center_vec(self):
+            """
+                Find the 3D unit vector pointing from the disc pixels to the halo center pixel
+
+                Returns
+                -------
+                None
+                """
+
+            # if discs_vec does not exist, find it
+            try:
+                self.discs_vec
+            except AttributeError:
+                self.find_discs_vec()
+
+            # if centers_vec does not exist, find it
+            try:
+                self.centers_vec
+            except AttributeError:
+                self.find_centers_vec()
+
+            #FIXME: list comprehension
+            self.discs_2center_vec = [Canvas._normalize_vec(self.discs_vec[halo] -
+                                                          self.centers_vec[halo],
+                                          axis=-1)
+                                          for halo in range(self.catalog.size)]
+
+    @staticmethod
+    def _normalize_vec(vec, axis=-1):
+        """normalize_vec the input vector along the given axis"""
+
+        norm = np.linalg.norm(vec, axis=axis)
+
+        return np.true_divide(vec, np.expand_dims(norm, axis=axis))
 
     def clean(self):
         """
@@ -529,194 +759,6 @@ class Canvas:
 
         self.pixels = np.zeros(self.npix)
 
-
-    def find_centers_indx(self):
-        """
-        Find the pixel indices of the halo centers
-
-        Returns
-        -------
-        None
-        Sets Canvas.centers_indx to array of pixels.
-        Element [i] of the array points to the center of halo [i].
-
-        """
-
-        self.centers_indx = hp.ang2pix(self.nside,
-                                       self.catalog.data.theta.to_list(),
-                                       self.catalog.data.phi.to_list())
-
-        print("Done! You can now get the center pixels using Canvas.centers_indx.")
-
-    def find_centers_ang(self):
-        """
-        Store the theta and phi coordinates of the halos in Canvas.centers_ang
-
-        Returns
-        -------
-        None
-        """
-
-        self.centers_ang = np.asarray([self.catalog.data.theta.to_list(),
-                                     self.catalog.data.phi.to_list()])
-
-        print("Done! You can now get the angular position of the discs using Canvas.centers_ang.")
-
-    def find_centers_vec(self):
-        """
-        Find the unit vectors pointing to the halo centers
-
-        Returns
-        -------
-        None
-        Sets Canvas.centers_vec to array of pixels.
-        Element [i] of the array points to the center of halo [i].
-
-        """
-
-        self.centers_vec = hp.ang2vec(self.catalog.data.theta.to_list(),
-                                      self.catalog.data.phi.to_list())
-
-        print("Done! You can now get the center pixel vectors using Canvas.centers_vec.")
-
-    def find_discs_indx(self, R_times):
-        """
-        Find the pixel indices of discs of size k times R_200 around halo centers
-
-        Parameters
-        ----------
-        R_times: int
-            multiplicative factor indicating the extent of the queried disc in units of R_200
-
-        Returns
-        -------
-        None
-
-        Sets Canvas.discs_indx to a list of pixel index arrays. Element [i] of the list holds the
-        pixel indices around halo [i].
-
-        """
-
-        #FIXME: list comprehension
-        self.R_times = R_times
-        self.discs_indx = ([np.asarray(
-                                    hp.query_disc(self.nside,
-                                                  (self.catalog.data.x[halo],
-                                                   self.catalog.data.y[halo],
-                                                   self.catalog.data.z[halo]),
-                                                  R_times * transform.arcmin2rad(
-                                                             self.catalog.data.R_th_200c[halo]),
-                                                  inclusive=self.inclusive,
-                                                  )
-                                       )
-                                for halo in range(self.catalog.size)])
-
-        print("Done! You can now get the discs using Canvas.discs_indx.")
-
-    def find_discs_ang(self):
-        """
-        Find the angular coordinates of the disc pixels
-
-        Returns
-        -------
-        None
-        """
-        try:
-            self.discs_indx
-        except AttributeError:
-            print("Canvas.discs_indx is not defined. Use Canvas.find_discs_indx to set it up.")
-
-        #FIXME: list comprehension
-        self.discs_ang = [np.asarray(
-            hp.pix2ang(self.nside, indx)
-            )
-            for indx in self.discs_indx]
-
-        print("Done! You can now get the angular position of the discs using Canvas.discs_ang.")
-
-    def find_discs_vec(self):
-        """
-        Find the unit vectors pointing to the disc pixels
-
-        Returns
-        -------
-        None
-        """
-        try:
-            self.discs_indx
-        except AttributeError:
-            print("Canvas.discs_indx is not defined. Use Canvas.find_discs_indx to set it up.")
-
-        #FIXME: list comprehension
-        self.discs_vec = [np.asarray(
-            hp.pix2vec(self.nside, indx)
-            ).T
-            for indx in self.discs_indx]
-
-        print("Done! You can now get the vectots pointing to the disc pixels using "
-              "Canvas.discs_vec.")
-    @profile
-    def find_discs_2center_distance(self):
-        """
-        Find the angular distance [radians] of disc pixels to the halo center pixel
-
-        Returns
-        -------
-        None
-        """
-
-        # squeeze the disc_ang arrays to remove redundant second dimensions
-        # this is necessary at the moment to avoid a bug in healpy.rotator.angdist
-        # when calculating the angdist o=for arrays of shape (2,1) and (2,)
-        # the returned results is 3 dimensional instead of 1
-        # squeezing the array will resolve the issue though
-        # TODO: update this and post issue on healpy github
-
-        #FIXME: list comprehension
-        self.discs_ang = [np.squeeze(self.discs_ang[halo]) for halo in range(self.catalog.size)]
-
-        #FIXME: list comprehension
-        self.discs_2center_rad = [hp.rotator.angdist(self.discs_ang[halo],\
-                                                    self.centers_ang[:, halo])
-                                for halo in range(self.catalog.size)]
-
-        #FIXME: list comprehension
-        self.discs_2center_mpc = [self.centers_D_a[halo]*self.discs_2center_rad[halo]
-                                  for halo in range(self.catalog.size)]
-
-    def find_discs_2center_vec(self):
-        """
-        Find the 3D unit vector pointing from the disc pixels to the halo center pixel
-
-        Returns
-        -------
-        None
-        """
-
-        # if discs_vec does not exist, find it
-        try:
-            self.discs_vec
-        except AttributeError:
-            self.find_discs_vec()
-
-        # if centers_vec does not exist, find it
-        try:
-            self.centers_vec
-        except AttributeError:
-            self.find_centers_vec()
-
-        #FIXME: list comprehension
-        self.discs_2center_vec = [self._normalize_vec(self.discs_vec[halo] - self.centers_vec[halo],
-                                                     axis=-1)
-                                  for halo in range(self.catalog.size)]
-
-    @staticmethod
-    def _normalize_vec(vec, axis=-1):
-        """normalize_vec the input vector along the given axis"""
-
-        norm = np.linalg.norm(vec, axis=axis)
-
-        return np.true_divide(vec, np.expand_dims(norm, axis=axis))
     @profile
     def get_Cl(self):
         """find the power spectrum of the map (.pixels)"""
@@ -1019,9 +1061,9 @@ class Painter:
 
         # check the units
         if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
-            r = canvas.discs_2center_mpc
+            r = canvas.discs.discs_2center_mpc
         elif distance_units.lower() in ["radians", "rad", "rads"]:
-            r = canvas.discs_2center_rad
+            r = canvas.discs.discs_2center_rad
         else:
             raise KeyError("distance_units must be either 'mpc' or 'radians'.")
 
@@ -1053,7 +1095,7 @@ class Painter:
         else:
             #FIXME: list comprehension
             [np.add.at(canvas.pixels,
-                       canvas.discs_indx[halo],
+                       canvas.discs.discs_indx[halo],
                        self.template(r[halo],
                                      **spray_df.loc[halo]))
              for halo in range(canvas.catalog.size)]
