@@ -509,10 +509,12 @@ class Canvas:
                      'center_D_a',
                      'center_index',
                      'center_ang',
+                     'center_vec',
                      'pixel_index',
                      'pixel_ang',
                      'pix2cent_rad',
                      'pix2cent_mpc',
+                     'pix2cent_vec',
                      ]
 
         def __init__(self,
@@ -532,10 +534,12 @@ class Canvas:
             self.inclusive = inclusive
 
             self.center_D_a = self.catalog.data.D_a
+
         # ------------------------
         #       finder methods
         # ------------------------
 
+        #FIXME: decide whether to keep this or discard it
         def analyze(self,):
             """
             Analyze the catalog and find the relevant pixels on the canvas
@@ -763,11 +767,22 @@ class Canvas:
 
             assert hasattr(halo_list, '__iter__')
 
+            #TODO: check if this is faster with pandas .iterrows or .itertuples
             for halo in halo_list:
                 yield (self.catalog.data.theta[halo],
                        self.catalog.data.phi[halo])
 
-        def gen_pixel_index(self, R_times, halo_list="All"):
+        def gen_center_vec(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for halo in halo_list:
+                yield hp.ang2vec(self.catalog.data.theta[halo],
+                                 self.catalog.data.phi[halo])
+
+        def gen_pixel_index(self, halo_list="All"):
             if halo_list is "All":
                 halo_list = range(self.catalog.size)
 
@@ -778,22 +793,37 @@ class Canvas:
                               (self.catalog.data.x[halo],
                                self.catalog.data.y[halo],
                                self.catalog.data.z[halo]),
-                              R_times * transform.arcmin2rad(
+                              self.R_times * transform.arcmin2rad(
                                   self.catalog.data.R_th_200c[halo]),
                               inclusive=self.inclusive,
                               )
 
-        def gen_pixel_ang(self, R_times, halo_list="All"):
+        def gen_pixel_ang(self, halo_list="All"):
             if halo_list is "All":
                 halo_list = range(self.catalog.size)
 
             assert hasattr(halo_list, '__iter__')
 
-            for index in self.gen_pixel_index(R_times, halo_list):
+            for index in self.gen_pixel_index(halo_list):
                 yield hp.pix2ang(self.nside, index)
 
+        def gen_pixel_vec(self, halo_list="All"):
+            """
+            generate the unit vectors pointing to the disc pixels
 
-        def gen_pix2cent_rad(self, halo_list="All"):
+            Returns
+            -------
+            None
+            """
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for index in self.gen_pixel_index(halo_list):
+                yield hp.pix2vec(self.nside, index).T
+
+        def gen_cent2pix_rad(self, halo_list="All"):
             if halo_list is "All":
                 halo_list = range(self.catalog.size)
 
@@ -803,7 +833,7 @@ class Canvas:
                                                self.gen_center_ang(halo_list)):
                 yield hp.rotator.angdist(pixel_ang, center_ang)
 
-        def gen_pix2cent_mpc(self, halo_list="All"):
+        def gen_cent2pix_mpc(self, halo_list="All"):
             if halo_list is "All":
                 halo_list = range(self.catalog.size)
 
@@ -811,6 +841,14 @@ class Canvas:
 
             for (halo, pix2cent_rad) in zip(halo_list, self.gen_pix2cent_rad(halo_list)):
                 yield self.center_D_a[halo] * pix2cent_rad
+
+        def gen_cent2pix_hat(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            for (pix_vec, cent_vec) in zip(self.gen_pixel_vec(halo_list),
+                                           self.gen_center_vec(halo_list)):
+                yield Canvas._normalize_vec(pix_vec - cent_vec)
 
     def generate_discs(self):
         """instantiate the discs attribute using the Disc class
