@@ -821,7 +821,7 @@ class Canvas:
             assert hasattr(halo_list, '__iter__')
 
             for index in self.gen_pixel_index(halo_list):
-                yield hp.pix2vec(self.nside, index).T
+                yield np.asarray(hp.pix2vec(self.nside, index)).T
 
         def gen_cent2pix_rad(self, halo_list="All"):
             if halo_list is "All":
@@ -829,7 +829,7 @@ class Canvas:
 
             assert hasattr(halo_list, '__iter__')
 
-            for (pixel_ang, center_ang) in zip(self.gen_pixel_ang(self.R_times, halo_list),
+            for (pixel_ang, center_ang) in zip(self.gen_pixel_ang(halo_list),
                                                self.gen_center_ang(halo_list)):
                 yield hp.rotator.angdist(pixel_ang, center_ang)
 
@@ -839,7 +839,7 @@ class Canvas:
 
             assert hasattr(halo_list, '__iter__')
 
-            for (halo, pix2cent_rad) in zip(halo_list, self.gen_pix2cent_rad(halo_list)):
+            for (halo, pix2cent_rad) in zip(halo_list, self.gen_cent2pix_rad(halo_list)):
                 yield self.center_D_a[halo] * pix2cent_rad
 
         def gen_cent2pix_hat(self, halo_list="All"):
@@ -1177,9 +1177,9 @@ class Painter:
 
         # check the units
         if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
-            r_pix2cent = canvas.discs.gen_pix2cent_mpc
+            r_pix2cent = canvas.discs.gen_cent2pix_mpc
         elif distance_units.lower() in ["radians", "rad", "rads"]:
-            r_pix2cent = canvas.discs.gen_pix2cent_rad
+            r_pix2cent = canvas.discs.gen_cent2pix_rad
         else:
             raise KeyError("distance_units must be either 'mpc' or 'radians'.")
 
@@ -1199,14 +1199,17 @@ class Painter:
 
         #TODO: unify this with the other two conditions
         elif 'r_hat' in self.template_args_list:
-            r_hat = canvas.discs_2center_vec
+            r_hat = canvas.discs.gen_cent2pix_hat
 
             [np.add.at(canvas.pixels,
-                   canvas.discs_indx[halo],
-                   self.template(r[halo],
-                                 r_hat[halo],
-                                 **spray_df.loc[halo]))
-            for halo in range(canvas.catalog.size)]
+                       pixel_index,
+                       self.template(r,
+                                     r_hat,
+                                     **spray_df.loc[halo]))
+            for halo, r, r_hat, pixel_index in zip(range(canvas.catalog.size),
+                                             r_pix2cent(),
+                                             r_hat(),
+                                             canvas.discs.gen_pixel_index())]
 
         else:
             #FIXME: list comprehension
@@ -1214,8 +1217,9 @@ class Painter:
                        pixel_index,
                        self.template(r,
                                      **spray_df.loc[halo]))
-             for halo, r, pixel_index in zip(range(canvas.catalog.size), r_pix2cent(),
-                                canvas.discs.gen_pixel_index(canvas.R_times))]
+            for halo, r, pixel_index in zip(range(canvas.catalog.size),
+                                             r_pix2cent(),
+                                             canvas.discs.gen_pixel_index())]
 
         print("Your artwork is fininshed. Check it out with Canvas.show_map()")
 
