@@ -514,6 +514,7 @@ class Canvas:
                      'pix2cent_rad',
                      'pix2cent_mpc',
                      ]
+
         def __init__(self,
                      catalog,
                      nside,
@@ -530,8 +531,9 @@ class Canvas:
             self.R_times = R_times
             self.inclusive = inclusive
 
+            self.center_D_a = self.catalog.data.D_a
         # ------------------------
-        #         methods
+        #       finder methods
         # ------------------------
 
         def analyze(self,):
@@ -543,14 +545,14 @@ class Canvas:
             None
             """
 
-            self.center_D_a = self.catalog.data.D_a
-            # update the index and angular location of the center pixel
-            self.find_centers_indx()
-            self.find_centers_ang()
 
-            self.find_discs_indx(self.R_times)
-            self.find_discs_ang()
-            self.find_discs_2center_distance()
+            # update the index and angular location of the center pixel
+            # self.find_centers_indx()
+            # self.find_centers_ang()
+            #
+            # self.find_discs_indx(self.R_times)
+            # self.find_discs_ang()
+            # self.find_discs_2center_distance()
 
 
         def find_centers_indx(self):
@@ -739,6 +741,76 @@ class Canvas:
                                                           self.centers_vec[halo],
                                           axis=-1)
                                           for halo in range(self.catalog.size)]
+
+        # ------------------------
+        #    generator methods
+        # ------------------------
+
+        def gen_center_index(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for halo in halo_list:
+                yield hp.ang2pix(self.nside,
+                                 self.catalog.data.theta[halo],
+                                 self.catalog.data.phi[halo])
+
+        def gen_center_ang(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for halo in halo_list:
+                yield (self.catalog.data.theta[halo],
+                       self.catalog.data.phi[halo])
+
+        def gen_pixel_index(self, R_times, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for halo in halo_list:
+                yield hp.query_disc(self.nside,
+                              (self.catalog.data.x[halo],
+                               self.catalog.data.y[halo],
+                               self.catalog.data.z[halo]),
+                              R_times * transform.arcmin2rad(
+                                  self.catalog.data.R_th_200c[halo]),
+                              inclusive=self.inclusive,
+                              )
+
+        def gen_pixel_ang(self, R_times, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for index in self.gen_pixel_index(R_times, halo_list):
+                yield hp.pix2ang(self.nside, index)
+
+
+        def gen_pix2cent_rad(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for (pixel_ang, center_ang) in zip(self.gen_pixel_ang(self.R_times, halo_list),
+                                               self.gen_center_ang(halo_list)):
+                yield hp.rotator.angdist(pixel_ang, center_ang)
+
+        def gen_pix2cent_mpc(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for (halo, pix2cent_rad) in zip(halo_list, self.gen_pix2cent_rad(halo_list)):
+                yield self.center_D_a[halo] * pix2cent_rad
 
     def generate_discs(self):
         """instantiate the discs attribute using the Disc class
@@ -1067,9 +1139,9 @@ class Painter:
 
         # check the units
         if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
-            r = canvas.discs.pix2cent_mpc
+            r_pix2cent = canvas.discs.gen_pix2cent_mpc
         elif distance_units.lower() in ["radians", "rad", "rads"]:
-            r = canvas.discs.pix2cent_rad
+            r_pix2cent = canvas.discs.gen_pix2cent_rad
         else:
             raise KeyError("distance_units must be either 'mpc' or 'radians'.")
 
@@ -1101,10 +1173,11 @@ class Painter:
         else:
             #FIXME: list comprehension
             [np.add.at(canvas.pixels,
-                       canvas.discs.pixel_index[halo],
-                       self.template(r[halo],
+                       pixel_index,
+                       self.template(r,
                                      **spray_df.loc[halo]))
-             for halo in range(canvas.catalog.size)]
+             for halo, r, pixel_index in zip(range(canvas.catalog.size), r_pix2cent(),
+                                canvas.discs.gen_pixel_index(canvas.R_times))]
 
         print("Your artwork is fininshed. Check it out with Canvas.show_map()")
 
