@@ -689,7 +689,6 @@ class Canvas:
             print("Done! You can now get the vectots pointing to the disc pixels using "
                   "Canvas.discs_vec.")
 
-        @profile
         def find_discs_2center_distance(self):
             """
             Find the angular distance [radians] of disc pixels to the halo center pixel
@@ -875,7 +874,6 @@ class Canvas:
 
         self.pixels = np.zeros(self.npix)
 
-    @profile
     def get_Cl(self):
         """find the power spectrum of the map (.pixels)"""
 
@@ -971,7 +969,7 @@ class Canvas:
         def set_to_1(disc):
             junk_pixels[disc] = 1
 
-        [set_to_1(disc) for disc in self.discs_indx]
+        [set_to_1(disc) for disc in self.discs.gen_pixel_index()]
 
         if graticule: hp.graticule()
 
@@ -1112,7 +1110,6 @@ class Painter:
     #         methods
     # ------------------------
 
-    @profile
     def spray(self,
               canvas,
               distance_units="Mpc",
