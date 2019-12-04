@@ -258,6 +258,23 @@ class Catalog:
         return pd.DataFrame(catalog)  # convert catalog to pandas data frame
 
     @staticmethod
+    def generate_test_box(configuration="center",
+                          distance=100,
+                          mass=1E14,
+                          ):
+
+        if configuration is "center":
+            # generate single test halo
+            catalog = Catalog._initialize_catalog(1)
+
+            catalog["x"], catalog["y"], catalog["z"] = (distance, 0, 0)
+
+            # generate random log uniform masses
+            catalog["M_200c"] = mass
+
+        return pd.DataFrame(catalog)  # convert catalog to pandas data frame
+
+    @staticmethod
     def _set_octant(df, octant):
         """Affix an octant column to a copy of the data frame """
         df_copy = df.copy() #FIXME: Make sure shallow copy is safe
