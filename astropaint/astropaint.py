@@ -864,7 +864,7 @@ class Canvas:
 
             for (pixel_ang, center_ang) in zip(self.gen_pixel_ang(halo_list),
                                                self.gen_center_ang(halo_list)):
-                yield hp.rotator.angdist(pixel_ang, center_ang)
+                yield hp.rotator.angdist(np.squeeze(pixel_ang), center_ang)
 
         def gen_cent2pix_mpc(self, halo_list="All"):
             if halo_list is "All":
