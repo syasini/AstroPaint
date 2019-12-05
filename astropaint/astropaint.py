@@ -258,6 +258,40 @@ class Catalog:
         return pd.DataFrame(catalog)  # convert catalog to pandas data frame
 
     @staticmethod
+    def generate_test_box(configuration=["front"],
+                          distance=100,
+                          mass=1E15,
+                          ):
+
+        catalog = pd.DataFrame(Catalog._initialize_catalog(0))
+        config_dict = {"front": (1, 0, 0),
+                       "back": (-1, 0, 0),
+                       "left": (0, 1, 0),
+                       "right": (0, -1, 0),
+                       "top": (0, 0, 1),
+                       "bottom": (0, 0, -1),
+                       }
+
+        # set configuration for "all" keyword
+        if "all" in configuration:
+            configuration = config_dict.keys()
+
+        for key in configuration:
+            # get the coordinates from config_dic and load it in a dataframe
+            x, y, z = config_dict[key]
+            df = pd.DataFrame(Catalog._initialize_catalog(1))
+            df["x"], df["y"], df["z"] = x, y, z
+            df[["x", "y", "z"]] *= distance
+
+            # set the mass
+            df["M_200c"] = mass
+
+            # append the test case to the catalog
+            catalog = catalog.append(df, ignore_index=True)
+
+        return pd.DataFrame(catalog)  # return the pandas dataframe
+
+    @staticmethod
     def _set_octant(df, octant):
         """Affix an octant column to a copy of the data frame """
         df_copy = df.copy() #FIXME: Make sure shallow copy is safe
