@@ -413,6 +413,125 @@ class Catalog:
         # reset data and rebuild the dataframe
         self.data = data
 
+    def cut_M_200c(self, mass_min=0., mass_max=np.inf):
+        """
+        Cut the catalog according the the given mass range
+
+        Parameters
+        ----------
+        mass_min [M_sun]
+            minimum halo mass to keep
+        mass_max [M_sun]
+            maximum halo mass to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with mass M in the range mass_min < M < mass_max
+        """
+        self.data = self.data[(self.data.M_200c > mass_min) & (self.data.M_200c < mass_max)]
+
+    def cut_R_200c(self, R_min=0., R_max=np.inf):
+        """
+        Cut the catalog according the the given radius range
+
+        Parameters
+        ----------
+        R_min [Mpc]
+            minimum halo radius to keep
+        R_max [Mpc]
+            maximum halo radius to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with radius R in the range R_min < R < R_max
+        """
+        self.data = self.data[(self.data.R_200c > R_min) & (self.data.R_200c < R_max)]
+
+    def cut_D_c(self, D_min=0., D_max=np.inf):
+        """
+        Cut the catalog according the the given comoving distance range
+
+        Parameters
+        ----------
+        D_min [Mpc]
+            minimum halo comoving distance to keep
+        D_max [Mpc]
+            maximum halo comoving distance to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with comoving distance D_c in the range D_min < D_c <
+        D_max
+        """
+        self.data = self.data[(self.data.D_c > D_min) & (self.data.D_c < D_max)]
+
+    def cut_D_a(self, D_min=0., D_max=np.inf):
+        """
+        Cut the catalog according the the given angular diameter distance range
+
+        Parameters
+        ----------
+        D_min [Mpc]
+            minimum halo angular diameter  distance to keep
+        D_max [Mpc]
+            maximum halo angular diameter  distance to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with angular diameter distance D_a in the range
+        D_min < D_a < D_max
+        """
+        self.data = self.data[(self.data.D_a > D_min) & (self.data.D_a < D_max)]
+
+    def cut_lon_lat(self,
+                   lon_range=[0, 360],
+                   lat_range=[-90, 90]):
+        """
+        Cut the catalog according the the given longitude and latitude range 
+        
+        Parameters
+        ----------
+        lon_range [deg]
+            range of longitutes to keep 
+        lat_range [deg]
+            rane of latitudes to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with longitutes in the range lon_range and 
+        latitudes in the range lat_range
+        """
+
+        self.data = self.data[(self.data.lon > lon_range[0]) &
+                              (self.data.lon < lon_range[1]) &
+                              (self.data.lat > lat_range[0]) &
+                              (self.data.lat < lat_range[1])]
+
+    def cut_theta_phi(self,
+                    theta_range=[0, np.pi],
+                    phi_range=[0, 2 * np.pi]):
+        """
+        Cut the catalog according the the given longitude and latitude range
+
+        Parameters
+        ----------
+        theta_range [rad]
+            range of longitutes to keep
+        phi_range [rad]
+            rane of latitudes to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with theta in the range theta_range and
+        phi in the range phi_range
+        """
+
+        self.data = self.data[(self.data.theta > theta_range[0]) &
+                              (self.data.theta < theta_range[1]) &
+                              (self.data.phi > phi_range[0]) &
+                              (self.data.phi < phi_range[1])]
+
+
 #########################################################
 #                  Canvas Object
 #########################################################
