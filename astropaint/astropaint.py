@@ -413,6 +413,72 @@ class Catalog:
         # reset data and rebuild the dataframe
         self.data = data
 
+    def cut_mass(self, mass_min=0., mass_max=np.inf):
+        """
+        Cut the catalog according the the given mass range
+
+        Parameters
+        ----------
+        mass_min [M_sun]
+            minimum halo mass to keep
+        mass_max [M_sun]
+            maximum halo mass to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with mass M in the range mass_min < M < mass_max
+        """
+        self.data = self.data[(self.data.M_200c > mass_min) & (self.data.M_200c < mass_max)]
+
+    def cut_lon_lat(self,
+                   lon_range=[0, 360],
+                   lat_range=[-90, 90]):
+        """
+        Cut the catalog according the the given longitude and latitude range 
+        
+        Parameters
+        ----------
+        lon_range [deg]
+            range of longitutes to keep 
+        lat_range [deg]
+            rane of latitudes to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with longitutes in the range lon_range and 
+        latitudes in the range lat_range
+        """
+
+        self.data = self.data[(self.data.lon > lon_range[0]) &
+                              (self.data.lon < lon_range[1]) &
+                              (self.data.lat > lat_range[0]) &
+                              (self.data.lat < lat_range[1])]
+
+    def cut_theta_phi(self,
+                    theta_range=[0, np.pi],
+                    phi_range=[0, 2 * np.pi]):
+        """
+        Cut the catalog according the the given longitude and latitude range
+
+        Parameters
+        ----------
+        theta_range [rad]
+            range of longitutes to keep
+        phi_range [rad]
+            rane of latitudes to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with theta in the range theta_range and
+        phi in the range phi_range
+        """
+
+        self.data = self.data[(self.data.theta > theta_range[0]) &
+                              (self.data.theta < theta_range[1]) &
+                              (self.data.phi > phi_range[0]) &
+                              (self.data.phi < phi_range[1])]
+
+
 #########################################################
 #                  Canvas Object
 #########################################################
