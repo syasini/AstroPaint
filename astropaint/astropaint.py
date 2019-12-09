@@ -413,7 +413,7 @@ class Catalog:
         # reset data and rebuild the dataframe
         self.data = data
 
-    def cut_mass(self, mass_min=0., mass_max=np.inf):
+    def cut_M_200c(self, mass_min=0., mass_max=np.inf):
         """
         Cut the catalog according the the given mass range
 
@@ -429,6 +429,59 @@ class Catalog:
         catalog.data will only contain halos with mass M in the range mass_min < M < mass_max
         """
         self.data = self.data[(self.data.M_200c > mass_min) & (self.data.M_200c < mass_max)]
+
+    def cut_R_200c(self, R_min=0., R_max=np.inf):
+        """
+        Cut the catalog according the the given radius range
+
+        Parameters
+        ----------
+        R_min [Mpc]
+            minimum halo radius to keep
+        R_max [Mpc]
+            maximum halo radius to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with radius R in the range R_min < R < R_max
+        """
+        self.data = self.data[(self.data.R_200c > R_min) & (self.data.R_200c < R_max)]
+
+    def cut_D_c(self, D_min=0., D_max=np.inf):
+        """
+        Cut the catalog according the the given comoving distance range
+
+        Parameters
+        ----------
+        D_min [Mpc]
+            minimum halo comoving distance to keep
+        D_max [Mpc]
+            maximum halo comoving distance to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with comoving distance D_c in the range D_min < D_c <
+        D_max
+        """
+        self.data = self.data[(self.data.D_c > D_min) & (self.data.D_c < D_max)]
+
+    def cut_D_a(self, D_min=0., D_max=np.inf):
+        """
+        Cut the catalog according the the given angular diameter distance range
+
+        Parameters
+        ----------
+        D_min [Mpc]
+            minimum halo angular diameter  distance to keep
+        D_max [Mpc]
+            maximum halo angular diameter  distance to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with angular diameter distance D_a in the range
+        D_min < D_a < D_max
+        """
+        self.data = self.data[(self.data.D_a > D_min) & (self.data.D_a < D_max)]
 
     def cut_lon_lat(self,
                    lon_range=[0, 360],
