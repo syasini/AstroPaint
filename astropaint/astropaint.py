@@ -1004,6 +1004,15 @@ class Canvas:
                                            self.gen_center_vec(halo_list)):
                 yield Canvas._normalize_vec(pix_vec - cent_vec)
 
+        def gen_cent2pix_mpc_vec(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            for (halo, pix_vec, cent_vec) in zip(halo_list,
+                                                 self.gen_pixel_vec(halo_list),
+                                                 self.gen_center_vec(halo_list)):
+                yield self.center_D_a[halo] * (pix_vec - cent_vec)
+
     def generate_discs(self):
         """instantiate the discs attribute using the Disc class
         Useful when the disc generators are exhausted and need to be reset"""
