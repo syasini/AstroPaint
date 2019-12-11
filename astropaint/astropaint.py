@@ -1287,47 +1287,9 @@ class Painter:
         """
         print("Painting the canvas...")
 
-        #
-        canvas.template_name = self.template.__name__
+        # prepare the data frame to be used when spraying the canvas
+        spray_df = self._shake_canister(canvas, template_kwargs)
 
-        #TODO: check the arg list and if the parameter is not in the catalog add it there
-
-        # TODO: check the length and type of the extra_params
-
-        # if it's a scalar dictionary extend it to the size of the catalog
-        # also make sure the length matches the size of the catalog
-
-
-        # convert the template_kwargs into a dataframe
-        template_kwargs_df = self._check_template_kwargs(**template_kwargs)
-        # use template args to grab the relevant columns from the catalog dataframe
-        template_args_df = self._check_template_args(canvas.catalog)
-
-        #TODO: remove this block
-        # check the canvas catalog and make sure all the template arguments are already there
-        # for parameter in self.template_args_list[1:]:
-        #     try:
-        #         canvas.catalog.data[parameter]
-        #     except KeyError:
-        #         try:
-        #             template_kwargs[parameter]
-        #         except KeyError:
-        #             raise KeyError(f"Parameter {parameter} was not found either in the canvas.catalog.data "
-        #                   f"or the extra_params.")
-
-        # match the size of the args and kwargs dataframes
-        # if template kwargs are scalars, extend then to the size of the catalog
-        if template_kwargs_df is None:
-            pass
-        elif len(template_kwargs_df) == 1:
-            template_kwargs_df = pd.concat([template_kwargs_df]*len(template_args_df),
-                                           ignore_index=True)
-
-        #TODO: check for other conditions (e.g. longer len, shorter, etc.)
-
-        # concatenate the two dataframes together
-        spray_df = pd.concat((template_args_df, template_kwargs_df), axis=1)
-        print(f"spray_df.columns = {spray_df.columns}")
 
         # check the units
         if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
@@ -1511,6 +1473,41 @@ class Painter:
 
         template_args_df = catalog.data[parameters]
         return template_args_df
+
+    def _shake_canister(self, canvas, template_kwargs):
+        """prepare a dataframe to be used by the spray method"""
+
+        # set template name on canvas
+        canvas.template_name = self.template.__name__
+
+        #TODO: check the arg list and if the parameter is not in the catalog add it there
+
+        # TODO: check the length and type of the extra_params
+
+        # if it's a scalar dictionary extend it to the size of the catalog
+        # also make sure the length matches the size of the catalog
+
+
+        # convert the template_kwargs into a dataframe
+        template_kwargs_df = self._check_template_kwargs(**template_kwargs)
+        # use template args to grab the relevant columns from the catalog dataframe
+        template_args_df = self._check_template_args(canvas.catalog)
+
+        # match the size of the args and kwargs dataframes
+        # if template kwargs are scalars, extend then to the size of the catalog
+        if template_kwargs_df is None:
+            pass
+        elif len(template_kwargs_df) == 1:
+            template_kwargs_df = pd.concat([template_kwargs_df]*len(template_args_df),
+                                           ignore_index=True)
+
+        #TODO: check for other conditions (e.g. longer len, shorter, etc.)
+
+        # concatenate the two dataframes together
+        spray_df = pd.concat((template_args_df, template_kwargs_df), axis=1)
+        print(f"spray_df.columns = {spray_df.columns}")
+
+        return spray_df
 
 
 
