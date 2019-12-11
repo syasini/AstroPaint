@@ -1298,7 +1298,7 @@ class Painter:
 
         # prepare the data frame to be used when spraying the canvas
         spray_df = self._shake_canister(canvas, template_kwargs)
-
+        template = self.template
 
         # check the units
         #if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
@@ -1309,16 +1309,6 @@ class Painter:
         #     raise KeyError("distance_units must be either 'mpc' or 'radians'.")
 
 
-        #TODO: this has been checked elsewhere... remove it
-        # make sure either r (distance) or r_vec are in the argument list
-        # but not both!
-        assert sum([arg in self.template_args_list for arg in ['r', 'r_vec']]) == 1,\
-            "Either 'r' or 'r_vec' must be a template argument (only one of them and not both)."
-
-        # make sure either r or r_vec appears as the first argument
-        assert self.template_args_list[0] in ['r', 'r_vec'], \
-            "Either 'r' or 'r_vec' must be the template's first argument"
-
 
         r_mode = self.template_args_list[0]
 
@@ -1327,41 +1317,51 @@ class Painter:
         if r_mode is "r_vec":
             r_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
 
-        if with_ray is False:
-            #TODO: think about how to redo this part
-            if len(self.template_args_list) == 1:
+        if not with_ray:
 
-                #FIXME: list comprehension
-                [np.add.at(canvas.pixels,
-                           pixel_index,
-                           self.template(r))
-                for halo, r, pixel_index in zip(range(canvas.catalog.size),
-                                                 r_pix2cent(),
-                                                 canvas.discs.gen_pixel_index())]
+            for halo, r, pixel_index in zip(range(canvas.catalog.size),
+                                                  r_pix2cent(),
+                                                  canvas.discs.gen_pixel_index()):
 
-            #TODO: unify this with the other two conditions
-            elif 'r_hat' in self.template_args_list:
-                r_hat = canvas.discs.gen_cent2pix_hat
+                spray_dict = {r_mode: r, **spray_df.loc[halo]}
+                np.add.at(canvas.pixels,
+                          pixel_index,
+                          template(**spray_dict))
 
-                [np.add.at(canvas.pixels,
-                           pixel_index,
-                           self.template(r,
-                                         r_hat,
-                                         **spray_df.loc[halo]))
-                for halo, r, r_hat, pixel_index in zip(range(canvas.catalog.size),
-                                                 r_pix2cent(),
-                                                 r_hat(),
-                                                 canvas.discs.gen_pixel_index())]
-
-            else:
-                #FIXME: list comprehension
-                [np.add.at(canvas.pixels,
-                           pixel_index,
-                           self.template(r,
-                                         **spray_df.loc[halo]))
-                for halo, r, pixel_index in zip(range(canvas.catalog.size),
-                                                 r_pix2cent(),
-                                                 canvas.discs.gen_pixel_index())]
+            # #TODO: think about how to redo this part
+            # if len(self.template_args_list) == 1:
+            #
+            #     #FIXME: list comprehension
+            #     [np.add.at(canvas.pixels,
+            #                pixel_index,
+            #                self.template(r))
+            #     for halo, r, pixel_index in zip(range(canvas.catalog.size),
+            #                                      r_pix2cent(),
+            #                                      canvas.discs.gen_pixel_index())]
+            #
+            # #TODO: unify this with the other two conditions
+            # elif 'r_hat' in self.template_args_list:
+            #     r_hat = canvas.discs.gen_cent2pix_hat
+            #
+            #     [np.add.at(canvas.pixels,
+            #                pixel_index,
+            #                self.template(r,
+            #                              r_hat,
+            #                              **spray_df.loc[halo]))
+            #     for halo, r, r_hat, pixel_index in zip(range(canvas.catalog.size),
+            #                                      r_pix2cent(),
+            #                                      r_hat(),
+            #                                      canvas.discs.gen_pixel_index())]
+            #
+            # else:
+            #     #FIXME: list comprehension
+            #     [np.add.at(canvas.pixels,
+            #                pixel_index,
+            #                self.template(r,
+            #                              **spray_df.loc[halo]))
+            #     for halo, r, pixel_index in zip(range(canvas.catalog.size),
+            #                                      r_pix2cent(),
+            #                                      canvas.discs.gen_pixel_index())]
 
         elif with_ray:
             print("spraying with ray")
@@ -1443,10 +1443,19 @@ class Painter:
             message += f"and the following keyword-only arguments:\n" \
                        f"{self.template_kwargs_list}"
 
+        # make sure either r (distance) or r_vec are in the argument list
+        # but not both!
+        assert sum([arg in self.template_args_list for arg in ['r', 'r_vec']]) == 1,\
+            "Either 'r' or 'r_vec' must be a template argument (only one of them and not both)."
+
+        # make sure either r or r_vec appears as the first argument
+        assert self.template_args_list[0] in ['r', 'r_vec'], \
+            "Either 'r' or 'r_vec' must be the template's first argument"
+
         # ensure the first argument of the profile template is 'r'
-        assert self.template_args_list[0] == "r", "The first argument of the profile template " \
-                                                  "must be 'r' (the distance from the center of " \
-                                                  "the halo)."
+        # assert self.template_args_list[0] == "r", "The first argument of the profile template " \
+        #                                          "must be 'r' (the distance from the center of " \
+        #                                          "the halo)."
         print(message)
 
     def _check_template_kwargs(self, **template_kwargs):
