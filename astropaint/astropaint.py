@@ -1301,17 +1301,31 @@ class Painter:
 
 
         # check the units
-        if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
-            r_pix2cent = canvas.discs.gen_cent2pix_mpc
-        elif distance_units.lower() in ["radians", "rad", "rads"]:
-            r_pix2cent = canvas.discs.gen_cent2pix_rad
-        else:
-            raise KeyError("distance_units must be either 'mpc' or 'radians'.")
+        #if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
+        #    r_pix2cent = canvas.discs.gen_cent2pix_mpc
+        #elif distance_units.lower() in ["radians", "rad", "rads"]:
+        #     r_pix2cent = canvas.discs.gen_cent2pix_rad
+        # else:
+        #     raise KeyError("distance_units must be either 'mpc' or 'radians'.")
 
 
         #TODO: this has been checked elsewhere... remove it
-        # make sure r (distance) is in the argument list
-        assert 'r' in self.template_args_list
+        # make sure either r (distance) or r_vec are in the argument list
+        # but not both!
+        assert sum([arg in self.template_args_list for arg in ['r', 'r_vec']]) == 1,\
+            "Either 'r' or 'r_vec' must be a template argument (only one of them and not both)."
+
+        # make sure either r or r_vec appears as the first argument
+        assert self.template_args_list[0] in ['r', 'r_vec'], \
+            "Either 'r' or 'r_vec' must be the template's first argument"
+
+
+        r_mode = self.template_args_list[0]
+
+        if r_mode is "r":
+            r_pix2cent = canvas.discs.gen_cent2pix_mpc
+        if r_mode is "r_vec":
+            r_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
 
         if with_ray is False:
             #TODO: think about how to redo this part
