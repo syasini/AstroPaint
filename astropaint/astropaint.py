@@ -13,6 +13,7 @@ from warnings import warn
 import inspect
 from itertools import product
 import operator
+import ray
 from memory_profiler import profile
 
 try:
@@ -677,8 +678,6 @@ class Canvas:
                      inclusive,
                      ):
 
-
-
             #FIXME: the whole catalog does not need to be passed to disc here
             #Check if this affects performance
             self.catalog = catalog
@@ -691,6 +690,8 @@ class Canvas:
         # ------------------------
         #       finder methods
         # ------------------------
+        #FIXME: Add warning message upon calling finder methods
+        # suggest using the generator methods instead
 
         #FIXME: decide whether to keep this or discard it
         def analyze(self,):
@@ -901,6 +902,7 @@ class Canvas:
         # ------------------------
         #    generator methods
         # ------------------------
+        #TODO: Add doctring to the generator methods
 
         def gen_center_index(self, halo_list="All"):
             if halo_list is "All":
@@ -1190,9 +1192,9 @@ class Canvas:
 
 
     def save_Cl_to_file(self,
-                         prefix=None,
-                         suffix=None,
-                         filename=None):
+                        prefix=None,
+                        suffix=None,
+                        filename=None):
         """save the map power spectrum to file
 
         Parameters
@@ -1266,6 +1268,8 @@ class Painter:
     def spray(self,
               canvas,
               distance_units="Mpc",
+              with_ray=True,
+              batches=True,
               **template_kwargs):
 
         """
@@ -1338,44 +1342,98 @@ class Painter:
         # make sure r (distance) is in the argument list
         assert 'r' in self.template_args_list
 
-        #TODO: think about how to redo this part
-        if len(self.template_args_list) == 1:
+        if with_ray is False:
+            #TODO: think about how to redo this part
+            if len(self.template_args_list) == 1:
 
-            #FIXME: list comprehension
-            [np.add.at(canvas.pixels,
-                       canvas.discs_indx[halo],
-                       self.template(r[halo]))
-             for halo in range(canvas.catalog.size)]
+                #FIXME: list comprehension
+                [np.add.at(canvas.pixels,
+                           pixel_index,
+                           self.template(r))
+                for halo, r, pixel_index in zip(range(canvas.catalog.size),
+                                                 r_pix2cent(),
+                                                 canvas.discs.gen_pixel_index())]
 
-        #TODO: unify this with the other two conditions
-        elif 'r_hat' in self.template_args_list:
-            r_hat = canvas.discs.gen_cent2pix_hat
+            #TODO: unify this with the other two conditions
+            elif 'r_hat' in self.template_args_list:
+                r_hat = canvas.discs.gen_cent2pix_hat
 
-            [np.add.at(canvas.pixels,
-                       pixel_index,
-                       self.template(r,
-                                     r_hat,
-                                     **spray_df.loc[halo]))
-            for halo, r, r_hat, pixel_index in zip(range(canvas.catalog.size),
-                                             r_pix2cent(),
-                                             r_hat(),
-                                             canvas.discs.gen_pixel_index())]
+                [np.add.at(canvas.pixels,
+                           pixel_index,
+                           self.template(r,
+                                         r_hat,
+                                         **spray_df.loc[halo]))
+                for halo, r, r_hat, pixel_index in zip(range(canvas.catalog.size),
+                                                 r_pix2cent(),
+                                                 r_hat(),
+                                                 canvas.discs.gen_pixel_index())]
 
-        else:
-            #FIXME: list comprehension
-            [np.add.at(canvas.pixels,
-                       pixel_index,
-                       self.template(r,
-                                     **spray_df.loc[halo]))
-            for halo, r, pixel_index in zip(range(canvas.catalog.size),
-                                             r_pix2cent(),
-                                             canvas.discs.gen_pixel_index())]
+            else:
+                #FIXME: list comprehension
+                [np.add.at(canvas.pixels,
+                           pixel_index,
+                           self.template(r,
+                                         **spray_df.loc[halo]))
+                for halo, r, pixel_index in zip(range(canvas.catalog.size),
+                                                 r_pix2cent(),
+                                                 canvas.discs.gen_pixel_index())]
 
+        elif with_ray:
+            print("spraying with ray")
+            import psutil
+            n_cpus = (psutil.cpu_count(logical=True))
+            print(n_cpus)
+            ray.init(num_cpus=n_cpus)
+
+            # put the canvas pixels in the object store
+            shared_pixels = ray.put(canvas.pixels)
+
+            if batches:
+                #assert batches > 0; "number of batches must be a positive number"
+                print("spraying in batch mode")
+
+                # split the halo list into batches
+                halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
+
+                # set local pointers to the pixel generator and template
+                gen_pixel_index = canvas.discs.gen_pixel_index
+                template = self.template
+
+                for halo_batch in halo_batches:
+                    # paint the shared pixels array in batches with ray
+                    result = self.paint_batch.remote(shared_pixels,
+                                                     halo_batch,
+                                                     r_pix2cent,
+                                                     gen_pixel_index,
+                                                     template,
+                                                     spray_df)
+
+            else:
+                for halo, r, pixel_index in zip(range(canvas.catalog.size),
+                                                r_pix2cent(),
+                                                canvas.discs.gen_pixel_index()):
+                    result = self.paint.remote(shared_pixels, pixel_index, self.template(r, **spray_df.loc[halo]))
+
+            # put the batches together and shut down ray
+            canvas.pixels = ray.get(result)
+            ray.shutdown()
         print("Your artwork is fininshed. Check it out with Canvas.show_map()")
 
-        # acticate the canvas.pixels setter
-        canvas.pixels = canvas.pixels
+        # activate the canvas.pixels setter
+        #canvas.pixels = canvas.pixels
 
+    @ray.remote
+    def paint(shared_pixels, pixel_index, template):
+        np.add.at(shared_pixels, pixel_index, template)
+        return shared_pixels
+
+    @ray.remote
+    def paint_batch(shared_pixels, halo_batch, r_pix2cent, gen_pixel_index, template, spray_df):
+        for halo, r, pixel_index in zip(halo_batch,
+                                        r_pix2cent(halo_list=halo_batch),
+                                        gen_pixel_index(halo_list=halo_batch)):
+            np.add.at(shared_pixels, pixel_index, template(r, **spray_df.loc[halo]))
+        return shared_pixels
 
     def _analyze_template(self):
         """
@@ -1394,9 +1452,11 @@ class Painter:
 
         # print out the list of args and kwargs
         message = f"The template '{self.template_name}' takes in the following arguments:\n" \
-                  f"{self.template_args_list}\n" \
-                  f"and the following keyword-only arguments:\n" \
-                  f"{self.template_kwargs_list}"
+                  f"{self.template_args_list}\n"
+
+        if len(self.template_kwargs_list) > 0:
+            message += f"and the following keyword-only arguments:\n" \
+                       f"{self.template_kwargs_list}"
 
         # ensure the first argument of the profile template is 'r'
         assert self.template_args_list[0] == "r", "The first argument of the profile template " \
