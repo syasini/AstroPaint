@@ -13,6 +13,7 @@ from warnings import warn
 import inspect
 from itertools import product
 import operator
+import ray
 from memory_profiler import profile
 
 try:
@@ -677,8 +678,6 @@ class Canvas:
                      inclusive,
                      ):
 
-
-
             #FIXME: the whole catalog does not need to be passed to disc here
             #Check if this affects performance
             self.catalog = catalog
@@ -691,6 +690,8 @@ class Canvas:
         # ------------------------
         #       finder methods
         # ------------------------
+        #FIXME: Add warning message upon calling finder methods
+        # suggest using the generator methods instead
 
         #FIXME: decide whether to keep this or discard it
         def analyze(self,):
@@ -901,6 +902,7 @@ class Canvas:
         # ------------------------
         #    generator methods
         # ------------------------
+        #TODO: Add doctring to the generator methods
 
         def gen_center_index(self, halo_list="All"):
             if halo_list is "All":
@@ -1001,6 +1003,15 @@ class Canvas:
             for (pix_vec, cent_vec) in zip(self.gen_pixel_vec(halo_list),
                                            self.gen_center_vec(halo_list)):
                 yield Canvas._normalize_vec(pix_vec - cent_vec)
+
+        def gen_cent2pix_mpc_vec(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            for (halo, pix_vec, cent_vec) in zip(halo_list,
+                                                 self.gen_pixel_vec(halo_list),
+                                                 self.gen_center_vec(halo_list)):
+                yield self.center_D_a[halo] * (pix_vec - cent_vec)
 
     def generate_discs(self):
         """instantiate the discs attribute using the Disc class
@@ -1190,9 +1201,9 @@ class Canvas:
 
 
     def save_Cl_to_file(self,
-                         prefix=None,
-                         suffix=None,
-                         filename=None):
+                        prefix=None,
+                        suffix=None,
+                        filename=None):
         """save the map power spectrum to file
 
         Parameters
@@ -1266,6 +1277,8 @@ class Painter:
     def spray(self,
               canvas,
               distance_units="Mpc",
+              with_ray=True,
+              batches=True,
               **template_kwargs):
 
         """
@@ -1283,99 +1296,142 @@ class Painter:
         """
         print("Painting the canvas...")
 
-        #
-        canvas.template_name = self.template.__name__
-
-        #TODO: check the arg list and if the parameter is not in the catalog add it there
-
-        # TODO: check the length and type of the extra_params
-
-        # if it's a scalar dictionary extend it to the size of the catalog
-        # also make sure the length matches the size of the catalog
-
-
-        # convert the template_kwargs into a dataframe
-        template_kwargs_df = self._check_template_kwargs(**template_kwargs)
-        # use template args to grab the relevant columns from the catalog dataframe
-        template_args_df = self._check_template_args(canvas.catalog)
-
-        #TODO: remove this block
-        # check the canvas catalog and make sure all the template arguments are already there
-        # for parameter in self.template_args_list[1:]:
-        #     try:
-        #         canvas.catalog.data[parameter]
-        #     except KeyError:
-        #         try:
-        #             template_kwargs[parameter]
-        #         except KeyError:
-        #             raise KeyError(f"Parameter {parameter} was not found either in the canvas.catalog.data "
-        #                   f"or the extra_params.")
-
-        # match the size of the args and kwargs dataframes
-        # if template kwargs are scalars, extend then to the size of the catalog
-        if template_kwargs_df is None:
-            pass
-        elif len(template_kwargs_df) == 1:
-            template_kwargs_df = pd.concat([template_kwargs_df]*len(template_args_df),
-                                           ignore_index=True)
-
-        #TODO: check for other conditions (e.g. longer len, shorter, etc.)
-
-        # concatenate the two dataframes together
-        spray_df = pd.concat((template_args_df, template_kwargs_df), axis=1)
-        print(f"spray_df.columns = {spray_df.columns}")
+        # prepare the data frame to be used when spraying the canvas
+        spray_df = self._shake_canister(canvas, template_kwargs)
+        template = self.template
 
         # check the units
-        if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
+        #if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
+        #    r_pix2cent = canvas.discs.gen_cent2pix_mpc
+        #elif distance_units.lower() in ["radians", "rad", "rads"]:
+        #     r_pix2cent = canvas.discs.gen_cent2pix_rad
+        # else:
+        #     raise KeyError("distance_units must be either 'mpc' or 'radians'.")
+
+
+
+        r_mode = self.template_args_list[0]
+
+        if r_mode is "r":
             r_pix2cent = canvas.discs.gen_cent2pix_mpc
-        elif distance_units.lower() in ["radians", "rad", "rads"]:
-            r_pix2cent = canvas.discs.gen_cent2pix_rad
-        else:
-            raise KeyError("distance_units must be either 'mpc' or 'radians'.")
+        if r_mode is "r_vec":
+            r_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
 
+        if not with_ray:
 
-        #TODO: this has been checked elsewhere... remove it
-        # make sure r (distance) is in the argument list
-        assert 'r' in self.template_args_list
-
-        #TODO: think about how to redo this part
-        if len(self.template_args_list) == 1:
-
-            #FIXME: list comprehension
-            [np.add.at(canvas.pixels,
-                       canvas.discs_indx[halo],
-                       self.template(r[halo]))
-             for halo in range(canvas.catalog.size)]
-
-        #TODO: unify this with the other two conditions
-        elif 'r_hat' in self.template_args_list:
-            r_hat = canvas.discs.gen_cent2pix_hat
-
-            [np.add.at(canvas.pixels,
-                       pixel_index,
-                       self.template(r,
-                                     r_hat,
-                                     **spray_df.loc[halo]))
-            for halo, r, r_hat, pixel_index in zip(range(canvas.catalog.size),
-                                             r_pix2cent(),
-                                             r_hat(),
-                                             canvas.discs.gen_pixel_index())]
-
-        else:
-            #FIXME: list comprehension
-            [np.add.at(canvas.pixels,
-                       pixel_index,
-                       self.template(r,
-                                     **spray_df.loc[halo]))
             for halo, r, pixel_index in zip(range(canvas.catalog.size),
-                                             r_pix2cent(),
-                                             canvas.discs.gen_pixel_index())]
+                                                  r_pix2cent(),
+                                                  canvas.discs.gen_pixel_index()):
 
+                spray_dict = {r_mode: r, **spray_df.loc[halo]}
+                np.add.at(canvas.pixels,
+                          pixel_index,
+                          template(**spray_dict))
+
+            # #TODO: think about how to redo this part
+            # if len(self.template_args_list) == 1:
+            #
+            #     #FIXME: list comprehension
+            #     [np.add.at(canvas.pixels,
+            #                pixel_index,
+            #                self.template(r))
+            #     for halo, r, pixel_index in zip(range(canvas.catalog.size),
+            #                                      r_pix2cent(),
+            #                                      canvas.discs.gen_pixel_index())]
+            #
+            # #TODO: unify this with the other two conditions
+            # elif 'r_hat' in self.template_args_list:
+            #     r_hat = canvas.discs.gen_cent2pix_hat
+            #
+            #     [np.add.at(canvas.pixels,
+            #                pixel_index,
+            #                self.template(r,
+            #                              r_hat,
+            #                              **spray_df.loc[halo]))
+            #     for halo, r, r_hat, pixel_index in zip(range(canvas.catalog.size),
+            #                                      r_pix2cent(),
+            #                                      r_hat(),
+            #                                      canvas.discs.gen_pixel_index())]
+            #
+            # else:
+            #     #FIXME: list comprehension
+            #     [np.add.at(canvas.pixels,
+            #                pixel_index,
+            #                self.template(r,
+            #                              **spray_df.loc[halo]))
+            #     for halo, r, pixel_index in zip(range(canvas.catalog.size),
+            #                                      r_pix2cent(),
+            #                                      canvas.discs.gen_pixel_index())]
+
+        elif with_ray:
+            print("Spraying in parallel with ray...")
+
+            # count the number of available cpus
+            import psutil
+            n_cpus = (psutil.cpu_count(logical=True))
+            print(f"n_cpus = {n_cpus}")
+            ray.init(num_cpus=n_cpus)
+
+            # put the canvas pixels in the object store
+            shared_pixels = ray.put(canvas.pixels)
+
+            if batches:
+                #assert batches > 0; "number of batches must be a positive number"
+                print("spraying in batch mode")
+
+                # split the halo list into batches
+                halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
+
+                # set local pointers to the pixel generator and template
+                gen_pixel_index = canvas.discs.gen_pixel_index
+                template = self.template
+
+                for halo_batch in halo_batches:
+                    # paint the shared pixels array in batches with ray
+                    result = self.paint_batch.remote(shared_pixels,
+                                                     halo_batch,
+                                                     r_mode,
+                                                     r_pix2cent,
+                                                     gen_pixel_index,
+                                                     template,
+                                                     spray_df)
+
+            else:
+                for halo, r, pixel_index in zip(range(canvas.catalog.size),
+                                                r_pix2cent(),
+                                                canvas.discs.gen_pixel_index()):
+                    result = self.paint.remote(shared_pixels, pixel_index, self.template(r, **spray_df.loc[halo]))
+
+            # put the batches together and shut down ray
+            canvas.pixels = ray.get(result)
+            ray.shutdown()
         print("Your artwork is fininshed. Check it out with Canvas.show_map()")
 
-        # acticate the canvas.pixels setter
-        canvas.pixels = canvas.pixels
+        # activate the canvas.pixels setter
+        #canvas.pixels = canvas.pixels
 
+    @ray.remote
+    def paint(shared_pixels, pixel_index, template):
+        np.add.at(shared_pixels, pixel_index, template)
+        return shared_pixels
+
+    @ray.remote
+    def paint_batch(shared_pixels, halo_batch, r_mode, r_pix2cent, gen_pixel_index, template,
+                    spray_df):
+        # for halo, r, pixel_index in zip(halo_batch,
+        #                                 r_pix2cent(halo_list=halo_batch),
+        #                                 gen_pixel_index(halo_list=halo_batch)):
+        #     np.add.at(shared_pixels, pixel_index, template(r, **spray_df.loc[halo]))
+        #
+        for halo, r, pixel_index in zip(halo_batch,
+                                        r_pix2cent(halo_list=halo_batch),
+                                        gen_pixel_index(halo_list=halo_batch)):
+            spray_dict = {r_mode: r, **spray_df.loc[halo]}
+            np.add.at(shared_pixels,
+                      pixel_index,
+                      template(**spray_dict))
+
+        return shared_pixels
 
     def _analyze_template(self):
         """
@@ -1394,14 +1450,25 @@ class Painter:
 
         # print out the list of args and kwargs
         message = f"The template '{self.template_name}' takes in the following arguments:\n" \
-                  f"{self.template_args_list}\n" \
-                  f"and the following keyword-only arguments:\n" \
-                  f"{self.template_kwargs_list}"
+                  f"{self.template_args_list}\n"
+
+        if len(self.template_kwargs_list) > 0:
+            message += f"and the following keyword-only arguments:\n" \
+                       f"{self.template_kwargs_list}"
+
+        # make sure either r (distance) or r_vec are in the argument list
+        # but not both!
+        assert sum([arg in self.template_args_list for arg in ['r', 'r_vec']]) == 1,\
+            "Either 'r' or 'r_vec' must be a template argument (only one of them and not both)."
+
+        # make sure either r or r_vec appears as the first argument
+        assert self.template_args_list[0] in ['r', 'r_vec'], \
+            "Either 'r' or 'r_vec' must be the template's first argument"
 
         # ensure the first argument of the profile template is 'r'
-        assert self.template_args_list[0] == "r", "The first argument of the profile template " \
-                                                  "must be 'r' (the distance from the center of " \
-                                                  "the halo)."
+        # assert self.template_args_list[0] == "r", "The first argument of the profile template " \
+        #                                          "must be 'r' (the distance from the center of " \
+        #                                          "the halo)."
         print(message)
 
     def _check_template_kwargs(self, **template_kwargs):
@@ -1451,6 +1518,41 @@ class Painter:
 
         template_args_df = catalog.data[parameters]
         return template_args_df
+
+    def _shake_canister(self, canvas, template_kwargs):
+        """prepare a dataframe to be used by the spray method"""
+
+        # set template name on canvas
+        canvas.template_name = self.template.__name__
+
+        #TODO: check the arg list and if the parameter is not in the catalog add it there
+
+        # TODO: check the length and type of the extra_params
+
+        # if it's a scalar dictionary extend it to the size of the catalog
+        # also make sure the length matches the size of the catalog
+
+
+        # convert the template_kwargs into a dataframe
+        template_kwargs_df = self._check_template_kwargs(**template_kwargs)
+        # use template args to grab the relevant columns from the catalog dataframe
+        template_args_df = self._check_template_args(canvas.catalog)
+
+        # match the size of the args and kwargs dataframes
+        # if template kwargs are scalars, extend then to the size of the catalog
+        if template_kwargs_df is None:
+            pass
+        elif len(template_kwargs_df) == 1:
+            template_kwargs_df = pd.concat([template_kwargs_df]*len(template_args_df),
+                                           ignore_index=True)
+
+        #TODO: check for other conditions (e.g. longer len, shorter, etc.)
+
+        # concatenate the two dataframes together
+        spray_df = pd.concat((template_args_df, template_kwargs_df), axis=1)
+        print(f"spray_df.columns = {spray_df.columns}")
+
+        return spray_df
 
 
 
