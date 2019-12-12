@@ -13,7 +13,9 @@ from warnings import warn
 import inspect
 from itertools import product
 import operator
-from memory_profiler import profile
+import ray
+import re
+#from memory_profiler import profile
 
 try:
     import healpy as hp
@@ -55,9 +57,16 @@ class Catalog:
         self.redshift = redshift
         # if no input is provided generate a random catalog
         if data is None:
-            self.data = self.generate_random_box()
+            self.generate_random_box()
         elif isinstance(data, str):
-            self.load_sample(data)
+            if re.match(".*random.*box", data, re.IGNORECASE):
+                self.generate_random_box()
+            elif re.match(".*random.*shell", data, re.IGNORECASE):
+                self.generate_random_shell()
+            elif re.match(".*test.*", data, re.IGNORECASE):
+                self.generate_test_box(configuration=["all"])
+            else:
+                self.load_sample(data)
         else:
             #FIXME: check data type and columns
             self.data = data
@@ -108,6 +117,124 @@ class Catalog:
         fname = os.path.join(path_dir, "data", f"{sample_name}.csv")
 
         self.data = pd.read_csv(fname, index_col=0)
+
+    def generate_random_box(self,
+                            box_size=50,
+                            v_max=100,
+                            mass_min=1E14,
+                            mass_max=1E15,
+                            n_tot=50000,
+                            put_on_shell=False,
+                            inplace=True,
+                            ):
+
+        catalog = self._initialize_catalog(n_tot)
+
+        print("generating random catalog...\n")
+        # generate random positions
+        x, y, z = np.random.uniform(low=-box_size/2,
+                                    high=box_size/2,
+                                    size=(3, n_tot))
+
+        if put_on_shell:
+            (x, y, z) = box_size * np.true_divide((x, y, z), np.linalg.norm((x, y, z), axis=0))
+
+        catalog["x"], catalog["y"], catalog["z"] = x, y, z
+
+        # generate random velocities
+        v_x, v_y, v_z = np.random.uniform(low=-v_max,
+                                          high=v_max,
+                                          size=(3, n_tot))
+
+        catalog["v_x"], catalog["v_y"], catalog["v_z"] = v_x, v_y, v_z
+
+        # generate random log uniform masses
+        catalog["M_200c"] = np.exp(np.random.uniform(low=np.log(mass_min),
+                                                     high=np.log(mass_max),
+                                                     size=n_tot))
+        if inplace:
+            self.data = pd.DataFrame(catalog)
+        else:
+            return pd.DataFrame(catalog)  # convert catalog to pandas data frame
+
+    def generate_random_shell(self,
+                              box_size=50,
+                              v_max=100,
+                              mass_min=1E14,
+                              mass_max=1E15,
+                              n_tot=50000,
+                              inplace=True,
+                              ):
+
+        catalog = self._initialize_catalog(n_tot)
+
+        print("generating random catalog...\n")
+        # generate random points according to http://mathworld.wolfram.com/SpherePointPicking.html
+        u,v = np.random.uniform(low=0,
+                                high=1,
+                                size=(2, n_tot))
+
+        phi = 2 * np.pi * u
+        theta = np.arccos(2 * v -1)
+#        (x, y, z) = box_size * np.true_divide((x, y, z), np.linalg.norm((x, y, z), axis=0))
+
+        catalog["x"], catalog["y"], catalog["z"] = np.sin(theta) * np.cos(phi),\
+                                                   np.sin(theta) * np.sin(phi),\
+                                                   np.cos(theta)
+
+        # generate random velocities
+        v_x, v_y, v_z = np.random.uniform(low=-v_max,
+                                          high=v_max,
+                                          size=(3, n_tot))
+
+        catalog["v_x"], catalog["v_y"], catalog["v_z"] = v_x, v_y, v_z
+
+        # generate random log uniform masses
+        catalog["M_200c"] = np.exp(np.random.uniform(low=np.log(mass_min),
+                                                     high=np.log(mass_max),
+                                                     size=n_tot))
+        if inplace:
+            self.data = pd.DataFrame(catalog)
+        else:
+            return pd.DataFrame(catalog)  # convert catalog to pandas data frame
+
+    def generate_test_box(self,
+                          configuration=["all"],
+                          distance=100,
+                          mass=1E15,
+                          inplace=True,
+                          ):
+
+        catalog = pd.DataFrame(self._initialize_catalog(0))
+        config_dict = {"front": (1, 0, 0),
+                       "back": (-1, 0, 0),
+                       "left": (0, 1, 0),
+                       "right": (0, -1, 0),
+                       "top": (0, 0, 1),
+                       "bottom": (0, 0, -1),
+                       }
+
+        # set configuration for "all" keyword
+        if "all" in configuration:
+            configuration = config_dict.keys()
+
+        for key in configuration:
+            # get the coordinates from config_dic and load it in a dataframe
+            x, y, z = config_dict[key]
+            df = pd.DataFrame(Catalog._initialize_catalog(1))
+            df["x"], df["y"], df["z"] = x, y, z
+            df[["x", "y", "z"]] *= distance
+
+            # set the mass
+            df["M_200c"] = mass
+
+            # append the test case to the catalog
+            catalog = catalog.append(df, ignore_index=True)
+
+        if inplace:
+            self.data = pd.DataFrame(catalog)
+        else:
+            return pd.DataFrame(catalog)  # return the pandas dataframe
 
     # ------------------------
     #         methods
@@ -221,41 +348,6 @@ class Catalog:
 
         catalog = np.zeros(n_tot, dtype)
         return catalog
-
-    @staticmethod
-    def generate_random_box(box_size=50,
-                            v_max=100,
-                            mass_min=1E14,
-                            mass_max=1E15,
-                            n_tot=50000,
-                            put_on_shell=True):
-
-        catalog = Catalog._initialize_catalog(n_tot)
-
-        print("generating random catalog...\n")
-        # generate random positions
-        x, y, z = np.random.uniform(low=-box_size/2,
-                                    high=box_size/2,
-                                    size=(3, n_tot))
-
-        if put_on_shell:
-            (x, y, z) = box_size * np.true_divide((x, y, z), np.linalg.norm((x, y, z), axis=0))
-
-        catalog["x"], catalog["y"], catalog["z"] = x, y, z
-
-        # generate random velocities
-        v_x, v_y, v_z = np.random.uniform(low=-v_max,
-                                          high=v_max,
-                                          size=(3, n_tot))
-
-        catalog["v_x"], catalog["v_y"], catalog["v_z"] = v_x, v_y, v_z
-
-        # generate random log uniform masses
-        catalog["M_200c"] = np.exp(np.random.uniform(low=np.log(mass_min),
-                                                     high=np.log(mass_max),
-                                                     size=n_tot))
-
-        return pd.DataFrame(catalog)  # convert catalog to pandas data frame
 
     @staticmethod
     def _set_octant(df, octant):
@@ -379,6 +471,125 @@ class Catalog:
         # reset data and rebuild the dataframe
         self.data = data
 
+    def cut_M_200c(self, mass_min=0., mass_max=np.inf):
+        """
+        Cut the catalog according the the given mass range
+
+        Parameters
+        ----------
+        mass_min [M_sun]
+            minimum halo mass to keep
+        mass_max [M_sun]
+            maximum halo mass to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with mass M in the range mass_min < M < mass_max
+        """
+        self.data = self.data[(self.data.M_200c > mass_min) & (self.data.M_200c < mass_max)]
+
+    def cut_R_200c(self, R_min=0., R_max=np.inf):
+        """
+        Cut the catalog according the the given radius range
+
+        Parameters
+        ----------
+        R_min [Mpc]
+            minimum halo radius to keep
+        R_max [Mpc]
+            maximum halo radius to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with radius R in the range R_min < R < R_max
+        """
+        self.data = self.data[(self.data.R_200c > R_min) & (self.data.R_200c < R_max)]
+
+    def cut_D_c(self, D_min=0., D_max=np.inf):
+        """
+        Cut the catalog according the the given comoving distance range
+
+        Parameters
+        ----------
+        D_min [Mpc]
+            minimum halo comoving distance to keep
+        D_max [Mpc]
+            maximum halo comoving distance to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with comoving distance D_c in the range D_min < D_c <
+        D_max
+        """
+        self.data = self.data[(self.data.D_c > D_min) & (self.data.D_c < D_max)]
+
+    def cut_D_a(self, D_min=0., D_max=np.inf):
+        """
+        Cut the catalog according the the given angular diameter distance range
+
+        Parameters
+        ----------
+        D_min [Mpc]
+            minimum halo angular diameter  distance to keep
+        D_max [Mpc]
+            maximum halo angular diameter  distance to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with angular diameter distance D_a in the range
+        D_min < D_a < D_max
+        """
+        self.data = self.data[(self.data.D_a > D_min) & (self.data.D_a < D_max)]
+
+    def cut_lon_lat(self,
+                   lon_range=[0, 360],
+                   lat_range=[-90, 90]):
+        """
+        Cut the catalog according the the given longitude and latitude range 
+        
+        Parameters
+        ----------
+        lon_range [deg]
+            range of longitutes to keep 
+        lat_range [deg]
+            rane of latitudes to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with longitutes in the range lon_range and 
+        latitudes in the range lat_range
+        """
+
+        self.data = self.data[(self.data.lon > lon_range[0]) &
+                              (self.data.lon < lon_range[1]) &
+                              (self.data.lat > lat_range[0]) &
+                              (self.data.lat < lat_range[1])]
+
+    def cut_theta_phi(self,
+                    theta_range=[0, np.pi],
+                    phi_range=[0, 2 * np.pi]):
+        """
+        Cut the catalog according the the given longitude and latitude range
+
+        Parameters
+        ----------
+        theta_range [rad]
+            range of longitutes to keep
+        phi_range [rad]
+            rane of latitudes to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with theta in the range theta_range and
+        phi in the range phi_range
+        """
+
+        self.data = self.data[(self.data.theta > theta_range[0]) &
+                              (self.data.theta < theta_range[1]) &
+                              (self.data.phi > phi_range[0]) &
+                              (self.data.phi < phi_range[1])]
+
+
 #########################################################
 #                  Canvas Object
 #########################################################
@@ -414,8 +625,10 @@ class Canvas:
         self._catalog = catalog
         self.centers_D_a = self._catalog.data.D_a
 
+        self.generate_discs()
+
         if analyze:
-            self.analyze()
+            self.discs.analyze()
 
         #TODO: remove this
         #assert isinstance(catalog, Catalog), "input catalog has to be an instance of " \
@@ -471,7 +684,7 @@ class Canvas:
     @catalog.setter
     def catalog(self, val):
         self._catalog = val
-        self.analyze()
+        self.discs.analyze()
 
     @property
     def cmap(self):
@@ -496,27 +709,380 @@ class Canvas:
         self._Cl_is_outdated = True
 
     # ------------------------
-    #         methods
+    #     Disc inner class
     # ------------------------
 
-    def analyze(self,):
-        """
-        Analyze the catalog and find the relevant pixels on the canvas
+    class Disc:
+        __slots__ = ['catalog',
+                     'nside',
+                     'R_times',
+                     'inclusive',
+                     'center_D_a',
+                     'center_index',
+                     'center_ang',
+                     'center_vec',
+                     'pixel_index',
+                     'pixel_ang',
+                     'pix2cent_rad',
+                     'pix2cent_mpc',
+                     'pix2cent_vec',
+                     ]
 
-        Returns
-        -------
-        None
-        """
+        def __init__(self,
+                     catalog,
+                     nside,
+                     R_times,
+                     inclusive,
+                     ):
 
-        self.centers_D_a = self.catalog.data.D_a
+            #FIXME: the whole catalog does not need to be passed to disc here
+            #Check if this affects performance
+            self.catalog = catalog
+            self.nside = nside
+            self.R_times = R_times
+            self.inclusive = inclusive
 
-        # update the index and angular location of the center pixel
-        self.find_centers_indx()
-        self.find_centers_ang()
+            self.center_D_a = self.catalog.data.D_a
 
-        self.find_discs_indx(self.R_times)
-        self.find_discs_ang()
-        self.find_discs_2center_distance()
+        # ------------------------
+        #       finder methods
+        # ------------------------
+        #FIXME: Add warning message upon calling finder methods
+        # suggest using the generator methods instead
+
+        #FIXME: decide whether to keep this or discard it
+        def analyze(self,):
+            """
+            Analyze the catalog and find the relevant pixels on the canvas
+
+            Returns
+            -------
+            None
+            """
+
+
+            # update the index and angular location of the center pixel
+            # self.find_centers_indx()
+            # self.find_centers_ang()
+            #
+            # self.find_discs_indx(self.R_times)
+            # self.find_discs_ang()
+            # self.find_discs_2center_distance()
+
+
+        def find_centers_indx(self):
+            """
+            Find the pixel indices of the halo centers
+
+            Returns
+            -------
+            None
+            Sets Canvas.centers_indx to array of pixels.
+            Element [i] of the array points to the center of halo [i].
+
+            """
+
+            self.center_index = hp.ang2pix(self.nside,
+                                           self.catalog.data.theta.to_list(),
+                                           self.catalog.data.phi.to_list())
+
+            print("Done! You can now get the center pixels using Canvas.centers_indx.")
+
+        def find_centers_ang(self):
+            """
+            Store the theta and phi coordinates of the halos in
+            Canvas.centers_ang
+
+            Returns
+            -------
+            None
+            """
+
+            self.center_ang = np.asarray([self.catalog.data.theta.to_list(),
+                                           self.catalog.data.phi.to_list()])
+
+            print(
+                "Done! You can now get the angular position of the discs using Canvas.centers_ang.")
+
+        def find_centers_vec(self):
+            """
+            Find the unit vectors pointing to the halo centers
+
+            Returns
+            -------
+            None
+            Sets Canvas.centers_vec to array of pixels.
+            Element [i] of the array points to the center of halo [i].
+
+            """
+
+            self.centers_vec = hp.ang2vec(self.catalog.data.theta.to_list(),
+                                          self.catalog.data.phi.to_list())
+
+            print("Done! You can now get the center pixel vectors using Canvas.centers_vec.")
+
+        def find_discs_indx(self, R_times):
+            """
+            Find the pixel indices of discs of size k times R_200 around halo centers
+
+            Parameters
+            ----------
+            R_times: int
+            multiplicative factor indicating the extent of the queried disc in units of R_200
+
+            Returns
+            -------
+            None
+
+            Sets Canvas.discs_indx to a list of pixel index arrays. Element [i] of the list holds
+            the
+            pixel indices around halo [i].
+
+            """
+
+            # FIXME: list comprehension
+            self.R_times = R_times
+            self.pixel_index = ([np.asarray(
+                hp.query_disc(self.nside,
+                              (self.catalog.data.x[halo],
+                               self.catalog.data.y[halo],
+                               self.catalog.data.z[halo]),
+                              R_times * transform.arcmin2rad(
+                                  self.catalog.data.R_th_200c[halo]),
+                              inclusive=self.inclusive,
+                              )
+                )
+                for halo in range(self.catalog.size)])
+
+            print("Done! You can now get the discs using Canvas.discs_indx.")
+
+        def find_discs_ang(self):
+            """
+            Find the angular coordinates of the disc pixels
+
+            Returns
+            -------
+            None
+            """
+            try:
+                self.pixel_index
+            except AttributeError:
+                print("Canvas.discs_indx is not defined. Use Canvas.find_discs_indx to set it up.")
+
+            # FIXME: list comprehension
+            self.pixel_ang = [np.asarray(
+                hp.pix2ang(self.nside, indx)
+                )
+                for indx in self.pixel_index]
+
+            print("Done! You can now get the angular position of the discs using Canvas.discs_ang.")
+
+        def find_discs_vec(self):
+            """
+            Find the unit vectors pointing to the disc pixels
+
+            Returns
+            -------
+            None
+            """
+            try:
+                self.discs_indx
+            except AttributeError:
+                print("Canvas.discs_indx is not defined. Use Canvas"
+                  ".find_discs_indx to set it up.")
+
+            # FIXME: list comprehension
+            self.discs_vec = [np.asarray(
+                hp.pix2vec(self.nside, indx)
+                ).T
+                              for indx in self.discs_indx]
+
+            print("Done! You can now get the vectots pointing to the disc pixels using "
+                  "Canvas.discs_vec.")
+
+        def find_discs_2center_distance(self):
+            """
+            Find the angular distance [radians] of disc pixels to the halo center pixel
+
+            Returns
+            -------
+            None
+            """
+
+            # squeeze the disc_ang arrays to remove redundant second dimensions
+            # this is necessary at the moment to avoid a bug in healpy.rotator.angdist
+            # when calculating the angdist o=for arrays of shape (2,1) and (2,)
+            # the returned results is 3 dimensional instead of 1
+            # squeezing the array will resolve the issue though
+            # TODO: update this and post issue on healpy github
+
+            # FIXME: list comprehension
+            self.pixel_ang = [np.squeeze(self.pixel_ang[
+                                             halo]) for halo in range(self.catalog.size)]
+
+            # FIXME: list comprehension
+            self.pix2cent_rad = [hp.rotator.angdist(self.pixel_ang[halo],
+                                                         self.center_ang[:, halo])
+                                      for halo in range(self.catalog.size)]
+
+            # FIXME: list comprehension
+            self.pix2cent_mpc = [self.center_D_a[halo] * self.pix2cent_rad[halo]
+                                      for halo in range(self.catalog.size)]
+
+        def find_discs_2center_vec(self):
+            """
+                Find the 3D unit vector pointing from the disc pixels to the halo center pixel
+
+                Returns
+                -------
+                None
+                """
+
+            # if discs_vec does not exist, find it
+            try:
+                self.discs_vec
+            except AttributeError:
+                self.find_discs_vec()
+
+            # if centers_vec does not exist, find it
+            try:
+                self.centers_vec
+            except AttributeError:
+                self.find_centers_vec()
+
+            #FIXME: list comprehension
+            self.discs_2center_vec = [Canvas._normalize_vec(self.discs_vec[halo] -
+                                                          self.centers_vec[halo],
+                                          axis=-1)
+                                          for halo in range(self.catalog.size)]
+
+        # ------------------------
+        #    generator methods
+        # ------------------------
+        #TODO: Add doctring to the generator methods
+
+        def gen_center_index(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for halo in halo_list:
+                yield hp.ang2pix(self.nside,
+                                 self.catalog.data.theta[halo],
+                                 self.catalog.data.phi[halo])
+
+        def gen_center_ang(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            #TODO: check if this is faster with pandas .iterrows or .itertuples
+            for halo in halo_list:
+                yield (self.catalog.data.theta[halo],
+                       self.catalog.data.phi[halo])
+
+        def gen_center_vec(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for halo in halo_list:
+                yield hp.ang2vec(self.catalog.data.theta[halo],
+                                 self.catalog.data.phi[halo])
+
+        def gen_pixel_index(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for halo in halo_list:
+                yield hp.query_disc(self.nside,
+                              (self.catalog.data.x[halo],
+                               self.catalog.data.y[halo],
+                               self.catalog.data.z[halo]),
+                              self.R_times * transform.arcmin2rad(
+                                  self.catalog.data.R_th_200c[halo]),
+                              inclusive=self.inclusive,
+                              )
+
+        def gen_pixel_ang(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for index in self.gen_pixel_index(halo_list):
+                yield hp.pix2ang(self.nside, index)
+
+        def gen_pixel_vec(self, halo_list="All"):
+            """
+            generate the unit vectors pointing to the disc pixels
+
+            Returns
+            -------
+            None
+            """
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for index in self.gen_pixel_index(halo_list):
+                yield np.asarray(hp.pix2vec(self.nside, index)).T
+
+        def gen_cent2pix_rad(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for (pixel_ang, center_ang) in zip(self.gen_pixel_ang(halo_list),
+                                               self.gen_center_ang(halo_list)):
+                yield hp.rotator.angdist(np.squeeze(pixel_ang), center_ang)
+
+        def gen_cent2pix_mpc(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            assert hasattr(halo_list, '__iter__')
+
+            for (halo, pix2cent_rad) in zip(halo_list, self.gen_cent2pix_rad(halo_list)):
+                yield self.center_D_a[halo] * pix2cent_rad
+
+        def gen_cent2pix_hat(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            for (pix_vec, cent_vec) in zip(self.gen_pixel_vec(halo_list),
+                                           self.gen_center_vec(halo_list)):
+                yield Canvas._normalize_vec(pix_vec - cent_vec)
+
+        def gen_cent2pix_mpc_vec(self, halo_list="All"):
+            if halo_list is "All":
+                halo_list = range(self.catalog.size)
+
+            for (halo, pix_vec, cent_vec) in zip(halo_list,
+                                                 self.gen_pixel_vec(halo_list),
+                                                 self.gen_center_vec(halo_list)):
+                yield self.center_D_a[halo] * (pix_vec - cent_vec)
+
+    def generate_discs(self):
+        """instantiate the discs attribute using the Disc class
+        Useful when the disc generators are exhausted and need to be reset"""
+
+        self.discs = self.Disc(self.catalog, self.nside, self.R_times, self.inclusive)
+
+    @staticmethod
+    def _normalize_vec(vec, axis=-1):
+        """normalize_vec the input vector along the given axis"""
+
+        norm = np.linalg.norm(vec, axis=axis)
+
+        return np.true_divide(vec, np.expand_dims(norm, axis=axis))
 
     def clean(self):
         """
@@ -529,195 +1095,6 @@ class Canvas:
 
         self.pixels = np.zeros(self.npix)
 
-
-    def find_centers_indx(self):
-        """
-        Find the pixel indices of the halo centers
-
-        Returns
-        -------
-        None
-        Sets Canvas.centers_indx to array of pixels.
-        Element [i] of the array points to the center of halo [i].
-
-        """
-
-        self.centers_indx = hp.ang2pix(self.nside,
-                                       self.catalog.data.theta.to_list(),
-                                       self.catalog.data.phi.to_list())
-
-        print("Done! You can now get the center pixels using Canvas.centers_indx.")
-
-    def find_centers_ang(self):
-        """
-        Store the theta and phi coordinates of the halos in Canvas.centers_ang
-
-        Returns
-        -------
-        None
-        """
-
-        self.centers_ang = np.asarray([self.catalog.data.theta.to_list(),
-                                     self.catalog.data.phi.to_list()])
-
-        print("Done! You can now get the angular position of the discs using Canvas.centers_ang.")
-
-    def find_centers_vec(self):
-        """
-        Find the unit vectors pointing to the halo centers
-
-        Returns
-        -------
-        None
-        Sets Canvas.centers_vec to array of pixels.
-        Element [i] of the array points to the center of halo [i].
-
-        """
-
-        self.centers_vec = hp.ang2vec(self.catalog.data.theta.to_list(),
-                                      self.catalog.data.phi.to_list())
-
-        print("Done! You can now get the center pixel vectors using Canvas.centers_vec.")
-
-    def find_discs_indx(self, R_times):
-        """
-        Find the pixel indices of discs of size k times R_200 around halo centers
-
-        Parameters
-        ----------
-        R_times: int
-            multiplicative factor indicating the extent of the queried disc in units of R_200
-
-        Returns
-        -------
-        None
-
-        Sets Canvas.discs_indx to a list of pixel index arrays. Element [i] of the list holds the
-        pixel indices around halo [i].
-
-        """
-
-        #FIXME: list comprehension
-        self.R_times = R_times
-        self.discs_indx = ([np.asarray(
-                                    hp.query_disc(self.nside,
-                                                  (self.catalog.data.x[halo],
-                                                   self.catalog.data.y[halo],
-                                                   self.catalog.data.z[halo]),
-                                                  R_times * transform.arcmin2rad(
-                                                             self.catalog.data.R_th_200c[halo]),
-                                                  inclusive=self.inclusive,
-                                                  )
-                                       )
-                                for halo in range(self.catalog.size)])
-
-        print("Done! You can now get the discs using Canvas.discs_indx.")
-
-    def find_discs_ang(self):
-        """
-        Find the angular coordinates of the disc pixels
-
-        Returns
-        -------
-        None
-        """
-        try:
-            self.discs_indx
-        except AttributeError:
-            print("Canvas.discs_indx is not defined. Use Canvas.find_discs_indx to set it up.")
-
-        #FIXME: list comprehension
-        self.discs_ang = [np.asarray(
-            hp.pix2ang(self.nside, indx)
-            )
-            for indx in self.discs_indx]
-
-        print("Done! You can now get the angular position of the discs using Canvas.discs_ang.")
-
-    def find_discs_vec(self):
-        """
-        Find the unit vectors pointing to the disc pixels
-
-        Returns
-        -------
-        None
-        """
-        try:
-            self.discs_indx
-        except AttributeError:
-            print("Canvas.discs_indx is not defined. Use Canvas.find_discs_indx to set it up.")
-
-        #FIXME: list comprehension
-        self.discs_vec = [np.asarray(
-            hp.pix2vec(self.nside, indx)
-            ).T
-            for indx in self.discs_indx]
-
-        print("Done! You can now get the vectots pointing to the disc pixels using "
-              "Canvas.discs_vec.")
-    @profile
-    def find_discs_2center_distance(self):
-        """
-        Find the angular distance [radians] of disc pixels to the halo center pixel
-
-        Returns
-        -------
-        None
-        """
-
-        # squeeze the disc_ang arrays to remove redundant second dimensions
-        # this is necessary at the moment to avoid a bug in healpy.rotator.angdist
-        # when calculating the angdist o=for arrays of shape (2,1) and (2,)
-        # the returned results is 3 dimensional instead of 1
-        # squeezing the array will resolve the issue though
-        # TODO: update this and post issue on healpy github
-
-        #FIXME: list comprehension
-        self.discs_ang = [np.squeeze(self.discs_ang[halo]) for halo in range(self.catalog.size)]
-
-        #FIXME: list comprehension
-        self.discs_2center_rad = [hp.rotator.angdist(self.discs_ang[halo],\
-                                                    self.centers_ang[:, halo])
-                                for halo in range(self.catalog.size)]
-
-        #FIXME: list comprehension
-        self.discs_2center_mpc = [self.centers_D_a[halo]*self.discs_2center_rad[halo]
-                                  for halo in range(self.catalog.size)]
-
-    def find_discs_2center_vec(self):
-        """
-        Find the 3D unit vector pointing from the disc pixels to the halo center pixel
-
-        Returns
-        -------
-        None
-        """
-
-        # if discs_vec does not exist, find it
-        try:
-            self.discs_vec
-        except AttributeError:
-            self.find_discs_vec()
-
-        # if centers_vec does not exist, find it
-        try:
-            self.centers_vec
-        except AttributeError:
-            self.find_centers_vec()
-
-        #FIXME: list comprehension
-        self.discs_2center_vec = [self._normalize_vec(self.discs_vec[halo] - self.centers_vec[halo],
-                                                     axis=-1)
-                                  for halo in range(self.catalog.size)]
-
-    @staticmethod
-    def _normalize_vec(vec, axis=-1):
-        """normalize_vec the input vector along the given axis"""
-
-        norm = np.linalg.norm(vec, axis=axis)
-
-        return np.true_divide(vec, np.expand_dims(norm, axis=axis))
-    @profile
     def get_Cl(self):
         """find the power spectrum of the map (.pixels)"""
 
@@ -813,7 +1190,7 @@ class Canvas:
         def set_to_1(disc):
             junk_pixels[disc] = 1
 
-        [set_to_1(disc) for disc in self.discs_indx]
+        [set_to_1(disc) for disc in self.discs.gen_pixel_index()]
 
         if graticule: hp.graticule()
 
@@ -881,9 +1258,9 @@ class Canvas:
 
 
     def save_Cl_to_file(self,
-                         prefix=None,
-                         suffix=None,
-                         filename=None):
+                        prefix=None,
+                        suffix=None,
+                        filename=None):
         """save the map power spectrum to file
 
         Parameters
@@ -954,10 +1331,11 @@ class Painter:
     #         methods
     # ------------------------
 
-    @profile
     def spray(self,
               canvas,
               distance_units="Mpc",
+              with_ray=True,
+              batches=True,
               **template_kwargs):
 
         """
@@ -975,94 +1353,142 @@ class Painter:
         """
         print("Painting the canvas...")
 
-        #
-        canvas.template_name = self.template.__name__
-
-        #TODO: check the arg list and if the parameter is not in the catalog add it there
-
-        # TODO: check the length and type of the extra_params
-
-        # if it's a scalar dictionary extend it to the size of the catalog
-        # also make sure the length matches the size of the catalog
-
-
-        # convert the template_kwargs into a dataframe
-        template_kwargs_df = self._check_template_kwargs(**template_kwargs)
-        # use template args to grab the relevant columns from the catalog dataframe
-        template_args_df = self._check_template_args(canvas.catalog)
-
-        #TODO: remove this block
-        # check the canvas catalog and make sure all the template arguments are already there
-        # for parameter in self.template_args_list[1:]:
-        #     try:
-        #         canvas.catalog.data[parameter]
-        #     except KeyError:
-        #         try:
-        #             template_kwargs[parameter]
-        #         except KeyError:
-        #             raise KeyError(f"Parameter {parameter} was not found either in the canvas.catalog.data "
-        #                   f"or the extra_params.")
-
-        # match the size of the args and kwargs dataframes
-        # if template kwargs are scalars, extend then to the size of the catalog
-        if template_kwargs_df is None:
-            pass
-        elif len(template_kwargs_df) == 1:
-            template_kwargs_df = pd.concat([template_kwargs_df]*len(template_args_df),
-                                           ignore_index=True)
-
-        #TODO: check for other conditions (e.g. longer len, shorter, etc.)
-
-        # concatenate the two dataframes together
-        spray_df = pd.concat((template_args_df, template_kwargs_df), axis=1)
-        print(f"spray_df.columns = {spray_df.columns}")
+        # prepare the data frame to be used when spraying the canvas
+        spray_df = self._shake_canister(canvas, template_kwargs)
+        template = self.template
 
         # check the units
-        if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
-            r = canvas.discs_2center_mpc
-        elif distance_units.lower() in ["radians", "rad", "rads"]:
-            r = canvas.discs_2center_rad
-        else:
-            raise KeyError("distance_units must be either 'mpc' or 'radians'.")
+        #if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
+        #    r_pix2cent = canvas.discs.gen_cent2pix_mpc
+        #elif distance_units.lower() in ["radians", "rad", "rads"]:
+        #     r_pix2cent = canvas.discs.gen_cent2pix_rad
+        # else:
+        #     raise KeyError("distance_units must be either 'mpc' or 'radians'.")
 
 
-        #TODO: this has been checked elsewhere... remove it
-        # make sure r (distance) is in the argument list
-        assert 'r' in self.template_args_list
 
-        #TODO: think about how to redo this part
-        if len(self.template_args_list) == 1:
+        r_mode = self.template_args_list[0]
 
-            #FIXME: list comprehension
-            [np.add.at(canvas.pixels,
-                       canvas.discs_indx[halo],
-                       self.template(r[halo]))
-             for halo in range(canvas.catalog.size)]
+        if r_mode is "r":
+            r_pix2cent = canvas.discs.gen_cent2pix_mpc
+        if r_mode is "r_vec":
+            r_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
 
-        #TODO: unify this with the other two conditions
-        elif 'r_hat' in self.template_args_list:
-            r_hat = canvas.discs_2center_vec
+        if not with_ray:
 
-            [np.add.at(canvas.pixels,
-                   canvas.discs_indx[halo],
-                   self.template(r[halo],
-                                 r_hat[halo],
-                                 **spray_df.loc[halo]))
-            for halo in range(canvas.catalog.size)]
+            for halo, r, pixel_index in zip(range(canvas.catalog.size),
+                                                  r_pix2cent(),
+                                                  canvas.discs.gen_pixel_index()):
 
-        else:
-            #FIXME: list comprehension
-            [np.add.at(canvas.pixels,
-                       canvas.discs_indx[halo],
-                       self.template(r[halo],
-                                     **spray_df.loc[halo]))
-             for halo in range(canvas.catalog.size)]
+                spray_dict = {r_mode: r, **spray_df.loc[halo]}
+                np.add.at(canvas.pixels,
+                          pixel_index,
+                          template(**spray_dict))
 
+            # #TODO: think about how to redo this part
+            # if len(self.template_args_list) == 1:
+            #
+            #     #FIXME: list comprehension
+            #     [np.add.at(canvas.pixels,
+            #                pixel_index,
+            #                self.template(r))
+            #     for halo, r, pixel_index in zip(range(canvas.catalog.size),
+            #                                      r_pix2cent(),
+            #                                      canvas.discs.gen_pixel_index())]
+            #
+            # #TODO: unify this with the other two conditions
+            # elif 'r_hat' in self.template_args_list:
+            #     r_hat = canvas.discs.gen_cent2pix_hat
+            #
+            #     [np.add.at(canvas.pixels,
+            #                pixel_index,
+            #                self.template(r,
+            #                              r_hat,
+            #                              **spray_df.loc[halo]))
+            #     for halo, r, r_hat, pixel_index in zip(range(canvas.catalog.size),
+            #                                      r_pix2cent(),
+            #                                      r_hat(),
+            #                                      canvas.discs.gen_pixel_index())]
+            #
+            # else:
+            #     #FIXME: list comprehension
+            #     [np.add.at(canvas.pixels,
+            #                pixel_index,
+            #                self.template(r,
+            #                              **spray_df.loc[halo]))
+            #     for halo, r, pixel_index in zip(range(canvas.catalog.size),
+            #                                      r_pix2cent(),
+            #                                      canvas.discs.gen_pixel_index())]
+
+        elif with_ray:
+            print("Spraying in parallel with ray...")
+
+            # count the number of available cpus
+            import psutil
+            n_cpus = (psutil.cpu_count(logical=True))
+            print(f"n_cpus = {n_cpus}")
+            ray.init(num_cpus=n_cpus)
+
+            # put the canvas pixels in the object store
+            shared_pixels = ray.put(canvas.pixels)
+
+            if batches:
+                #assert batches > 0; "number of batches must be a positive number"
+                print("spraying in batch mode")
+
+                # split the halo list into batches
+                halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
+
+                # set local pointers to the pixel generator and template
+                gen_pixel_index = canvas.discs.gen_pixel_index
+                template = self.template
+
+                for halo_batch in halo_batches:
+                    # paint the shared pixels array in batches with ray
+                    result = self.paint_batch.remote(shared_pixels,
+                                                     halo_batch,
+                                                     r_mode,
+                                                     r_pix2cent,
+                                                     gen_pixel_index,
+                                                     template,
+                                                     spray_df)
+
+            else:
+                for halo, r, pixel_index in zip(range(canvas.catalog.size),
+                                                r_pix2cent(),
+                                                canvas.discs.gen_pixel_index()):
+                    result = self.paint.remote(shared_pixels, pixel_index, self.template(r, **spray_df.loc[halo]))
+
+            # put the batches together and shut down ray
+            canvas.pixels = ray.get(result)
+            ray.shutdown()
         print("Your artwork is fininshed. Check it out with Canvas.show_map()")
 
-        # acticate the canvas.pixels setter
-        canvas.pixels = canvas.pixels
+        # activate the canvas.pixels setter
+        #canvas.pixels = canvas.pixels
 
+    @ray.remote
+    def paint(shared_pixels, pixel_index, template):
+        np.add.at(shared_pixels, pixel_index, template)
+        return shared_pixels
+
+    @ray.remote
+    def paint_batch(shared_pixels, halo_batch, r_mode, r_pix2cent, gen_pixel_index, template,
+                    spray_df):
+        # for halo, r, pixel_index in zip(halo_batch,
+        #                                 r_pix2cent(halo_list=halo_batch),
+        #                                 gen_pixel_index(halo_list=halo_batch)):
+        #     np.add.at(shared_pixels, pixel_index, template(r, **spray_df.loc[halo]))
+        #
+        for halo, r, pixel_index in zip(halo_batch,
+                                        r_pix2cent(halo_list=halo_batch),
+                                        gen_pixel_index(halo_list=halo_batch)):
+            spray_dict = {r_mode: r, **spray_df.loc[halo]}
+            np.add.at(shared_pixels,
+                      pixel_index,
+                      template(**spray_dict))
+
+        return shared_pixels
 
     def _analyze_template(self):
         """
@@ -1081,14 +1507,25 @@ class Painter:
 
         # print out the list of args and kwargs
         message = f"The template '{self.template_name}' takes in the following arguments:\n" \
-                  f"{self.template_args_list}\n" \
-                  f"and the following keyword-only arguments:\n" \
-                  f"{self.template_kwargs_list}"
+                  f"{self.template_args_list}\n"
+
+        if len(self.template_kwargs_list) > 0:
+            message += f"and the following keyword-only arguments:\n" \
+                       f"{self.template_kwargs_list}"
+
+        # make sure either r (distance) or r_vec are in the argument list
+        # but not both!
+        assert sum([arg in self.template_args_list for arg in ['r', 'r_vec']]) == 1,\
+            "Either 'r' or 'r_vec' must be a template argument (only one of them and not both)."
+
+        # make sure either r or r_vec appears as the first argument
+        assert self.template_args_list[0] in ['r', 'r_vec'], \
+            "Either 'r' or 'r_vec' must be the template's first argument"
 
         # ensure the first argument of the profile template is 'r'
-        assert self.template_args_list[0] == "r", "The first argument of the profile template " \
-                                                  "must be 'r' (the distance from the center of " \
-                                                  "the halo)."
+        # assert self.template_args_list[0] == "r", "The first argument of the profile template " \
+        #                                          "must be 'r' (the distance from the center of " \
+        #                                          "the halo)."
         print(message)
 
     def _check_template_kwargs(self, **template_kwargs):
@@ -1138,6 +1575,41 @@ class Painter:
 
         template_args_df = catalog.data[parameters]
         return template_args_df
+
+    def _shake_canister(self, canvas, template_kwargs):
+        """prepare a dataframe to be used by the spray method"""
+
+        # set template name on canvas
+        canvas.template_name = self.template.__name__
+
+        #TODO: check the arg list and if the parameter is not in the catalog add it there
+
+        # TODO: check the length and type of the extra_params
+
+        # if it's a scalar dictionary extend it to the size of the catalog
+        # also make sure the length matches the size of the catalog
+
+
+        # convert the template_kwargs into a dataframe
+        template_kwargs_df = self._check_template_kwargs(**template_kwargs)
+        # use template args to grab the relevant columns from the catalog dataframe
+        template_args_df = self._check_template_args(canvas.catalog)
+
+        # match the size of the args and kwargs dataframes
+        # if template kwargs are scalars, extend then to the size of the catalog
+        if template_kwargs_df is None:
+            pass
+        elif len(template_kwargs_df) == 1:
+            template_kwargs_df = pd.concat([template_kwargs_df]*len(template_args_df),
+                                           ignore_index=True)
+
+        #TODO: check for other conditions (e.g. longer len, shorter, etc.)
+
+        # concatenate the two dataframes together
+        spray_df = pd.concat((template_args_df, template_kwargs_df), axis=1)
+        print(f"spray_df.columns = {spray_df.columns}")
+
+        return spray_df
 
 
 
