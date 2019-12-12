@@ -61,6 +61,8 @@ class Catalog:
         elif isinstance(data, str):
             if re.match(".*random.*box", data, re.IGNORECASE):
                 self.generate_random_box()
+            elif re.match(".*random.*shell", data, re.IGNORECASE):
+                self.generate_random_shell()
             elif re.match(".*test.*", data, re.IGNORECASE):
                 self.generate_test_box(configuration=["all"])
             else:
@@ -122,7 +124,7 @@ class Catalog:
                             mass_min=1E14,
                             mass_max=1E15,
                             n_tot=50000,
-                            put_on_shell=True,
+                            put_on_shell=False,
                             inplace=True,
                             ):
 
@@ -138,6 +140,47 @@ class Catalog:
             (x, y, z) = box_size * np.true_divide((x, y, z), np.linalg.norm((x, y, z), axis=0))
 
         catalog["x"], catalog["y"], catalog["z"] = x, y, z
+
+        # generate random velocities
+        v_x, v_y, v_z = np.random.uniform(low=-v_max,
+                                          high=v_max,
+                                          size=(3, n_tot))
+
+        catalog["v_x"], catalog["v_y"], catalog["v_z"] = v_x, v_y, v_z
+
+        # generate random log uniform masses
+        catalog["M_200c"] = np.exp(np.random.uniform(low=np.log(mass_min),
+                                                     high=np.log(mass_max),
+                                                     size=n_tot))
+        if inplace:
+            self.data = pd.DataFrame(catalog)
+        else:
+            return pd.DataFrame(catalog)  # convert catalog to pandas data frame
+
+    def generate_random_shell(self,
+                              box_size=50,
+                              v_max=100,
+                              mass_min=1E14,
+                              mass_max=1E15,
+                              n_tot=50000,
+                              inplace=True,
+                              ):
+
+        catalog = self._initialize_catalog(n_tot)
+
+        print("generating random catalog...\n")
+        # generate random points according to http://mathworld.wolfram.com/SpherePointPicking.html
+        u,v = np.random.uniform(low=0,
+                                high=1,
+                                size=(2, n_tot))
+
+        phi = 2 * np.pi * u
+        theta = np.arccos(2 * v -1)
+#        (x, y, z) = box_size * np.true_divide((x, y, z), np.linalg.norm((x, y, z), axis=0))
+
+        catalog["x"], catalog["y"], catalog["z"] = np.sin(theta) * np.cos(phi),\
+                                                   np.sin(theta) * np.sin(phi),\
+                                                   np.cos(theta)
 
         # generate random velocities
         v_x, v_y, v_z = np.random.uniform(low=-v_max,
