@@ -14,6 +14,7 @@ import inspect
 from itertools import product
 import operator
 import ray
+import re
 #from memory_profiler import profile
 
 try:
@@ -56,9 +57,14 @@ class Catalog:
         self.redshift = redshift
         # if no input is provided generate a random catalog
         if data is None:
-            self.data = self.generate_random_box()
+            self.generate_random_box()
         elif isinstance(data, str):
-            self.load_sample(data)
+            if re.match(".*random.*box", data, re.IGNORECASE):
+                self.generate_random_box()
+            elif re.match(".*test.*", data, re.IGNORECASE):
+                self.generate_test_box(configuration=["all"])
+            else:
+                self.load_sample(data)
         else:
             #FIXME: check data type and columns
             self.data = data
@@ -109,6 +115,83 @@ class Catalog:
         fname = os.path.join(path_dir, "data", f"{sample_name}.csv")
 
         self.data = pd.read_csv(fname, index_col=0)
+
+    def generate_random_box(self,
+                            box_size=50,
+                            v_max=100,
+                            mass_min=1E14,
+                            mass_max=1E15,
+                            n_tot=50000,
+                            put_on_shell=True,
+                            inplace=True,
+                            ):
+
+        catalog = self._initialize_catalog(n_tot)
+
+        print("generating random catalog...\n")
+        # generate random positions
+        x, y, z = np.random.uniform(low=-box_size/2,
+                                    high=box_size/2,
+                                    size=(3, n_tot))
+
+        if put_on_shell:
+            (x, y, z) = box_size * np.true_divide((x, y, z), np.linalg.norm((x, y, z), axis=0))
+
+        catalog["x"], catalog["y"], catalog["z"] = x, y, z
+
+        # generate random velocities
+        v_x, v_y, v_z = np.random.uniform(low=-v_max,
+                                          high=v_max,
+                                          size=(3, n_tot))
+
+        catalog["v_x"], catalog["v_y"], catalog["v_z"] = v_x, v_y, v_z
+
+        # generate random log uniform masses
+        catalog["M_200c"] = np.exp(np.random.uniform(low=np.log(mass_min),
+                                                     high=np.log(mass_max),
+                                                     size=n_tot))
+        if inplace:
+            self.data = pd.DataFrame(catalog)
+        else:
+            return pd.DataFrame(catalog)  # convert catalog to pandas data frame
+
+    def generate_test_box(self,
+                          configuration=["all"],
+                          distance=100,
+                          mass=1E15,
+                          inplace=True,
+                          ):
+
+        catalog = pd.DataFrame(self._initialize_catalog(0))
+        config_dict = {"front": (1, 0, 0),
+                       "back": (-1, 0, 0),
+                       "left": (0, 1, 0),
+                       "right": (0, -1, 0),
+                       "top": (0, 0, 1),
+                       "bottom": (0, 0, -1),
+                       }
+
+        # set configuration for "all" keyword
+        if "all" in configuration:
+            configuration = config_dict.keys()
+
+        for key in configuration:
+            # get the coordinates from config_dic and load it in a dataframe
+            x, y, z = config_dict[key]
+            df = pd.DataFrame(Catalog._initialize_catalog(1))
+            df["x"], df["y"], df["z"] = x, y, z
+            df[["x", "y", "z"]] *= distance
+
+            # set the mass
+            df["M_200c"] = mass
+
+            # append the test case to the catalog
+            catalog = catalog.append(df, ignore_index=True)
+
+        if inplace:
+            self.data = pd.DataFrame(catalog)
+        else:
+            return pd.DataFrame(catalog)  # return the pandas dataframe
 
     # ------------------------
     #         methods
@@ -222,75 +305,6 @@ class Catalog:
 
         catalog = np.zeros(n_tot, dtype)
         return catalog
-
-    @staticmethod
-    def generate_random_box(box_size=50,
-                            v_max=100,
-                            mass_min=1E14,
-                            mass_max=1E15,
-                            n_tot=50000,
-                            put_on_shell=True):
-
-        catalog = Catalog._initialize_catalog(n_tot)
-
-        print("generating random catalog...\n")
-        # generate random positions
-        x, y, z = np.random.uniform(low=-box_size/2,
-                                    high=box_size/2,
-                                    size=(3, n_tot))
-
-        if put_on_shell:
-            (x, y, z) = box_size * np.true_divide((x, y, z), np.linalg.norm((x, y, z), axis=0))
-
-        catalog["x"], catalog["y"], catalog["z"] = x, y, z
-
-        # generate random velocities
-        v_x, v_y, v_z = np.random.uniform(low=-v_max,
-                                          high=v_max,
-                                          size=(3, n_tot))
-
-        catalog["v_x"], catalog["v_y"], catalog["v_z"] = v_x, v_y, v_z
-
-        # generate random log uniform masses
-        catalog["M_200c"] = np.exp(np.random.uniform(low=np.log(mass_min),
-                                                     high=np.log(mass_max),
-                                                     size=n_tot))
-
-        return pd.DataFrame(catalog)  # convert catalog to pandas data frame
-
-    @staticmethod
-    def generate_test_box(configuration=["front"],
-                          distance=100,
-                          mass=1E15,
-                          ):
-
-        catalog = pd.DataFrame(Catalog._initialize_catalog(0))
-        config_dict = {"front": (1, 0, 0),
-                       "back": (-1, 0, 0),
-                       "left": (0, 1, 0),
-                       "right": (0, -1, 0),
-                       "top": (0, 0, 1),
-                       "bottom": (0, 0, -1),
-                       }
-
-        # set configuration for "all" keyword
-        if "all" in configuration:
-            configuration = config_dict.keys()
-
-        for key in configuration:
-            # get the coordinates from config_dic and load it in a dataframe
-            x, y, z = config_dict[key]
-            df = pd.DataFrame(Catalog._initialize_catalog(1))
-            df["x"], df["y"], df["z"] = x, y, z
-            df[["x", "y", "z"]] *= distance
-
-            # set the mass
-            df["M_200c"] = mass
-
-            # append the test case to the catalog
-            catalog = catalog.append(df, ignore_index=True)
-
-        return pd.DataFrame(catalog)  # return the pandas dataframe
 
     @staticmethod
     def _set_octant(df, octant):
