@@ -14,7 +14,7 @@ import inspect
 from itertools import product
 import operator
 import ray
-from memory_profiler import profile
+#from memory_profiler import profile
 
 try:
     import healpy as hp
