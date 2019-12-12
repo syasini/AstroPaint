@@ -1364,10 +1364,12 @@ class Painter:
             #                                      canvas.discs.gen_pixel_index())]
 
         elif with_ray:
-            print("spraying with ray")
+            print("Spraying in parallel with ray...")
+
+            # count the number of available cpus
             import psutil
             n_cpus = (psutil.cpu_count(logical=True))
-            print(n_cpus)
+            print(f"n_cpus = {n_cpus}")
             ray.init(num_cpus=n_cpus)
 
             # put the canvas pixels in the object store
@@ -1388,6 +1390,7 @@ class Painter:
                     # paint the shared pixels array in batches with ray
                     result = self.paint_batch.remote(shared_pixels,
                                                      halo_batch,
+                                                     r_mode,
                                                      r_pix2cent,
                                                      gen_pixel_index,
                                                      template,
@@ -1413,11 +1416,21 @@ class Painter:
         return shared_pixels
 
     @ray.remote
-    def paint_batch(shared_pixels, halo_batch, r_pix2cent, gen_pixel_index, template, spray_df):
+    def paint_batch(shared_pixels, halo_batch, r_mode, r_pix2cent, gen_pixel_index, template,
+                    spray_df):
+        # for halo, r, pixel_index in zip(halo_batch,
+        #                                 r_pix2cent(halo_list=halo_batch),
+        #                                 gen_pixel_index(halo_list=halo_batch)):
+        #     np.add.at(shared_pixels, pixel_index, template(r, **spray_df.loc[halo]))
+        #
         for halo, r, pixel_index in zip(halo_batch,
                                         r_pix2cent(halo_list=halo_batch),
                                         gen_pixel_index(halo_list=halo_batch)):
-            np.add.at(shared_pixels, pixel_index, template(r, **spray_df.loc[halo]))
+            spray_dict = {r_mode: r, **spray_df.loc[halo]}
+            np.add.at(shared_pixels,
+                      pixel_index,
+                      template(**spray_dict))
+
         return shared_pixels
 
     def _analyze_template(self):

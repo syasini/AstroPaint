@@ -228,7 +228,7 @@ def BG_NFW(r_vec, c_200c, R_200c, M_200c, theta, phi, v_th, v_ph, *, T_cmb=T_cmb
 
     r = np.linalg.norm(r_vec, axis=-1)
     r_hat = np.true_divide(r_vec, r[:, None])
-    
+
     alpha = deflect_angle_NFW(r, c_200c, R_200c, M_200c)
     v_vec = transform.convert_velocity_sph2cart(theta, phi, 0, v_th, v_ph)
     dT = -alpha * np.dot(r_hat, v_vec)/c * T_cmb
