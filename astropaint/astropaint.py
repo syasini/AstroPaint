@@ -16,6 +16,7 @@ import operator
 import ray
 import re
 from functools import partial
+from tqdm.auto import tqdm
 
 #from memory_profiler import profile
 
@@ -1225,21 +1226,23 @@ class Canvas:
     # ------------------------
 
     def save_map_to_file(self,
+                         filename=None,
                          prefix=None,
                          suffix=None,
-                         filename=None):
+                         ):
         """save the healpy map to file
 
         Parameters
         ----------
+        filename: str
+            custom file name; overrides the prefix and suffix and default file name
+
         prefix: str
             prefix string to be added to the beginning of the default file name
 
         suffix: str
             suffix string to be added to the end of default file name
 
-        filename: str
-            custom file name; overrides the prefix and suffix and default file name
         """
 
         if prefix:
@@ -1260,6 +1263,47 @@ class Canvas:
         hp.write_map(filename,
                      self.pixels)
 
+    def load_map_from_file(self,
+                           filename=None,
+                           prefix=None,
+                           suffix=None,
+                           inplace=True,
+                           ):
+        """save the healpy map to file
+
+        Parameters
+        ----------
+        filename: str
+            custom file name; overrides the prefix and suffix and default file name
+        prefix: str
+            prefix string to be added to the beginning of the default file name
+
+        suffix: str
+            suffix string to be added to the end of default file name
+
+        inplace: bool
+            if True, canvas.pixels will be loaded with the map from file
+        """
+
+        if prefix:
+            if str(prefix)[-1] != "_":
+                prefix = "".join([prefix, "_"])
+        if suffix:
+            if str(suffix)[0] != "_":
+                suffix = "".join(["_", suffix])
+
+        if filename is None:
+            #TODO: complete this
+            filename = f"{str(prefix or '')}" \
+                       f"{self.template_name}" \
+                       f"_NSIDE={self.nside}" \
+                       f"{str(suffix or '')}" \
+                       f".fits"
+
+        if inplace:
+            self.pixels = hp.read_map(filename)
+        else:
+            return hp.read_map(filename)
 
     def save_Cl_to_file(self,
                         prefix=None,
@@ -1434,9 +1478,10 @@ class Painter:
 
         if not with_ray:
 
-            for halo, r, pixel_index in zip(range(canvas.catalog.size),
+            for halo, r, pixel_index in tqdm(zip(range(canvas.catalog.size),
                                                   r_pix2cent(),
-                                                  canvas.discs.gen_pixel_index()):
+                                                  canvas.discs.gen_pixel_index()),
+                                             total=canvas.catalog.size):
 
                 spray_dict = {r_mode: r, **spray_df.loc[halo]}
                 np.add.at(canvas.pixels,
