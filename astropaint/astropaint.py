@@ -158,7 +158,7 @@ class Catalog:
             return pd.DataFrame(catalog)  # convert catalog to pandas data frame
 
     def generate_random_shell(self,
-                              box_size=50,
+                              shell_radius=50,
                               v_max=100,
                               mass_min=1E14,
                               mass_max=1E15,
@@ -181,6 +181,8 @@ class Catalog:
         catalog["x"], catalog["y"], catalog["z"] = np.sin(theta) * np.cos(phi),\
                                                    np.sin(theta) * np.sin(phi),\
                                                    np.cos(theta)
+
+        catalog[["x", "y", "z"]] *= shell_radius
 
         # generate random velocities
         v_x, v_y, v_z = np.random.uniform(low=-v_max,
@@ -347,7 +349,7 @@ class Catalog:
                  "formats": 7 * [np.float32]}
 
         catalog = np.zeros(n_tot, dtype)
-        return catalog
+        return pd.DataFrame(catalog)
 
     @staticmethod
     def _set_octant(df, octant):
