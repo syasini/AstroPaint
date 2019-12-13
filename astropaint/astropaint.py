@@ -1436,8 +1436,7 @@ class Painter:
     def spray(self,
               canvas,
               distance_units="Mpc",
-              with_ray=True,
-              batches=True,
+              with_ray=False,
               **template_kwargs):
 
         """
@@ -1458,6 +1457,11 @@ class Painter:
         # prepare the data frame to be used when spraying the canvas
         spray_df = self._shake_canister(canvas, template_kwargs)
         template = self.template
+
+        assert distance_units.lower() in ["mpc", "mpcs", "megaparsecs", "megaparsec"],\
+            "For now the distance unit has to be megaparsecs but we will add other units soon. " \
+            "Post an issue on the github repository if you want a specific distance unit to be " \
+            "added."
 
         # check the units
         #if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
@@ -1488,40 +1492,6 @@ class Painter:
                           pixel_index,
                           template(**spray_dict))
 
-            # #TODO: think about how to redo this part
-            # if len(self.template_args_list) == 1:
-            #
-            #     #FIXME: list comprehension
-            #     [np.add.at(canvas.pixels,
-            #                pixel_index,
-            #                self.template(r))
-            #     for halo, r, pixel_index in zip(range(canvas.catalog.size),
-            #                                      r_pix2cent(),
-            #                                      canvas.discs.gen_pixel_index())]
-            #
-            # #TODO: unify this with the other two conditions
-            # elif 'r_hat' in self.template_args_list:
-            #     r_hat = canvas.discs.gen_cent2pix_hat
-            #
-            #     [np.add.at(canvas.pixels,
-            #                pixel_index,
-            #                self.template(r,
-            #                              r_hat,
-            #                              **spray_df.loc[halo]))
-            #     for halo, r, r_hat, pixel_index in zip(range(canvas.catalog.size),
-            #                                      r_pix2cent(),
-            #                                      r_hat(),
-            #                                      canvas.discs.gen_pixel_index())]
-            #
-            # else:
-            #     #FIXME: list comprehension
-            #     [np.add.at(canvas.pixels,
-            #                pixel_index,
-            #                self.template(r,
-            #                              **spray_df.loc[halo]))
-            #     for halo, r, pixel_index in zip(range(canvas.catalog.size),
-            #                                      r_pix2cent(),
-            #                                      canvas.discs.gen_pixel_index())]
 
         elif with_ray:
             print("Spraying in parallel with ray...")
