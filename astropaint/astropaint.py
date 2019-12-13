@@ -15,6 +15,9 @@ from itertools import product
 import operator
 import ray
 import re
+from functools import partial
+from tqdm.auto import tqdm
+
 #from memory_profiler import profile
 
 try:
@@ -158,7 +161,7 @@ class Catalog:
             return pd.DataFrame(catalog)  # convert catalog to pandas data frame
 
     def generate_random_shell(self,
-                              box_size=50,
+                              shell_radius=50,
                               v_max=100,
                               mass_min=1E14,
                               mass_max=1E15,
@@ -181,6 +184,8 @@ class Catalog:
         catalog["x"], catalog["y"], catalog["z"] = np.sin(theta) * np.cos(phi),\
                                                    np.sin(theta) * np.sin(phi),\
                                                    np.cos(theta)
+
+        catalog[["x", "y", "z"]] *= shell_radius
 
         # generate random velocities
         v_x, v_y, v_z = np.random.uniform(low=-v_max,
@@ -347,7 +352,7 @@ class Catalog:
                  "formats": 7 * [np.float32]}
 
         catalog = np.zeros(n_tot, dtype)
-        return catalog
+        return pd.DataFrame(catalog)
 
     @staticmethod
     def _set_octant(df, octant):
@@ -693,9 +698,9 @@ class Canvas:
     @cmap.setter
     def cmap(self, val):
         #FIXME: find the parent class of cm
-        assert type(val) is type(cm.Greys), "cmap must be an instance of cm. \n" \
-                                            "You can import it using:\n" \
-                                            "from matplotlib import cm"
+        #assert type(val) is type(cm.Greys), "cmap must be an instance of cm. \n" \
+        #                                    "You can import it using:\n" \
+        #                                    "from matplotlib import cm"
         self._cmap = val
         self._cmap.set_under("white")
 
@@ -1221,21 +1226,23 @@ class Canvas:
     # ------------------------
 
     def save_map_to_file(self,
+                         filename=None,
                          prefix=None,
                          suffix=None,
-                         filename=None):
+                         ):
         """save the healpy map to file
 
         Parameters
         ----------
+        filename: str
+            custom file name; overrides the prefix and suffix and default file name
+
         prefix: str
             prefix string to be added to the beginning of the default file name
 
         suffix: str
             suffix string to be added to the end of default file name
 
-        filename: str
-            custom file name; overrides the prefix and suffix and default file name
         """
 
         if prefix:
@@ -1256,6 +1263,47 @@ class Canvas:
         hp.write_map(filename,
                      self.pixels)
 
+    def load_map_from_file(self,
+                           filename=None,
+                           prefix=None,
+                           suffix=None,
+                           inplace=True,
+                           ):
+        """save the healpy map to file
+
+        Parameters
+        ----------
+        filename: str
+            custom file name; overrides the prefix and suffix and default file name
+        prefix: str
+            prefix string to be added to the beginning of the default file name
+
+        suffix: str
+            suffix string to be added to the end of default file name
+
+        inplace: bool
+            if True, canvas.pixels will be loaded with the map from file
+        """
+
+        if prefix:
+            if str(prefix)[-1] != "_":
+                prefix = "".join([prefix, "_"])
+        if suffix:
+            if str(suffix)[0] != "_":
+                suffix = "".join(["_", suffix])
+
+        if filename is None:
+            #TODO: complete this
+            filename = f"{str(prefix or '')}" \
+                       f"{self.template_name}" \
+                       f"_NSIDE={self.nside}" \
+                       f"{str(suffix or '')}" \
+                       f".fits"
+
+        if inplace:
+            self.pixels = hp.read_map(filename)
+        else:
+            return hp.read_map(filename)
 
     def save_Cl_to_file(self,
                         prefix=None,
@@ -1293,6 +1341,60 @@ class Canvas:
                  ell=self.ell,
                  Cl=self.Cl,
                  Dl=self.Dl)
+
+    # ----------------
+    # Stacking methods
+    # ----------------
+
+    def gen_stacks(self,
+                   halo_list="all",
+                   lonra=[-1,1], #longitute range in degrees
+                   latra=[-1,1], #latitude range in degrees
+                   xsize=100,
+                   ysize=None,
+                   *args,
+                   **kwargs,
+                   ):
+        """Generate cutouts of angular size lonra x latra around halo center with xsize & ysize
+        pixels on each side"""
+        if halo_list is "all":
+            halo_list = range(self.catalog.size)
+
+        cart_projector = hp.projector.CartesianProj(lonra=lonra, latra=latra,
+                                                    xsize=xsize, ysize=ysize)
+
+        for halo in halo_list:
+            lon, lat = self.catalog.data[["lon", "lat"]].iloc[halo]
+            cut_out = cart_projector.projmap(self.pixels,
+                                            rot=(lon, lat),
+                                            vec2pix_func=partial(hp.vec2pix, self.nside))
+            yield cut_out
+
+    def stack_halos(self,
+                    halo_list="all",
+                    lonra=[-1,1], #longitute range in degrees
+                    latra=[-1,1], #latitude range in degrees)
+                    xsize=100,
+                    ysize=None,
+                    *args,
+                    **kwargs,
+                    ):
+        """Stack cutouts of angular size lonra x latra around halo center with xsize & ysize
+                pixels on each side"""
+        if ysize is None:
+            ysize = xsize
+
+        if halo_list is "all":
+            halo_list = range(self.catalog.size)
+
+        stack = np.zeros((xsize, ysize))
+        gen_stack = self.gen_stacks(halo_list, lonra, latra, xsize, ysize,
+                                    *args, **kwargs,)
+        for cut_out in gen_stack:
+            stack += cut_out
+
+        return stack
+
 
 #########################################################
 #                   Painter Object
@@ -1376,9 +1478,10 @@ class Painter:
 
         if not with_ray:
 
-            for halo, r, pixel_index in zip(range(canvas.catalog.size),
+            for halo, r, pixel_index in tqdm(zip(range(canvas.catalog.size),
                                                   r_pix2cent(),
-                                                  canvas.discs.gen_pixel_index()):
+                                                  canvas.discs.gen_pixel_index()),
+                                             total=canvas.catalog.size):
 
                 spray_dict = {r_mode: r, **spray_df.loc[halo]}
                 np.add.at(canvas.pixels,
