@@ -693,9 +693,9 @@ class Canvas:
     @cmap.setter
     def cmap(self, val):
         #FIXME: find the parent class of cm
-        assert type(val) is type(cm.Greys), "cmap must be an instance of cm. \n" \
-                                            "You can import it using:\n" \
-                                            "from matplotlib import cm"
+        #assert type(val) is type(cm.Greys), "cmap must be an instance of cm. \n" \
+        #                                    "You can import it using:\n" \
+        #                                    "from matplotlib import cm"
         self._cmap = val
         self._cmap.set_under("white")
 
