@@ -15,6 +15,8 @@ from itertools import product
 import operator
 import ray
 import re
+from functools import partial
+
 #from memory_profiler import profile
 
 try:
@@ -695,9 +697,9 @@ class Canvas:
     @cmap.setter
     def cmap(self, val):
         #FIXME: find the parent class of cm
-        assert type(val) is type(cm.Greys), "cmap must be an instance of cm. \n" \
-                                            "You can import it using:\n" \
-                                            "from matplotlib import cm"
+        #assert type(val) is type(cm.Greys), "cmap must be an instance of cm. \n" \
+        #                                    "You can import it using:\n" \
+        #                                    "from matplotlib import cm"
         self._cmap = val
         self._cmap.set_under("white")
 
@@ -1295,6 +1297,60 @@ class Canvas:
                  ell=self.ell,
                  Cl=self.Cl,
                  Dl=self.Dl)
+
+    # ----------------
+    # Stacking methods
+    # ----------------
+
+    def gen_stacks(self,
+                   halo_list="all",
+                   lonra=[-1,1], #longitute range in degrees
+                   latra=[-1,1], #latitude range in degrees
+                   xsize=100,
+                   ysize=None,
+                   *args,
+                   **kwargs,
+                   ):
+        """Generate cutouts of angular size lonra x latra around halo center with xsize & ysize
+        pixels on each side"""
+        if halo_list is "all":
+            halo_list = range(self.catalog.size)
+
+        cart_projector = hp.projector.CartesianProj(lonra=lonra, latra=latra,
+                                                    xsize=xsize, ysize=ysize)
+
+        for halo in halo_list:
+            lon, lat = self.catalog.data[["lon", "lat"]].iloc[halo]
+            cut_out = cart_projector.projmap(self.pixels,
+                                            rot=(lon, lat),
+                                            vec2pix_func=partial(hp.vec2pix, self.nside))
+            yield cut_out
+
+    def stack_halos(self,
+                    halo_list="all",
+                    lonra=[-1,1], #longitute range in degrees
+                    latra=[-1,1], #latitude range in degrees)
+                    xsize=100,
+                    ysize=None,
+                    *args,
+                    **kwargs,
+                    ):
+        """Stack cutouts of angular size lonra x latra around halo center with xsize & ysize
+                pixels on each side"""
+        if ysize is None:
+            ysize = xsize
+
+        if halo_list is "all":
+            halo_list = range(self.catalog.size)
+
+        stack = np.zeros((xsize, ysize))
+        gen_stack = self.gen_stacks(halo_list, lonra, latra, xsize, ysize,
+                                    *args, **kwargs,)
+        for cut_out in gen_stack:
+            stack += cut_out
+
+        return stack
+
 
 #########################################################
 #                   Painter Object
