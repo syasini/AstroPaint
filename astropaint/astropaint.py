@@ -1505,32 +1505,24 @@ class Painter:
             # put the canvas pixels in the object store
             shared_pixels = ray.put(canvas.pixels)
 
-            if batches:
-                #assert batches > 0; "number of batches must be a positive number"
-                print("spraying in batch mode")
+            # split the halo list into batches
+            print(f"spraying {n_cpus} batches")
+            halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
 
-                # split the halo list into batches
-                halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
+            # set local pointers to the pixel generator and template
+            gen_pixel_index = canvas.discs.gen_pixel_index
+            template = self.template
 
-                # set local pointers to the pixel generator and template
-                gen_pixel_index = canvas.discs.gen_pixel_index
-                template = self.template
+            for halo_batch in halo_batches:
+                # paint the shared pixels array in batches with ray
+                result = self.paint_batch.remote(shared_pixels,
+                                                 halo_batch,
+                                                 r_mode,
+                                                 r_pix2cent,
+                                                 gen_pixel_index,
+                                                 template,
+                                                 spray_df)
 
-                for halo_batch in halo_batches:
-                    # paint the shared pixels array in batches with ray
-                    result = self.paint_batch.remote(shared_pixels,
-                                                     halo_batch,
-                                                     r_mode,
-                                                     r_pix2cent,
-                                                     gen_pixel_index,
-                                                     template,
-                                                     spray_df)
-
-            else:
-                for halo, r, pixel_index in zip(range(canvas.catalog.size),
-                                                r_pix2cent(),
-                                                canvas.discs.gen_pixel_index()):
-                    result = self.paint.remote(shared_pixels, pixel_index, self.template(r, **spray_df.loc[halo]))
 
             # put the batches together and shut down ray
             canvas.pixels = ray.get(result)
