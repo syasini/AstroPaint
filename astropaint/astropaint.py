@@ -16,6 +16,7 @@ import operator
 import ray
 import re
 from functools import partial
+from tqdm.auto import tqdm
 
 #from memory_profiler import profile
 
@@ -160,7 +161,7 @@ class Catalog:
             return pd.DataFrame(catalog)  # convert catalog to pandas data frame
 
     def generate_random_shell(self,
-                              box_size=50,
+                              shell_radius=50,
                               v_max=100,
                               mass_min=1E14,
                               mass_max=1E15,
@@ -183,6 +184,8 @@ class Catalog:
         catalog["x"], catalog["y"], catalog["z"] = np.sin(theta) * np.cos(phi),\
                                                    np.sin(theta) * np.sin(phi),\
                                                    np.cos(theta)
+
+        catalog[["x", "y", "z"]] *= shell_radius
 
         # generate random velocities
         v_x, v_y, v_z = np.random.uniform(low=-v_max,
@@ -349,7 +352,7 @@ class Catalog:
                  "formats": 7 * [np.float32]}
 
         catalog = np.zeros(n_tot, dtype)
-        return catalog
+        return pd.DataFrame(catalog)
 
     @staticmethod
     def _set_octant(df, octant):
@@ -1223,21 +1226,23 @@ class Canvas:
     # ------------------------
 
     def save_map_to_file(self,
+                         filename=None,
                          prefix=None,
                          suffix=None,
-                         filename=None):
+                         ):
         """save the healpy map to file
 
         Parameters
         ----------
+        filename: str
+            custom file name; overrides the prefix and suffix and default file name
+
         prefix: str
             prefix string to be added to the beginning of the default file name
 
         suffix: str
             suffix string to be added to the end of default file name
 
-        filename: str
-            custom file name; overrides the prefix and suffix and default file name
         """
 
         if prefix:
@@ -1258,6 +1263,47 @@ class Canvas:
         hp.write_map(filename,
                      self.pixels)
 
+    def load_map_from_file(self,
+                           filename=None,
+                           prefix=None,
+                           suffix=None,
+                           inplace=True,
+                           ):
+        """save the healpy map to file
+
+        Parameters
+        ----------
+        filename: str
+            custom file name; overrides the prefix and suffix and default file name
+        prefix: str
+            prefix string to be added to the beginning of the default file name
+
+        suffix: str
+            suffix string to be added to the end of default file name
+
+        inplace: bool
+            if True, canvas.pixels will be loaded with the map from file
+        """
+
+        if prefix:
+            if str(prefix)[-1] != "_":
+                prefix = "".join([prefix, "_"])
+        if suffix:
+            if str(suffix)[0] != "_":
+                suffix = "".join(["_", suffix])
+
+        if filename is None:
+            #TODO: complete this
+            filename = f"{str(prefix or '')}" \
+                       f"{self.template_name}" \
+                       f"_NSIDE={self.nside}" \
+                       f"{str(suffix or '')}" \
+                       f".fits"
+
+        if inplace:
+            self.pixels = hp.read_map(filename)
+        else:
+            return hp.read_map(filename)
 
     def save_Cl_to_file(self,
                         prefix=None,
@@ -1390,8 +1436,7 @@ class Painter:
     def spray(self,
               canvas,
               distance_units="Mpc",
-              with_ray=True,
-              batches=True,
+              with_ray=False,
               **template_kwargs):
 
         """
@@ -1413,6 +1458,11 @@ class Painter:
         spray_df = self._shake_canister(canvas, template_kwargs)
         template = self.template
 
+        assert distance_units.lower() in ["mpc", "mpcs", "megaparsecs", "megaparsec"],\
+            "For now the distance unit has to be megaparsecs but we will add other units soon. " \
+            "Post an issue on the github repository if you want a specific distance unit to be " \
+            "added."
+
         # check the units
         #if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
         #    r_pix2cent = canvas.discs.gen_cent2pix_mpc
@@ -1432,49 +1482,16 @@ class Painter:
 
         if not with_ray:
 
-            for halo, r, pixel_index in zip(range(canvas.catalog.size),
+            for halo, r, pixel_index in tqdm(zip(range(canvas.catalog.size),
                                                   r_pix2cent(),
-                                                  canvas.discs.gen_pixel_index()):
+                                                  canvas.discs.gen_pixel_index()),
+                                             total=canvas.catalog.size):
 
                 spray_dict = {r_mode: r, **spray_df.loc[halo]}
                 np.add.at(canvas.pixels,
                           pixel_index,
                           template(**spray_dict))
 
-            # #TODO: think about how to redo this part
-            # if len(self.template_args_list) == 1:
-            #
-            #     #FIXME: list comprehension
-            #     [np.add.at(canvas.pixels,
-            #                pixel_index,
-            #                self.template(r))
-            #     for halo, r, pixel_index in zip(range(canvas.catalog.size),
-            #                                      r_pix2cent(),
-            #                                      canvas.discs.gen_pixel_index())]
-            #
-            # #TODO: unify this with the other two conditions
-            # elif 'r_hat' in self.template_args_list:
-            #     r_hat = canvas.discs.gen_cent2pix_hat
-            #
-            #     [np.add.at(canvas.pixels,
-            #                pixel_index,
-            #                self.template(r,
-            #                              r_hat,
-            #                              **spray_df.loc[halo]))
-            #     for halo, r, r_hat, pixel_index in zip(range(canvas.catalog.size),
-            #                                      r_pix2cent(),
-            #                                      r_hat(),
-            #                                      canvas.discs.gen_pixel_index())]
-            #
-            # else:
-            #     #FIXME: list comprehension
-            #     [np.add.at(canvas.pixels,
-            #                pixel_index,
-            #                self.template(r,
-            #                              **spray_df.loc[halo]))
-            #     for halo, r, pixel_index in zip(range(canvas.catalog.size),
-            #                                      r_pix2cent(),
-            #                                      canvas.discs.gen_pixel_index())]
 
         elif with_ray:
             print("Spraying in parallel with ray...")
@@ -1488,32 +1505,24 @@ class Painter:
             # put the canvas pixels in the object store
             shared_pixels = ray.put(canvas.pixels)
 
-            if batches:
-                #assert batches > 0; "number of batches must be a positive number"
-                print("spraying in batch mode")
+            # split the halo list into batches
+            print(f"spraying {n_cpus} batches")
+            halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
 
-                # split the halo list into batches
-                halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
+            # set local pointers to the pixel generator and template
+            gen_pixel_index = canvas.discs.gen_pixel_index
+            template = self.template
 
-                # set local pointers to the pixel generator and template
-                gen_pixel_index = canvas.discs.gen_pixel_index
-                template = self.template
+            for halo_batch in halo_batches:
+                # paint the shared pixels array in batches with ray
+                result = self.paint_batch.remote(shared_pixels,
+                                                 halo_batch,
+                                                 r_mode,
+                                                 r_pix2cent,
+                                                 gen_pixel_index,
+                                                 template,
+                                                 spray_df)
 
-                for halo_batch in halo_batches:
-                    # paint the shared pixels array in batches with ray
-                    result = self.paint_batch.remote(shared_pixels,
-                                                     halo_batch,
-                                                     r_mode,
-                                                     r_pix2cent,
-                                                     gen_pixel_index,
-                                                     template,
-                                                     spray_df)
-
-            else:
-                for halo, r, pixel_index in zip(range(canvas.catalog.size),
-                                                r_pix2cent(),
-                                                canvas.discs.gen_pixel_index()):
-                    result = self.paint.remote(shared_pixels, pixel_index, self.template(r, **spray_df.loc[halo]))
 
             # put the batches together and shut down ray
             canvas.pixels = ray.get(result)
