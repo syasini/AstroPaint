@@ -1350,34 +1350,58 @@ class Canvas:
                    halo_list="all",
                    lonra=[-1,1], #longitute range in degrees
                    latra=[-1,1], #latitude range in degrees
-                   xsize=100,
+                   xsize=200,
                    ysize=None,
-                   *args,
-                   **kwargs,
+                   apply_func=None,
+                   #*func_args,
+                   **func_kwargs,
+                   #*projector_args,
+                   #**projector_kwargs,
                    ):
         """Generate cutouts of angular size lonra x latra around halo center with xsize & ysize
         pixels on each side"""
         if halo_list is "all":
             halo_list = range(self.catalog.size)
 
+        # match the size of the args and kwargs dataframes
+        # if func_kwargs are scalars, extend then to the size of the catalog
+        # TODO: rewrite using _check_template_args()?
+        for key, value in func_kwargs.items():
+            if not hasattr(value, "__len__"):
+                func_kwargs[key] = [value]
+
+        func_kwargs_df = pd.DataFrame(func_kwargs)
+        if len(func_kwargs) == 1:
+            func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
+                                           ignore_index=True)
+
         cart_projector = hp.projector.CartesianProj(lonra=lonra, latra=latra,
-                                                    xsize=xsize, ysize=ysize)
+                                                    xsize=xsize, ysize=ysize,
+                                                    #*args, **kwargs,
+                                                    )
 
         for halo in halo_list:
             lon, lat = self.catalog.data[["lon", "lat"]].iloc[halo]
             cut_out = cart_projector.projmap(self.pixels,
                                             rot=(lon, lat),
                                             vec2pix_func=partial(hp.vec2pix, self.nside))
+
+            if apply_func:
+                if func_kwargs:
+                    func_dict = {**func_kwargs_df.loc[halo]}
+                else:
+                    func_dict = {}
+                cut_out = apply_func(cut_out, **func_dict)
             yield cut_out
 
     def stack_halos(self,
                     halo_list="all",
                     lonra=[-1,1], #longitute range in degrees
                     latra=[-1,1], #latitude range in degrees)
-                    xsize=100,
+                    xsize=200,
                     ysize=None,
-                    *args,
-                    **kwargs,
+                    apply_func=None,
+                    **func_kwargs,
                     ):
         """Stack cutouts of angular size lonra x latra around halo center with xsize & ysize
                 pixels on each side"""
@@ -1389,8 +1413,8 @@ class Canvas:
 
         stack = np.zeros((xsize, ysize))
         gen_stack = self.gen_stacks(halo_list, lonra, latra, xsize, ysize,
-                                    *args, **kwargs,)
-        for cut_out in gen_stack:
+                                    apply_func, **func_kwargs)
+        for cut_out in tqdm(gen_stack, total=len(halo_list)):
             stack += cut_out
 
         return stack
