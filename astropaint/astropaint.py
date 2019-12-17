@@ -606,7 +606,7 @@ class Canvas:
                  catalog,
                  nside,
                  mode="healpy",
-                 analyze=True,
+                 #analyze=True,
                  R_times=1,  # the discs will be found around R_times x virial radius,
                  inclusive=False,
                  ):
@@ -632,8 +632,8 @@ class Canvas:
 
         self.generate_discs()
 
-        if analyze:
-            self.discs.analyze()
+        #if analyze:
+        #    self.discs.analyze()
 
         #TODO: remove this
         #assert isinstance(catalog, Catalog), "input catalog has to be an instance of " \
@@ -689,7 +689,7 @@ class Canvas:
     @catalog.setter
     def catalog(self, val):
         self._catalog = val
-        self.discs.analyze()
+        #self.discs.analyze()
 
     @property
     def cmap(self):
@@ -1417,12 +1417,10 @@ class Canvas:
             if not hasattr(value, "__len__"):
                 func_kwargs[key] = [value]
 
-        print(func_kwargs)
         func_kwargs_df = pd.DataFrame(func_kwargs)
         if len(func_kwargs_df) == 1:
             func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
                                            ignore_index=True)
-        print(func_kwargs_df)
         cart_projector = hp.projector.CartesianProj(lonra=lonra, latra=latra,
                                                     xsize=xsize, ysize=ysize,
                                                     #*args, **kwargs,
@@ -1455,11 +1453,13 @@ class Canvas:
         pixels on each side. apply_func is applied to each cutout before stacking (see
         documentation of the canvas.cutouts method."""
 
-        # None values of latra and ysize will be fixed in cutouts()
-        
+        # None values of latra  will be fixed in cutouts()
+
         if halo_list is "all":
             halo_list = range(self.catalog.size)
 
+        if ysize is None:
+            ysize = xsize
         stack = np.zeros((xsize, ysize))
         gen_stack = self.cutouts(halo_list, lonra, latra, xsize, ysize,
                                  apply_func, **func_kwargs)
