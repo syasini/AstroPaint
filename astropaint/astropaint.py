@@ -1370,11 +1370,12 @@ class Canvas:
             if not hasattr(value, "__len__"):
                 func_kwargs[key] = [value]
 
+        print(func_kwargs)
         func_kwargs_df = pd.DataFrame(func_kwargs)
-        if len(func_kwargs) == 1:
+        if len(func_kwargs_df) == 1:
             func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
                                            ignore_index=True)
-
+        print(func_kwargs_df)
         cart_projector = hp.projector.CartesianProj(lonra=lonra, latra=latra,
                                                     xsize=xsize, ysize=ysize,
                                                     #*args, **kwargs,
