@@ -749,6 +749,7 @@ class Canvas:
 
             self.center_D_a = self.catalog.data.D_a
 
+        '''
         # ------------------------
         #       finder methods
         # ------------------------
@@ -960,7 +961,7 @@ class Canvas:
                                                           self.centers_vec[halo],
                                           axis=-1)
                                           for halo in range(self.catalog.size)]
-
+        '''
         # ------------------------
         #    generator methods
         # ------------------------
@@ -1346,20 +1347,66 @@ class Canvas:
     # Stacking methods
     # ----------------
 
-    def gen_stacks(self,
-                   halo_list="all",
-                   lonra=[-1,1], #longitute range in degrees
-                   latra=[-1,1], #latitude range in degrees
-                   xsize=200,
-                   ysize=None,
-                   apply_func=None,
-                   #*func_args,
-                   **func_kwargs,
-                   #*projector_args,
-                   #**projector_kwargs,
-                   ):
-        """Generate cutouts of angular size lonra x latra around halo center with xsize & ysize
-        pixels on each side"""
+    def cutouts(self,
+                halo_list="all",
+                lonra=[-1,1],  #longitute range in degrees
+                latra=None,  #latitude range in degrees
+                xsize=200,
+                ysize=None,
+                apply_func=None,
+                **func_kwargs,
+                ):
+        """
+        Generate cutouts of angular size lonra x latra around halo center with xsize & ysize
+        pixels on each side.
+
+        *This method uses Healpy's projector.CartesianProj class to perform the cartesian projection.
+
+        Parameters
+        ----------
+        halo_list:
+            index of halos to consider (e.g. [1,2,5,10]).
+            goes through all the halos in the catalog when set to "all".
+        lonra:
+            range of longitutes to cut around the halo center in degrees.
+            e.g. [-1,1] cuts out 1 degree on each side of the halo.
+        latra:
+            range of longitutes to cut around the halo center in degrees.
+            by default (None) it is set equal to lonra.
+        xsize:
+            number of pixels on the x axis
+        ysize:
+            number of pixels on the y axis
+            by default (None) it is set equal to xrange
+
+        apply_func:
+            function to apply to the patch after cutting it out. THe first argument of the
+            function must be the input patch.
+
+            Example:
+
+            def linear_transform(patch, slope, intercept):
+                return slope * patch + intercept
+
+        func_kwargs:
+            keyword arguments to pass to apply_func
+
+            Example usage:
+
+            cutouts(apply_func=linear_transform,
+                    slope=2,
+                    intercept=1)
+
+            if the func_kwargs are scalars, they will be the same for all the halos in apply_func.
+            If they are arrays or lists, their lengths must be the same as the catalog size.
+
+        Returns
+        -------
+        generator
+        """
+
+        if latra is None:
+            latra = lonra
         if halo_list is "all":
             halo_list = range(self.catalog.size)
 
@@ -1395,26 +1442,27 @@ class Canvas:
                 cut_out = apply_func(cut_out, **func_dict)
             yield cut_out
 
-    def stack_halos(self,
-                    halo_list="all",
-                    lonra=[-1,1], #longitute range in degrees
-                    latra=[-1,1], #latitude range in degrees)
-                    xsize=200,
-                    ysize=None,
-                    apply_func=None,
-                    **func_kwargs,
-                    ):
+    def stack_cutouts(self,
+                      halo_list="all",
+                      lonra=[-1,1],  #longitute range in degrees
+                      latra=None,  #latitude range in degrees)
+                      xsize=200,
+                      ysize=None,
+                      apply_func=None,
+                      **func_kwargs,
+                      ):
         """Stack cutouts of angular size lonra x latra around halo center with xsize & ysize
-                pixels on each side"""
-        if ysize is None:
-            ysize = xsize
+        pixels on each side. apply_func is applied to each cutout before stacking (see
+        documentation of the canvas.cutouts method."""
 
+        # None values of latra and ysize will be fixed in cutouts()
+        
         if halo_list is "all":
             halo_list = range(self.catalog.size)
 
         stack = np.zeros((xsize, ysize))
-        gen_stack = self.gen_stacks(halo_list, lonra, latra, xsize, ysize,
-                                    apply_func, **func_kwargs)
+        gen_stack = self.cutouts(halo_list, lonra, latra, xsize, ysize,
+                                 apply_func, **func_kwargs)
         for cut_out in tqdm(gen_stack, total=len(halo_list)):
             stack += cut_out
 
