@@ -29,7 +29,8 @@ except ModuleNotFoundError:
 #import sys
 #print(sys.path)
 from astropy.coordinates import cartesian_to_spherical
-from .lib import transform
+from .lib import transform, misc
+
 
 # find the package path; same as __path__
 path_dir = os.path.dirname(os.path.abspath(__file__))
@@ -1468,6 +1469,31 @@ class Canvas:
 
         return stack
 
+    # -----------------
+    # Add CMB and Noise
+    # -----------------
+
+    def add_cmb(self,
+                Cl="LambdaCDM",
+                lmax=None,
+                inplace=True,
+                *args,
+                **kwargs):
+        """add cmb to the pixels"""
+
+        if lmax is None:
+            lmax = 3 * self.nside -1
+        if Cl is "LambdaCDM":
+            _, Cl, _, _, _ = misc.load_Planck2018_Cl(lmax=lmax)
+            print(Cl.shape)
+        self.cmb = hp.synfast(Cl, self.nside, *args, **kwargs)
+
+        if inplace:
+            self.pixels += self.cmb
+        else:
+            return self.cmb
+
+
 
 #########################################################
 #                   Painter Object
@@ -1598,7 +1624,7 @@ class Painter:
 
 
             # put the batches together and shut down ray
-            canvas.pixels = ray.get(result)
+            canvas.pixels = np.copy(ray.get(result))
             ray.shutdown()
         print("Your artwork is fininshed. Check it out with Canvas.show_map()")
 
