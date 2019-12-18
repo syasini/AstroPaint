@@ -1494,6 +1494,12 @@ class Canvas:
             return self.cmb
 
 
+    def remove_cmb(self):
+        """remove cmb from the pixels"""
+
+        self.pixels -= self.cmb
+
+
 
 #########################################################
 #                   Painter Object
