@@ -1450,6 +1450,8 @@ class Canvas:
                       lat_range=None,  #latitude range in degrees)
                       xpix=200,
                       ypix=None,
+                      inplace=True,
+                      with_ray=False,
                       apply_func=None,
                       **func_kwargs,
                       ):
@@ -1462,15 +1464,86 @@ class Canvas:
         if halo_list is "all":
             halo_list = range(self.catalog.size)
 
-        if ysize is None:
-            ysize = xsize
-        stack = np.zeros((xsize, ysize))
-        gen_stack = self.cutouts(halo_list, lonra, latra, xsize, ysize,
-                                 apply_func, **func_kwargs)
-        for cut_out in tqdm(gen_stack, total=len(halo_list)):
-            stack += cut_out
+        if ypix is None:
+            ypix = xpix
 
-        return stack
+        # setup the stack to accumulate cutouts
+        stack = np.zeros((xpix,ypix))
+        #stack.setflags(write=True)
+
+        if with_ray:
+            print("Stacking in parallel with ray...")
+            print("progress bar is not available in parallel mode.")
+            # count the number of available cpus
+            import psutil
+            n_cpus = (psutil.cpu_count(logical=True))
+            print(f"n_cpus = {n_cpus}")
+            ray.init(num_cpus=n_cpus)
+
+            # put the stack in the object store
+            shared_stack = ray.put(stack.reshape(-1))
+
+            # split the halo list into batches
+            print(f"Stacking {n_cpus} batches")
+
+            halo_batches = np.array_split(range(self.catalog.size), n_cpus)
+
+            # TODO: refactor this with the previous method
+            for key, value in func_kwargs.items():
+                if not hasattr(value, "__len__"):
+                    func_kwargs[key] = [value]
+
+            func_kwargs_df = pd.DataFrame(func_kwargs)
+            if len(func_kwargs_df) == 1:
+                func_kwargs_df = pd.concat([func_kwargs_df] * len(halo_list),
+                                           ignore_index=True)
+
+            # setup the stack generator
+            #cutout_gen_batches = [self.cutouts(halo_batch, lon_range, lat_range, xpix, ypix,
+            #                                apply_func, **func_kwargs_df.loc[halo_batch])
+            #                    for halo_batch in halo_batches]
+
+            from functools import partial
+            cutout_generator = partial(self.cutouts,lon_range=lon_range,
+                                                      lat_range=lat_range,
+                                                      xpix=xpix,
+                                                      ypix=ypix,
+                                                        apply_func=apply_func,
+                                                      )
+
+            print(cutout_generator)
+
+            for halo_batch in halo_batches:
+                result = self._stack_batch.remote(shared_stack,
+                                             halo_batch,
+                                             cutout_generator,
+                                             func_kwargs_df)
+
+            stack = np.copy(ray.get(result)).reshape(xpix, ypix)
+            ray.shutdown()
+        else:
+            # setup the stack generator
+            cutout_generator = self.cutouts(halo_list, lon_range, lat_range, xpix, ypix,
+                                            apply_func, **func_kwargs)
+            for cut_out in tqdm(cutout_generator, total=len(halo_list)):
+                stack += cut_out
+
+        print("Checkout the result with canvas.stack")
+        if inplace:
+            self.stack = stack
+        else:
+            return stack
+
+    @ray.remote
+    def _stack_batch(shared_stack, halo_batch, cutout_generator, func_kwargs_df):
+
+        for cutout in cutout_generator(halo_list=halo_batch, **func_kwargs_df.loc[halo_batch]):
+
+            cutout = cutout.reshape(-1)
+            np.add.at(shared_stack, np.arange(len(cutout)), cutout)
+
+        return shared_stack
+
 
 
 #########################################################
@@ -1572,6 +1645,7 @@ class Painter:
 
         elif with_ray:
             print("Spraying in parallel with ray...")
+            print("progress bar is not available in parallel mode.")
 
             # count the number of available cpus
             import psutil
