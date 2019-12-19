@@ -9,6 +9,7 @@ __author__ = "Siavash Yasini"
 __email__ = "yasini@usc.edu"
 
 import numpy as np
+from scipy.ndimage import rotate, zoom
 import warnings
 import logging
 #logging.basicConfig(level=logging.DEBUG)
@@ -224,3 +225,14 @@ def convert_velocity_cart2sph(th, ph, v_x, v_y, v_z):
     # TODO: add columns or v_lat and v_lon
 
     return v_r, v_th, v_ph
+
+
+#########################################################
+#          Patch Transformations (for stacking)
+#########################################################
+
+def rotate_patch(patch, angle):
+    """Rotate input patch by angle [deg]"""
+    rotated_patch = rotate(patch, angle, reshape=False)
+
+    return rotated_patch

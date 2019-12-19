@@ -29,7 +29,8 @@ except ModuleNotFoundError:
 #import sys
 #print(sys.path)
 from astropy.coordinates import cartesian_to_spherical
-from .lib import transform
+from .lib import transform, misc
+
 
 # find the package path; same as __path__
 path_dir = os.path.dirname(os.path.abspath(__file__))
@@ -606,7 +607,7 @@ class Canvas:
                  catalog,
                  nside,
                  mode="healpy",
-                 analyze=True,
+                 #analyze=True,
                  R_times=1,  # the discs will be found around R_times x virial radius,
                  inclusive=False,
                  ):
@@ -630,10 +631,10 @@ class Canvas:
         self._catalog = catalog
         self.centers_D_a = self._catalog.data.D_a
 
-        self.generate_discs()
+        self.instantiate_discs()
 
-        if analyze:
-            self.discs.analyze()
+        #if analyze:
+        #    self.discs.analyze()
 
         #TODO: remove this
         #assert isinstance(catalog, Catalog), "input catalog has to be an instance of " \
@@ -641,8 +642,10 @@ class Canvas:
 
         self._proj_dict = {"mollweide": hp.mollview,
                            "mollview": hp.mollview,
+                           "moll": hp.mollview,
                            "cartesian": hp.cartview,
                            "cartview": hp.cartview,
+                           "cart": hp.cartview,
                            }
 
         self.template_name = None
@@ -689,7 +692,7 @@ class Canvas:
     @catalog.setter
     def catalog(self, val):
         self._catalog = val
-        self.discs.analyze()
+        #self.discs.analyze()
 
     @property
     def cmap(self):
@@ -749,6 +752,7 @@ class Canvas:
 
             self.center_D_a = self.catalog.data.D_a
 
+        '''
         # ------------------------
         #       finder methods
         # ------------------------
@@ -960,7 +964,7 @@ class Canvas:
                                                           self.centers_vec[halo],
                                           axis=-1)
                                           for halo in range(self.catalog.size)]
-
+        '''
         # ------------------------
         #    generator methods
         # ------------------------
@@ -1075,12 +1079,13 @@ class Canvas:
                                                  self.gen_center_vec(halo_list)):
                 yield self.center_D_a[halo] * (pix_vec - cent_vec)
 
-    def generate_discs(self):
+    def instantiate_discs(self):
         """instantiate the discs attribute using the Disc class
         Useful when the disc generators are exhausted and need to be reset"""
 
         self.discs = self.Disc(self.catalog, self.nside, self.R_times, self.inclusive)
 
+    #TODO: move to transform module
     @staticmethod
     def _normalize_vec(vec, axis=-1):
         """normalize_vec the input vector along the given axis"""
@@ -1346,54 +1351,303 @@ class Canvas:
     # Stacking methods
     # ----------------
 
-    def gen_stacks(self,
-                   halo_list="all",
-                   lonra=[-1,1], #longitute range in degrees
-                   latra=[-1,1], #latitude range in degrees
-                   xsize=100,
-                   ysize=None,
-                   *args,
-                   **kwargs,
-                   ):
-        """Generate cutouts of angular size lonra x latra around halo center with xsize & ysize
-        pixels on each side"""
+    def cutouts(self,
+                halo_list="all",
+                lon_range=[-1, 1],  #longitute range in degrees
+                lat_range=None,  #latitude range in degrees
+                xpix=200,
+                ypix=None,
+                apply_func=None,
+                **func_kwargs,
+                ):
+        """
+        Generate cutouts of angular size lon_range x lat_range around halo center with xpix & ypix
+        pixels on each side.
+
+        *This method uses Healpy's projector.CartesianProj class to perform the cartesian
+        projection.
+
+        Parameters
+        ----------
+        halo_list:
+            index of halos to consider (e.g. [1,2,5,10]).
+            goes through all the halos in the catalog when set to "all".
+        lon_range:
+            range of longitutes to cut around the halo center in degrees.
+            e.g. [-1,1] cuts out 1 degree on each side of the halo.
+            same as lon_range in healpy
+        lat_range:
+            range of longitutes to cut around the halo center in degrees.
+            by default (None) it is set equal to lon_range.
+            same as lat_range in healpy
+        xpix:
+            number of pixels on the x axis
+            same as xpix in healpy
+        ypix:
+            number of pixels on the y axis
+            by default (None) it is set equal to xrange
+            same as ypix in healpy
+        apply_func:
+            function to apply to the patch after cutting it out. THe first argument of the
+            function must be the input patch.
+
+
+        Example:
+
+            def linear_transform(patch, slope, intercept):
+                return slope * patch + intercept
+
+        func_kwargs:
+            keyword arguments to pass to apply_func
+
+            Example usage:
+
+            cutouts(apply_func=linear_transform,
+                    slope=2,
+                    intercept=1)
+
+            if the func_kwargs are scalars, they will be the same for all the halos in apply_func.
+            If they are arrays or lists, their lengths must be the same as the catalog size.
+
+        Returns
+        -------
+        generator
+        """
+
+        if lat_range is None:
+            lat_range = lon_range
         if halo_list is "all":
             halo_list = range(self.catalog.size)
 
-        cart_projector = hp.projector.CartesianProj(lonra=lonra, latra=latra,
-                                                    xsize=xsize, ysize=ysize)
+        # match the size of the args and kwargs dataframes
+        # if func_kwargs are scalars, extend then to the size of the catalog
+        # TODO: rewrite using _check_template_args()?
+        for key, value in func_kwargs.items():
+            if not hasattr(value, "__len__"):
+                func_kwargs[key] = [value]
+
+        func_kwargs_df = pd.DataFrame(func_kwargs)
+        if len(func_kwargs_df) == 1:
+            func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
+                                           ignore_index=True)
+        cart_projector = hp.projector.CartesianProj(lonra=lon_range, latra=lat_range,
+                                                    xsize=xpix, ysize=ypix,
+                                                    #*args, **kwargs,
+                                                    )
 
         for halo in halo_list:
             lon, lat = self.catalog.data[["lon", "lat"]].iloc[halo]
             cut_out = cart_projector.projmap(self.pixels,
                                             rot=(lon, lat),
                                             vec2pix_func=partial(hp.vec2pix, self.nside))
+
+            if apply_func:
+                if func_kwargs:
+                    func_dict = {**func_kwargs_df.loc[halo]}
+                else:
+                    func_dict = {}
+                cut_out = apply_func(cut_out, **func_dict)
             yield cut_out
 
-    def stack_halos(self,
-                    halo_list="all",
-                    lonra=[-1,1], #longitute range in degrees
-                    latra=[-1,1], #latitude range in degrees)
-                    xsize=100,
-                    ysize=None,
-                    *args,
-                    **kwargs,
-                    ):
-        """Stack cutouts of angular size lonra x latra around halo center with xsize & ysize
-                pixels on each side"""
-        if ysize is None:
-            ysize = xsize
+    def stack_cutouts(self,
+                      halo_list="all",
+                      lon_range=[-1, 1],  #longitute range in degrees
+                      lat_range=None,  #latitude range in degrees)
+                      xpix=200,
+                      ypix=None,
+                      inplace=True,
+                      with_ray=False,
+                      apply_func=None,
+                      **func_kwargs,
+                      ):
+        """Stack cutouts of angular size lon_range x lat_range around halo center with xpix & ypix
+        pixels on each side. apply_func is applied to each cutout before stacking
+
+        *This method uses Healpy's projector.CartesianProj class to perform the cartesian
+        projection.
+
+        Parameters
+        ----------
+        halo_list:
+            index of halos to consider (e.g. [1,2,5,10]).
+            goes through all the halos in the catalog when set to "all".
+        lon_range:
+            range of longitutes to cut around the halo center in degrees.
+            e.g. [-1,1] cuts out 1 degree on each side of the halo.
+            same as lon_range in healpy
+        lat_range:
+            range of longitutes to cut around the halo center in degrees.
+            by default (None) it is set equal to lon_range.
+            same as lat_range in healpy
+        xpix:
+            number of pixels on the x axis
+            same as xpix in healpy
+        ypix:
+            number of pixels on the y axis
+            by default (None) it is set equal to xrange
+            same as ypix in healpy
+        inplace:
+            if True, the result is saved in canvas.stack. Otherwise the stack is returned as outpu.
+        with_ray:
+            if True, stacking is be performed in parallel using ray.
+        apply_func:
+            function to apply to the patch after cutting it out. THe first argument of the
+            function must be the input patch.
+
+            Example:
+
+            def linear_transform(patch, slope, intercept):
+                return slope * patch + intercept
+
+        func_kwargs:
+            keyword arguments to pass to apply_func
+
+            Example usage:
+
+            stack_cutouts(halo_list=np.arange(10),
+                          apply_func=linear_transform,
+                          inplace=True,
+                          slope=2,
+                          intercept=1)
+
+            This will apply the function linear_transform to the first 10 halos and stacks them
+            together in canvas.stack.
+
+            if the func_kwargs are scalars, they will be the same for all the halos in apply_func.
+            If they are arrays or lists, their lengths must be the same as the catalog size.
+
+        Returns
+        -------
+        np.ndarray
+        or None (if inplace=True)
+        """
+
+        # None values of lat_range  will be fixed in cutouts()
 
         if halo_list is "all":
             halo_list = range(self.catalog.size)
 
-        stack = np.zeros((xsize, ysize))
-        gen_stack = self.gen_stacks(halo_list, lonra, latra, xsize, ysize,
-                                    *args, **kwargs,)
-        for cut_out in gen_stack:
-            stack += cut_out
+        if ypix is None:
+            ypix = xpix
 
-        return stack
+        # setup the stack to accumulate cutouts
+        stack = np.zeros((xpix,ypix))
+        #stack.setflags(write=True)
+
+        if with_ray:
+            print("Stacking in parallel with ray...")
+            print("progress bar is not available in parallel mode.")
+            # count the number of available cpus
+            import psutil
+            n_cpus = (psutil.cpu_count(logical=True))
+            print(f"n_cpus = {n_cpus}")
+            ray.init(num_cpus=n_cpus)
+
+            # put the stack in the object store
+            shared_stack = ray.put(stack.reshape(-1))
+
+            # split the halo list into batches
+            print(f"Stacking {n_cpus} batches")
+
+            halo_batches = np.array_split(range(self.catalog.size), n_cpus)
+
+            # TODO: refactor this with the previous method
+            for key, value in func_kwargs.items():
+                if not hasattr(value, "__len__"):
+                    func_kwargs[key] = [value]
+
+            func_kwargs_df = pd.DataFrame(func_kwargs)
+            if len(func_kwargs_df) == 1:
+                func_kwargs_df = pd.concat([func_kwargs_df] * len(halo_list),
+                                           ignore_index=True)
+
+            # setup the stack generator
+            #cutout_gen_batches = [self.cutouts(halo_batch, lon_range, lat_range, xpix, ypix,
+            #                                apply_func, **func_kwargs_df.loc[halo_batch])
+            #                    for halo_batch in halo_batches]
+
+            from functools import partial
+            cutout_generator = partial(self.cutouts,
+                                       lon_range=lon_range,
+                                       lat_range=lat_range,
+                                       xpix=xpix,
+                                       ypix=ypix,
+                                       apply_func=apply_func)
+
+            print(cutout_generator)
+
+            for halo_batch in halo_batches:
+                result = self._stack_batch.remote(shared_stack,
+                                                  halo_batch,
+                                                  cutout_generator,
+                                                  func_kwargs_df)
+
+            stack = np.copy(ray.get(result)).reshape(xpix, ypix)
+            ray.shutdown()
+        else:
+            # setup the stack generator
+            cutout_generator = self.cutouts(halo_list, lon_range, lat_range, xpix, ypix,
+                                            apply_func, **func_kwargs)
+            for cut_out in tqdm(cutout_generator, total=len(halo_list)):
+                stack += cut_out
+
+        print("Checkout the result with canvas.stack")
+        if inplace:
+            self.stack = stack
+        else:
+            return stack
+
+    @ray.remote
+    def _stack_batch(shared_stack, halo_batch, cutout_generator, func_kwargs_df):
+
+        for cutout in cutout_generator(halo_list=halo_batch, **func_kwargs_df.loc[halo_batch]):
+
+            cutout = cutout.reshape(-1)
+            np.add.at(shared_stack, np.arange(len(cutout)), cutout)
+
+        return shared_stack
+
+
+    # -----------------
+    # Add CMB and Noise
+    # -----------------
+
+    def add_cmb(self,
+                Cl="Planck2018",
+                mode="TT",
+                lmax=None,
+                inplace=True,
+                *args,
+                **kwargs):
+        """add cmb to the pixels
+        If Cl array is not provided, a CAMB generated power spectrum is loaded from disc"""
+
+        assert mode == "TT", "Currently only temperature is supported."
+
+        if lmax is None:
+            lmax = 3 * self.nside -1
+        if Cl is "Planck2018":
+            Cl_file = misc.load_Cl_Planck2018(lmax=lmax)
+            Cl = Cl_file[mode]
+
+        # TODO: add to __init__ and make readonly?
+        # FIXME: prevent multiple cmb's to be added
+        self.cmb = hp.synfast(Cl, self.nside, *args, **kwargs)
+
+        if inplace:
+            self.pixels += self.cmb
+        else:
+            return self.cmb
+
+
+    def remove_cmb(self):
+        """remove cmb from the pixels"""
+        try:
+            self.pixels -= self.cmb
+            del(self.cmb)
+            print("CMB removed from canvas.pixels")
+        except AttributeError:
+            raise
 
 
 #########################################################
@@ -1436,8 +1690,7 @@ class Painter:
     def spray(self,
               canvas,
               distance_units="Mpc",
-              with_ray=True,
-              batches=True,
+              with_ray=False,
               **template_kwargs):
 
         """
@@ -1458,6 +1711,11 @@ class Painter:
         # prepare the data frame to be used when spraying the canvas
         spray_df = self._shake_canister(canvas, template_kwargs)
         template = self.template
+
+        assert distance_units.lower() in ["mpc", "mpcs", "megaparsecs", "megaparsec"],\
+            "For now the distance unit has to be megaparsecs but we will add other units soon. " \
+            "Post an issue on the github repository if you want a specific distance unit to be " \
+            "added."
 
         # check the units
         #if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
@@ -1488,43 +1746,10 @@ class Painter:
                           pixel_index,
                           template(**spray_dict))
 
-            # #TODO: think about how to redo this part
-            # if len(self.template_args_list) == 1:
-            #
-            #     #FIXME: list comprehension
-            #     [np.add.at(canvas.pixels,
-            #                pixel_index,
-            #                self.template(r))
-            #     for halo, r, pixel_index in zip(range(canvas.catalog.size),
-            #                                      r_pix2cent(),
-            #                                      canvas.discs.gen_pixel_index())]
-            #
-            # #TODO: unify this with the other two conditions
-            # elif 'r_hat' in self.template_args_list:
-            #     r_hat = canvas.discs.gen_cent2pix_hat
-            #
-            #     [np.add.at(canvas.pixels,
-            #                pixel_index,
-            #                self.template(r,
-            #                              r_hat,
-            #                              **spray_df.loc[halo]))
-            #     for halo, r, r_hat, pixel_index in zip(range(canvas.catalog.size),
-            #                                      r_pix2cent(),
-            #                                      r_hat(),
-            #                                      canvas.discs.gen_pixel_index())]
-            #
-            # else:
-            #     #FIXME: list comprehension
-            #     [np.add.at(canvas.pixels,
-            #                pixel_index,
-            #                self.template(r,
-            #                              **spray_df.loc[halo]))
-            #     for halo, r, pixel_index in zip(range(canvas.catalog.size),
-            #                                      r_pix2cent(),
-            #                                      canvas.discs.gen_pixel_index())]
 
         elif with_ray:
             print("Spraying in parallel with ray...")
+            print("progress bar is not available in parallel mode.")
 
             # count the number of available cpus
             import psutil
@@ -1535,49 +1760,42 @@ class Painter:
             # put the canvas pixels in the object store
             shared_pixels = ray.put(canvas.pixels)
 
-            if batches:
-                #assert batches > 0; "number of batches must be a positive number"
-                print("spraying in batch mode")
+            # split the halo list into batches
+            print(f"Spraying {n_cpus} batches")
+            halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
 
-                # split the halo list into batches
-                halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
+            # set local pointers to the pixel generator and template
+            gen_pixel_index = canvas.discs.gen_pixel_index
+            template = self.template
 
-                # set local pointers to the pixel generator and template
-                gen_pixel_index = canvas.discs.gen_pixel_index
-                template = self.template
+            for halo_batch in halo_batches:
+                # _paint the shared pixels array in batches with ray
+                result = self._paint_batch.remote(shared_pixels,
+                                                  halo_batch,
+                                                  r_mode,
+                                                  r_pix2cent,
+                                                  gen_pixel_index,
+                                                  template,
+                                                  spray_df)
 
-                for halo_batch in halo_batches:
-                    # paint the shared pixels array in batches with ray
-                    result = self.paint_batch.remote(shared_pixels,
-                                                     halo_batch,
-                                                     r_mode,
-                                                     r_pix2cent,
-                                                     gen_pixel_index,
-                                                     template,
-                                                     spray_df)
-
-            else:
-                for halo, r, pixel_index in zip(range(canvas.catalog.size),
-                                                r_pix2cent(),
-                                                canvas.discs.gen_pixel_index()):
-                    result = self.paint.remote(shared_pixels, pixel_index, self.template(r, **spray_df.loc[halo]))
 
             # put the batches together and shut down ray
-            canvas.pixels = ray.get(result)
+            canvas.pixels = np.copy(ray.get(result))
             ray.shutdown()
-        print("Your artwork is fininshed. Check it out with Canvas.show_map()")
+        print("Your artwork is finished. Check it out with Canvas.show_map()")
 
         # activate the canvas.pixels setter
         #canvas.pixels = canvas.pixels
 
+    # TODO: Remove this
     @ray.remote
-    def paint(shared_pixels, pixel_index, template):
+    def _paint(shared_pixels, pixel_index, template):
         np.add.at(shared_pixels, pixel_index, template)
         return shared_pixels
 
     @ray.remote
-    def paint_batch(shared_pixels, halo_batch, r_mode, r_pix2cent, gen_pixel_index, template,
-                    spray_df):
+    def _paint_batch(shared_pixels, halo_batch, r_mode, r_pix2cent, gen_pixel_index, template,
+                     spray_df):
         # for halo, r, pixel_index in zip(halo_batch,
         #                                 r_pix2cent(halo_list=halo_batch),
         #                                 gen_pixel_index(halo_list=halo_batch)):
