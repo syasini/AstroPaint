@@ -1349,36 +1349,40 @@ class Canvas:
 
     def cutouts(self,
                 halo_list="all",
-                lonra=[-1,1],  #longitute range in degrees
-                latra=None,  #latitude range in degrees
-                xsize=200,
-                ysize=None,
+                lon_range=[-1, 1],  #longitute range in degrees
+                lat_range=None,  #latitude range in degrees
+                xpix=200,
+                ypix=None,
                 apply_func=None,
                 **func_kwargs,
                 ):
         """
-        Generate cutouts of angular size lonra x latra around halo center with xsize & ysize
+        Generate cutouts of angular size lon_range x lat_range around halo center with xpix & ypix
         pixels on each side.
 
-        *This method uses Healpy's projector.CartesianProj class to perform the cartesian projection.
+        *This method uses Healpy's projector.CartesianProj class to perform the cartesian
+        projection.
 
         Parameters
         ----------
         halo_list:
             index of halos to consider (e.g. [1,2,5,10]).
             goes through all the halos in the catalog when set to "all".
-        lonra:
+        lon_range:
             range of longitutes to cut around the halo center in degrees.
             e.g. [-1,1] cuts out 1 degree on each side of the halo.
-        latra:
+            same as lon_range in healpy
+        lat_range:
             range of longitutes to cut around the halo center in degrees.
-            by default (None) it is set equal to lonra.
-        xsize:
+            by default (None) it is set equal to lon_range.
+            same as lat_range in healpy
+        xpix:
             number of pixels on the x axis
-        ysize:
+            same as xpix in healpy
+        ypix:
             number of pixels on the y axis
             by default (None) it is set equal to xrange
-
+            same as ypix in healpy
         apply_func:
             function to apply to the patch after cutting it out. THe first argument of the
             function must be the input patch.
@@ -1405,8 +1409,8 @@ class Canvas:
         generator
         """
 
-        if latra is None:
-            latra = lonra
+        if lat_range is None:
+            lat_range = lon_range
         if halo_list is "all":
             halo_list = range(self.catalog.size)
 
@@ -1421,8 +1425,8 @@ class Canvas:
         if len(func_kwargs_df) == 1:
             func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
                                            ignore_index=True)
-        cart_projector = hp.projector.CartesianProj(lonra=lonra, latra=latra,
-                                                    xsize=xsize, ysize=ysize,
+        cart_projector = hp.projector.CartesianProj(lonra=lon_range, latra=lat_range,
+                                                    xsize=xpix, ysize=ypix,
                                                     #*args, **kwargs,
                                                     )
 
@@ -1442,18 +1446,18 @@ class Canvas:
 
     def stack_cutouts(self,
                       halo_list="all",
-                      lonra=[-1,1],  #longitute range in degrees
-                      latra=None,  #latitude range in degrees)
-                      xsize=200,
-                      ysize=None,
+                      lon_range=[-1, 1],  #longitute range in degrees
+                      lat_range=None,  #latitude range in degrees)
+                      xpix=200,
+                      ypix=None,
                       apply_func=None,
                       **func_kwargs,
                       ):
-        """Stack cutouts of angular size lonra x latra around halo center with xsize & ysize
+        """Stack cutouts of angular size lon_range x lat_range around halo center with xpix & ypix
         pixels on each side. apply_func is applied to each cutout before stacking (see
         documentation of the canvas.cutouts method."""
 
-        # None values of latra  will be fixed in cutouts()
+        # None values of lat_range  will be fixed in cutouts()
 
         if halo_list is "all":
             halo_list = range(self.catalog.size)
