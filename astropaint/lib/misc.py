@@ -4,7 +4,7 @@ import numpy as np
 __author__ = "Siavash Yasini"
 __email__ = "yasini@usc.edu"
 
-def load_Planck2018_Cl(lmax, lmin=0,):
+def load_Cl_Planck2018(lmax, lmin=0,):
     """
     load Cl from camb generated Dl file
 
@@ -15,20 +15,19 @@ def load_Planck2018_Cl(lmax, lmin=0,):
 
     Returns
     -------
-    L, Cl
+    Cls
 
-    Cl = np.array([Cl_TT, Cl_EE, Cl_BB, Cl_TE])
+    available keys in Cls : L, TT, EE, BB, TE
     """
 
     Cl_fname = os.path.join(os.path.dirname(__file__),
-                            "Planck2018_Cl_raw.npy")
+                            "Cl_Planck2018_camb.npz")
 
-    Cls = np.load(Cl_fname, allow_pickle=True, encoding="latin1").item()
+    Cls = np.load(Cl_fname)
+    # L = Cls['ell']
+    # Cl_TT = Cls['tt']
+    # Cl_EE = Cls['ee']
+    # Cl_BB = Cls['bb']
+    # Cl_TE = Cls['te']
 
-    L = Cls['ell']
-    Cl_TT = Cls['tt']
-    Cl_EE = Cls['ee']
-    Cl_BB = Cls['bb']
-    Cl_TE = Cls['te']
-
-    return L, Cl_TT, Cl_EE, Cl_BB, Cl_TE
+    return Cls

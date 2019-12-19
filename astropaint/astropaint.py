@@ -1474,18 +1474,24 @@ class Canvas:
     # -----------------
 
     def add_cmb(self,
-                Cl="LambdaCDM",
+                Cl="Planck2018",
+                mode="TT",
                 lmax=None,
                 inplace=True,
                 *args,
                 **kwargs):
         """add cmb to the pixels"""
 
+        assert mode == "TT", "Currently only temperature is supported."
+
         if lmax is None:
             lmax = 3 * self.nside -1
-        if Cl is "LambdaCDM":
-            _, Cl, _, _, _ = misc.load_Planck2018_Cl(lmax=lmax)
-            print(Cl.shape)
+        if Cl is "Planck2018":
+            Cl_file = misc.load_Cl_Planck2018(lmax=lmax)
+            Cl = Cl_file[mode]
+
+        # TODO: add to __init__ and make readonly?
+        # FIXME: prevent multiple cmb's to be added
         self.cmb = hp.synfast(Cl, self.nside, *args, **kwargs)
 
         if inplace:
@@ -1496,8 +1502,13 @@ class Canvas:
 
     def remove_cmb(self):
         """remove cmb from the pixels"""
+        try:
+            self.pixels -= self.cmb
+            del(self.cmb)
+            print("CMB removed from canvas.pixels")
+        except AttributeError:
+            raise
 
-        self.pixels -= self.cmb
 
 
 
