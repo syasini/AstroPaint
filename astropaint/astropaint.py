@@ -29,7 +29,8 @@ except ModuleNotFoundError:
 #import sys
 #print(sys.path)
 from astropy.coordinates import cartesian_to_spherical
-from .lib import transform
+from .lib import transform, misc
+
 
 # find the package path; same as __path__
 path_dir = os.path.dirname(os.path.abspath(__file__))
@@ -1543,6 +1544,48 @@ class Canvas:
             np.add.at(shared_stack, np.arange(len(cutout)), cutout)
 
         return shared_stack
+
+
+    # -----------------
+    # Add CMB and Noise
+    # -----------------
+
+    def add_cmb(self,
+                Cl="Planck2018",
+                mode="TT",
+                lmax=None,
+                inplace=True,
+                *args,
+                **kwargs):
+        """add cmb to the pixels"""
+
+        assert mode == "TT", "Currently only temperature is supported."
+
+        if lmax is None:
+            lmax = 3 * self.nside -1
+        if Cl is "Planck2018":
+            Cl_file = misc.load_Cl_Planck2018(lmax=lmax)
+            Cl = Cl_file[mode]
+
+        # TODO: add to __init__ and make readonly?
+        # FIXME: prevent multiple cmb's to be added
+        self.cmb = hp.synfast(Cl, self.nside, *args, **kwargs)
+
+        if inplace:
+            self.pixels += self.cmb
+        else:
+            return self.cmb
+
+
+    def remove_cmb(self):
+        """remove cmb from the pixels"""
+        try:
+            self.pixels -= self.cmb
+            del(self.cmb)
+            print("CMB removed from canvas.pixels")
+        except AttributeError:
+            raise
+
 
 
 
