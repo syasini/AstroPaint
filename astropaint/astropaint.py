@@ -631,7 +631,7 @@ class Canvas:
         self._catalog = catalog
         self.centers_D_a = self._catalog.data.D_a
 
-        self.generate_discs()
+        self.instantiate_discs()
 
         #if analyze:
         #    self.discs.analyze()
@@ -642,8 +642,10 @@ class Canvas:
 
         self._proj_dict = {"mollweide": hp.mollview,
                            "mollview": hp.mollview,
+                           "moll": hp.mollview,
                            "cartesian": hp.cartview,
                            "cartview": hp.cartview,
+                           "cart": hp.cartview,
                            }
 
         self.template_name = None
@@ -1077,12 +1079,13 @@ class Canvas:
                                                  self.gen_center_vec(halo_list)):
                 yield self.center_D_a[halo] * (pix_vec - cent_vec)
 
-    def generate_discs(self):
+    def instantiate_discs(self):
         """instantiate the discs attribute using the Disc class
         Useful when the disc generators are exhausted and need to be reset"""
 
         self.discs = self.Disc(self.catalog, self.nside, self.R_times, self.inclusive)
 
+    #TODO: move to transform module
     @staticmethod
     def _normalize_vec(vec, axis=-1):
         """normalize_vec the input vector along the given axis"""
@@ -1388,7 +1391,8 @@ class Canvas:
             function to apply to the patch after cutting it out. THe first argument of the
             function must be the input patch.
 
-            Example:
+
+        Example:
 
             def linear_transform(patch, slope, intercept):
                 return slope * patch + intercept
@@ -1457,8 +1461,66 @@ class Canvas:
                       **func_kwargs,
                       ):
         """Stack cutouts of angular size lon_range x lat_range around halo center with xpix & ypix
-        pixels on each side. apply_func is applied to each cutout before stacking (see
-        documentation of the canvas.cutouts method."""
+        pixels on each side. apply_func is applied to each cutout before stacking
+
+        *This method uses Healpy's projector.CartesianProj class to perform the cartesian
+        projection.
+
+        Parameters
+        ----------
+        halo_list:
+            index of halos to consider (e.g. [1,2,5,10]).
+            goes through all the halos in the catalog when set to "all".
+        lon_range:
+            range of longitutes to cut around the halo center in degrees.
+            e.g. [-1,1] cuts out 1 degree on each side of the halo.
+            same as lon_range in healpy
+        lat_range:
+            range of longitutes to cut around the halo center in degrees.
+            by default (None) it is set equal to lon_range.
+            same as lat_range in healpy
+        xpix:
+            number of pixels on the x axis
+            same as xpix in healpy
+        ypix:
+            number of pixels on the y axis
+            by default (None) it is set equal to xrange
+            same as ypix in healpy
+        inplace:
+            if True, the result is saved in canvas.stack. Otherwise the stack is returned as outpu.
+        with_ray:
+            if True, stacking is be performed in parallel using ray.
+        apply_func:
+            function to apply to the patch after cutting it out. THe first argument of the
+            function must be the input patch.
+
+            Example:
+
+            def linear_transform(patch, slope, intercept):
+                return slope * patch + intercept
+
+        func_kwargs:
+            keyword arguments to pass to apply_func
+
+            Example usage:
+
+            stack_cutouts(halo_list=np.arange(10),
+                          apply_func=linear_transform,
+                          inplace=True,
+                          slope=2,
+                          intercept=1)
+
+            This will apply the function linear_transform to the first 10 halos and stacks them
+            together in canvas.stack.
+
+            if the func_kwargs are scalars, they will be the same for all the halos in apply_func.
+            If they are arrays or lists, their lengths must be the same as the catalog size.
+
+        Returns
+        -------
+        np.ndarray
+        or None (if inplace=True)
+        """
 
         # None values of lat_range  will be fixed in cutouts()
 
@@ -1505,20 +1567,20 @@ class Canvas:
             #                    for halo_batch in halo_batches]
 
             from functools import partial
-            cutout_generator = partial(self.cutouts,lon_range=lon_range,
-                                                      lat_range=lat_range,
-                                                      xpix=xpix,
-                                                      ypix=ypix,
-                                                        apply_func=apply_func,
-                                                      )
+            cutout_generator = partial(self.cutouts,
+                                       lon_range=lon_range,
+                                       lat_range=lat_range,
+                                       xpix=xpix,
+                                       ypix=ypix,
+                                       apply_func=apply_func)
 
             print(cutout_generator)
 
             for halo_batch in halo_batches:
                 result = self._stack_batch.remote(shared_stack,
-                                             halo_batch,
-                                             cutout_generator,
-                                             func_kwargs_df)
+                                                  halo_batch,
+                                                  cutout_generator,
+                                                  func_kwargs_df)
 
             stack = np.copy(ray.get(result)).reshape(xpix, ypix)
             ray.shutdown()
@@ -1557,7 +1619,8 @@ class Canvas:
                 inplace=True,
                 *args,
                 **kwargs):
-        """add cmb to the pixels"""
+        """add cmb to the pixels
+        If Cl array is not provided, a CAMB generated power spectrum is loaded from disc"""
 
         assert mode == "TT", "Currently only temperature is supported."
 
@@ -1585,8 +1648,6 @@ class Canvas:
             print("CMB removed from canvas.pixels")
         except AttributeError:
             raise
-
-
 
 
 #########################################################
