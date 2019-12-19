@@ -1349,36 +1349,40 @@ class Canvas:
 
     def cutouts(self,
                 halo_list="all",
-                lonra=[-1,1],  #longitute range in degrees
-                latra=None,  #latitude range in degrees
-                xsize=200,
-                ysize=None,
+                lon_range=[-1, 1],  #longitute range in degrees
+                lat_range=None,  #latitude range in degrees
+                xpix=200,
+                ypix=None,
                 apply_func=None,
                 **func_kwargs,
                 ):
         """
-        Generate cutouts of angular size lonra x latra around halo center with xsize & ysize
+        Generate cutouts of angular size lon_range x lat_range around halo center with xpix & ypix
         pixels on each side.
 
-        *This method uses Healpy's projector.CartesianProj class to perform the cartesian projection.
+        *This method uses Healpy's projector.CartesianProj class to perform the cartesian
+        projection.
 
         Parameters
         ----------
         halo_list:
             index of halos to consider (e.g. [1,2,5,10]).
             goes through all the halos in the catalog when set to "all".
-        lonra:
+        lon_range:
             range of longitutes to cut around the halo center in degrees.
             e.g. [-1,1] cuts out 1 degree on each side of the halo.
-        latra:
+            same as lon_range in healpy
+        lat_range:
             range of longitutes to cut around the halo center in degrees.
-            by default (None) it is set equal to lonra.
-        xsize:
+            by default (None) it is set equal to lon_range.
+            same as lat_range in healpy
+        xpix:
             number of pixels on the x axis
-        ysize:
+            same as xpix in healpy
+        ypix:
             number of pixels on the y axis
             by default (None) it is set equal to xrange
-
+            same as ypix in healpy
         apply_func:
             function to apply to the patch after cutting it out. THe first argument of the
             function must be the input patch.
@@ -1405,8 +1409,8 @@ class Canvas:
         generator
         """
 
-        if latra is None:
-            latra = lonra
+        if lat_range is None:
+            lat_range = lon_range
         if halo_list is "all":
             halo_list = range(self.catalog.size)
 
@@ -1421,8 +1425,8 @@ class Canvas:
         if len(func_kwargs_df) == 1:
             func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
                                            ignore_index=True)
-        cart_projector = hp.projector.CartesianProj(lonra=lonra, latra=latra,
-                                                    xsize=xsize, ysize=ysize,
+        cart_projector = hp.projector.CartesianProj(lonra=lon_range, latra=lat_range,
+                                                    xsize=xpix, ysize=ypix,
                                                     #*args, **kwargs,
                                                     )
 
@@ -1442,31 +1446,104 @@ class Canvas:
 
     def stack_cutouts(self,
                       halo_list="all",
-                      lonra=[-1,1],  #longitute range in degrees
-                      latra=None,  #latitude range in degrees)
-                      xsize=200,
-                      ysize=None,
+                      lon_range=[-1, 1],  #longitute range in degrees
+                      lat_range=None,  #latitude range in degrees)
+                      xpix=200,
+                      ypix=None,
+                      inplace=True,
+                      with_ray=False,
                       apply_func=None,
                       **func_kwargs,
                       ):
-        """Stack cutouts of angular size lonra x latra around halo center with xsize & ysize
+        """Stack cutouts of angular size lon_range x lat_range around halo center with xpix & ypix
         pixels on each side. apply_func is applied to each cutout before stacking (see
         documentation of the canvas.cutouts method."""
 
-        # None values of latra  will be fixed in cutouts()
+        # None values of lat_range  will be fixed in cutouts()
 
         if halo_list is "all":
             halo_list = range(self.catalog.size)
 
-        if ysize is None:
-            ysize = xsize
-        stack = np.zeros((xsize, ysize))
-        gen_stack = self.cutouts(halo_list, lonra, latra, xsize, ysize,
-                                 apply_func, **func_kwargs)
-        for cut_out in tqdm(gen_stack, total=len(halo_list)):
-            stack += cut_out
+        if ypix is None:
+            ypix = xpix
 
-        return stack
+        # setup the stack to accumulate cutouts
+        stack = np.zeros((xpix,ypix))
+        #stack.setflags(write=True)
+
+        if with_ray:
+            print("Stacking in parallel with ray...")
+            print("progress bar is not available in parallel mode.")
+            # count the number of available cpus
+            import psutil
+            n_cpus = (psutil.cpu_count(logical=True))
+            print(f"n_cpus = {n_cpus}")
+            ray.init(num_cpus=n_cpus)
+
+            # put the stack in the object store
+            shared_stack = ray.put(stack.reshape(-1))
+
+            # split the halo list into batches
+            print(f"Stacking {n_cpus} batches")
+
+            halo_batches = np.array_split(range(self.catalog.size), n_cpus)
+
+            # TODO: refactor this with the previous method
+            for key, value in func_kwargs.items():
+                if not hasattr(value, "__len__"):
+                    func_kwargs[key] = [value]
+
+            func_kwargs_df = pd.DataFrame(func_kwargs)
+            if len(func_kwargs_df) == 1:
+                func_kwargs_df = pd.concat([func_kwargs_df] * len(halo_list),
+                                           ignore_index=True)
+
+            # setup the stack generator
+            #cutout_gen_batches = [self.cutouts(halo_batch, lon_range, lat_range, xpix, ypix,
+            #                                apply_func, **func_kwargs_df.loc[halo_batch])
+            #                    for halo_batch in halo_batches]
+
+            from functools import partial
+            cutout_generator = partial(self.cutouts,lon_range=lon_range,
+                                                      lat_range=lat_range,
+                                                      xpix=xpix,
+                                                      ypix=ypix,
+                                                        apply_func=apply_func,
+                                                      )
+
+            print(cutout_generator)
+
+            for halo_batch in halo_batches:
+                result = self._stack_batch.remote(shared_stack,
+                                             halo_batch,
+                                             cutout_generator,
+                                             func_kwargs_df)
+
+            stack = np.copy(ray.get(result)).reshape(xpix, ypix)
+            ray.shutdown()
+        else:
+            # setup the stack generator
+            cutout_generator = self.cutouts(halo_list, lon_range, lat_range, xpix, ypix,
+                                            apply_func, **func_kwargs)
+            for cut_out in tqdm(cutout_generator, total=len(halo_list)):
+                stack += cut_out
+
+        print("Checkout the result with canvas.stack")
+        if inplace:
+            self.stack = stack
+        else:
+            return stack
+
+    @ray.remote
+    def _stack_batch(shared_stack, halo_batch, cutout_generator, func_kwargs_df):
+
+        for cutout in cutout_generator(halo_list=halo_batch, **func_kwargs_df.loc[halo_batch]):
+
+            cutout = cutout.reshape(-1)
+            np.add.at(shared_stack, np.arange(len(cutout)), cutout)
+
+        return shared_stack
+
 
 
 #########################################################
@@ -1568,6 +1645,7 @@ class Painter:
 
         elif with_ray:
             print("Spraying in parallel with ray...")
+            print("progress bar is not available in parallel mode.")
 
             # count the number of available cpus
             import psutil
@@ -1579,7 +1657,7 @@ class Painter:
             shared_pixels = ray.put(canvas.pixels)
 
             # split the halo list into batches
-            print(f"spraying {n_cpus} batches")
+            print(f"Spraying {n_cpus} batches")
             halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
 
             # set local pointers to the pixel generator and template
@@ -1587,32 +1665,33 @@ class Painter:
             template = self.template
 
             for halo_batch in halo_batches:
-                # paint the shared pixels array in batches with ray
-                result = self.paint_batch.remote(shared_pixels,
-                                                 halo_batch,
-                                                 r_mode,
-                                                 r_pix2cent,
-                                                 gen_pixel_index,
-                                                 template,
-                                                 spray_df)
+                # _paint the shared pixels array in batches with ray
+                result = self._paint_batch.remote(shared_pixels,
+                                                  halo_batch,
+                                                  r_mode,
+                                                  r_pix2cent,
+                                                  gen_pixel_index,
+                                                  template,
+                                                  spray_df)
 
 
             # put the batches together and shut down ray
-            canvas.pixels = ray.get(result)
+            canvas.pixels = np.copy(ray.get(result))
             ray.shutdown()
-        print("Your artwork is fininshed. Check it out with Canvas.show_map()")
+        print("Your artwork is finished. Check it out with Canvas.show_map()")
 
         # activate the canvas.pixels setter
         #canvas.pixels = canvas.pixels
 
+    # TODO: Remove this
     @ray.remote
-    def paint(shared_pixels, pixel_index, template):
+    def _paint(shared_pixels, pixel_index, template):
         np.add.at(shared_pixels, pixel_index, template)
         return shared_pixels
 
     @ray.remote
-    def paint_batch(shared_pixels, halo_batch, r_mode, r_pix2cent, gen_pixel_index, template,
-                    spray_df):
+    def _paint_batch(shared_pixels, halo_batch, r_mode, r_pix2cent, gen_pixel_index, template,
+                     spray_df):
         # for halo, r, pixel_index in zip(halo_batch,
         #                                 r_pix2cent(halo_list=halo_batch),
         #                                 gen_pixel_index(halo_list=halo_batch)):
