@@ -1617,6 +1617,7 @@ class Canvas:
                 mode="TT",
                 lmax=None,
                 inplace=True,
+                weight=1,
                 *args,
                 **kwargs):
         """add cmb to the pixels
@@ -1635,9 +1636,9 @@ class Canvas:
         self.cmb = hp.synfast(Cl, self.nside, *args, **kwargs)
 
         if inplace:
-            self.pixels += self.cmb
+            self.pixels += weight * self.cmb
         else:
-            return self.cmb
+            return weight * self.cmb
 
 
     def remove_cmb(self):
