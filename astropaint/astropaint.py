@@ -19,6 +19,7 @@ from functools import partial
 from tqdm.auto import tqdm
 
 #from memory_profiler import profile
+from .lib.log import CMBAlreadyAdded
 
 try:
     import healpy as hp
@@ -1607,7 +1608,6 @@ class Canvas:
 
         return shared_stack
 
-
     # -----------------
     # Add CMB and Noise
     # -----------------
@@ -1632,11 +1632,16 @@ class Canvas:
             Cl = Cl_file[mode]
 
         # TODO: add to __init__ and make readonly?
-        # FIXME: prevent multiple cmb's to be added
-        self.cmb = hp.synfast(Cl, self.nside, *args, **kwargs)
+        try:
+            self.cmb # see if self.cmb exists and raise an error if it does
+            raise CMBAlreadyAdded("CMB has been already added. You can remove it using "
+                                  "canvas.remove_cmb()")
+        except AttributeError:
+            # add self.cmb if it does not already exist
+            self.cmb = weight * hp.synfast(Cl, self.nside, *args, **kwargs)
 
         if inplace:
-            self.pixels += weight * self.cmb
+            self.pixels += self.cmb
         else:
             return weight * self.cmb
 
