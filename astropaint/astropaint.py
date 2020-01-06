@@ -1613,22 +1613,55 @@ class Canvas:
     # -----------------
 
     def add_cmb(self,
-                Cl="Planck2018",
+                Cl="LCDM",
                 mode="TT",
                 lmax=None,
                 inplace=True,
                 weight=1,
                 *args,
                 **kwargs):
-        """add cmb to the pixels
-        If Cl array is not provided, a CAMB generated power spectrum is loaded from disc"""
+        """
+        Add CMB to the pixels
+        If Cl array is not provided, a Lambda-CDM power spectrum is loaded from disc
+
+        Parameters
+        ----------
+        Cl:
+            Input CMB Power Spectrum
+            The default keyword 'LCDM' loads a CAMB generated power spectrum from disc
+
+        mode:
+            'TT' for Temperature
+            Note: 'EE' and 'BB' for polarization are currently unavailable
+
+        lmax:
+            Maximum ell mode to include in the CMB power spectrum
+
+        inplace:
+            If True, the result will be added to canvas.pixels
+            Otherwise the generated CMB map will be returned as output
+
+        weight:
+            The multiplicative factor for the generated CMB pixels
+
+        args:
+            *args to be passed to healpy.synfast(*args)
+
+        kwargs
+            *kwargs to be passed to healpy.synfast(**kwargs)
+
+        Returns
+        -------
+        None or np.ndarray
+        The generated CMB map has the same NSIDE as the canvas.pixels map
+        """
 
         assert mode == "TT", "Currently only temperature is supported."
 
         if lmax is None:
             lmax = 3 * self.nside -1
-        if Cl is "Planck2018":
-            Cl_file = misc.load_Cl_Planck2018(lmax=lmax)
+        if Cl is "LCDM":
+            Cl_file = utilities.load_Cl_Planck2018(lmax=lmax)
             Cl = Cl_file[mode]
 
         # TODO: add to __init__ and make readonly?
@@ -1643,8 +1676,7 @@ class Canvas:
         if inplace:
             self.pixels += self.cmb
         else:
-            return weight * self.cmb
-
+            return self.cmb
 
     def remove_cmb(self):
         """remove cmb from the pixels"""
@@ -1653,7 +1685,7 @@ class Canvas:
             del(self.cmb)
             print("CMB removed from canvas.pixels")
         except AttributeError:
-            raise
+            print("canvas.cmb not Found")
 
 
 #########################################################
