@@ -9,3 +9,4 @@ pandas==0.25.3
 ray==0.7.6
 healpy==1.12.9
 tqdm==4.38.0
+pyyaml==5.1.2
