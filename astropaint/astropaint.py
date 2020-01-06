@@ -8,6 +8,7 @@ __email__ = "yasini@usc.edu"
 import os
 import numpy as np
 import pandas as pd
+import yaml
 from matplotlib import cm
 from warnings import warn
 import inspect
@@ -19,7 +20,7 @@ from functools import partial
 from tqdm.auto import tqdm
 
 #from memory_profiler import profile
-from .lib.log import CMBAlreadyAdded
+from .lib.log import CMBAlreadyAdded, NoiseAlreadyAdded
 
 try:
     import healpy as hp
@@ -30,8 +31,7 @@ except ModuleNotFoundError:
 #import sys
 #print(sys.path)
 from astropy.coordinates import cartesian_to_spherical
-from .lib import transform, misc
-
+from .lib import transform, utilities
 
 # find the package path; same as __path__
 path_dir = os.path.dirname(os.path.abspath(__file__))
