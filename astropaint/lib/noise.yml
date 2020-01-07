@@ -1,0 +1,45 @@
+Planck:
+  # frequencies
+  100:
+    fwhm: 10. # arcmin
+    sigma_T: 77.4 # uK-arcmin
+    sigma_P: 117.6 # uK-arcmin
+  143:
+    fwhm: 7.3 # arcmin
+    sigma_T: 33. # uK-arcmin
+    sigma_P: 70.2 # uK-arcmin
+  217:
+    fwhm: 5. # arcmin
+    sigma_T: 46.8 # uK-arcmin
+    sigma_P: 105. # uK-arcmin
+
+SO: #LAT http://arxiv.org/abs/1907.04473
+  # frequencies
+  93:
+    fwhm: 2.2 # arcmin
+    sigma_T: 8.0 # uK
+    sigma_P: 11.3 # uK
+  145:
+    fwhm: 1.4 # arcmin
+    sigma_T: 10. # uK-arcmin
+    sigma_P: 14.1 # uK-arcmin
+  225:
+    fwhm: 1. # arcmin
+    sigma_T: 22. # uK-arcmin
+    sigma_P: 31.1 # uK-arcmin
+
+S4: #LAT https://cmb-s4.org/wiki/index.php/Survey_Performance_Expectations
+  # frequencies
+  93:
+    fwhm: 2.2 # arcmin
+    sigma_T: 1.5 # uK
+    sigma_P: 2.1 # uK
+  145:
+    fwhm: 1.4 # arcmin
+    sigma_T: 1.5 # uK-arcmin
+    sigma_P: 2.1 # uK-arcmin
+  225:
+    fwhm: 1. # arcmin
+    sigma_T: 4.8 # uK-arcmin
+    sigma_P: 6.8 # uK-arcmin
+
