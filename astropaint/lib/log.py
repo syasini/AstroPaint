@@ -10,3 +10,8 @@ __email__ = "yasini@usc.edu"
 class ParameterNotFound(KeyError):
     pass
 
+class CMBAlreadyAdded(Exception):
+    pass
+
+class NoiseAlreadyAdded(Exception):
+    pass

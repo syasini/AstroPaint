@@ -8,6 +8,7 @@ __email__ = "yasini@usc.edu"
 import os
 import numpy as np
 import pandas as pd
+import yaml
 from matplotlib import cm
 from warnings import warn
 import inspect
@@ -19,6 +20,7 @@ from functools import partial
 from tqdm.auto import tqdm
 
 #from memory_profiler import profile
+from .lib.log import CMBAlreadyAdded, NoiseAlreadyAdded
 
 try:
     import healpy as hp
@@ -29,8 +31,7 @@ except ModuleNotFoundError:
 #import sys
 #print(sys.path)
 from astropy.coordinates import cartesian_to_spherical
-from .lib import transform, misc
-
+from .lib import transform, utilities
 
 # find the package path; same as __path__
 path_dir = os.path.dirname(os.path.abspath(__file__))
@@ -1607,38 +1608,75 @@ class Canvas:
 
         return shared_stack
 
-
     # -----------------
     # Add CMB and Noise
     # -----------------
 
     def add_cmb(self,
-                Cl="Planck2018",
+                Cl="LCDM",
                 mode="TT",
                 lmax=None,
                 inplace=True,
+                weight=1,
                 *args,
                 **kwargs):
-        """add cmb to the pixels
-        If Cl array is not provided, a CAMB generated power spectrum is loaded from disc"""
+        """
+        Add CMB to the pixels
+        If Cl array is not provided, a Lambda-CDM power spectrum is loaded from disc
+
+        Parameters
+        ----------
+        Cl:
+            Input CMB Power Spectrum
+            The default keyword 'LCDM' loads a CAMB generated power spectrum from disc
+
+        mode:
+            'TT' for Temperature
+            Note: 'EE' and 'BB' for polarization are currently unavailable
+
+        lmax:
+            Maximum ell mode to include in the CMB power spectrum
+
+        inplace:
+            If True, the result will be added to canvas.pixels
+            Otherwise the generated CMB map will be returned as output
+
+        weight:
+            The multiplicative factor for the generated CMB pixels
+
+        args:
+            *args to be passed to healpy.synfast(*args)
+
+        kwargs
+            *kwargs to be passed to healpy.synfast(**kwargs)
+
+        Returns
+        -------
+        None or np.ndarray
+        The generated CMB map has the same NSIDE as the canvas.pixels map
+        """
 
         assert mode == "TT", "Currently only temperature is supported."
 
         if lmax is None:
             lmax = 3 * self.nside -1
-        if Cl is "Planck2018":
-            Cl_file = misc.load_Cl_Planck2018(lmax=lmax)
+        if Cl is "LCDM":
+            Cl_file = utilities.load_Cl_Planck2018(lmax=lmax)
             Cl = Cl_file[mode]
 
         # TODO: add to __init__ and make readonly?
-        # FIXME: prevent multiple cmb's to be added
-        self.cmb = hp.synfast(Cl, self.nside, *args, **kwargs)
+        try:
+            self.cmb # see if self.cmb exists and raise an error if it does
+            raise CMBAlreadyAdded("CMB has been already added. You can remove it using "
+                                  "canvas.remove_cmb()")
+        except AttributeError:
+            # add self.cmb if it does not already exist
+            self.cmb = weight * hp.synfast(Cl, self.nside, *args, **kwargs)
 
         if inplace:
             self.pixels += self.cmb
         else:
             return self.cmb
-
 
     def remove_cmb(self):
         """remove cmb from the pixels"""
@@ -1647,8 +1685,130 @@ class Canvas:
             del(self.cmb)
             print("CMB removed from canvas.pixels")
         except AttributeError:
-            raise
+            print("canvas.cmb not Found")
 
+    def add_noise(self,
+                  Nl="Planck",
+                  mode="TT",
+                  frequency=[217],
+                  lmax=None,
+                  sigma_n=None,
+                  fwhm_b=None, #FIXME: does this clash with synfast arg fwhm?
+                  apply_beam=False,
+                  inplace=True,
+                  weight=1,
+                  *args,
+                  **kwargs):
+        """
+        Add Noise to the pixels.
+        The Nl can be either provided directly as an array, or as a keyword using the name of an
+        experiment. The list of all available experiments can be found in astropaint/lib/noise.yml.
+
+        Parameters
+        ----------
+        Nl:
+            Input Noise Power Spectrum.
+            - If Nl is an array, it will be used as the noise power spectrum Nl.
+            - If Nl is a string (e.g. 'Planck', 'SO', or 'S4') the noise configuration for
+            the selected frequency channel will be read from the noise.yml file. Arbitrary noise
+            configurations can be added to this file and then called here (see
+            lib.misc.get_experiment_Nl for details).
+            - If Nl is set to 'white', then sigma_n and fwhm_b will be used to construct a
+            white noise power spectrum on the fly (see lib.misc.get_custom_Nl for details).
+
+        mode:
+            'TT' for Temperature
+            Note: 'EE' and 'BB' for polarization are currently unavailable
+
+        frequency [GHz]:
+            Frequency channels at which the noise will be calculated.
+            If a list is provided, the final noise will be the combination of all channels.
+
+        lmax:
+            Maximum ell mode to include in the noise power spectrum
+
+        sigma_n:
+            For Nl='white', this will be used as the noise level sigma [uK-arcmin], i.e.
+
+            w_inverse = arcmin2rad(sigma_n) ** 2
+            Nl = w_inverse (for each ell)
+
+        fwhm_b:
+            if apply_beam=True, this will be used as the beam Full-Width-Half-Maximum (FWHM), i.e.
+
+            fwhm = arcmin2rad(np.asarray(fwhm))
+            sigma_theta = fwhm ** 2 / 8 / np.log(2)
+            B2l = np.exp(-L * (L + 1) * sigma_theta
+
+        apply_beam:
+            If True, the Noise power spectrum will be divided by the Beam spectrum B2l
+
+        inplace:
+            If True, the result will be added to canvas.pixels
+            Otherwise the generated noise map will be returned as output
+
+        weight:
+            The multiplicative factor for the generated CMB pixels
+
+        args:
+            *args to be passed to healpy.synfast(*args)
+
+        kwargs
+            *kwargs to be passed to healpy.synfast(**kwargs)
+
+        Returns
+        -------
+        None or np.ndarray
+        The generated Noise map has the same NSIDE as the canvas.pixels map
+        """
+
+        assert mode == "TT", "Currently only temperature is supported."
+
+        noise_yml = utilities.load_noise_yaml()
+        noise_experiments = noise_yml.keys()
+
+        if lmax is None:
+            lmax = 3 * self.nside - 1
+
+        if type(Nl) in (np.ndarray, list):
+            # if Nl is a list or numpy array carry ony
+            pass
+        elif Nl in noise_experiments:
+            # check to see if the name is in the noise.yml file
+            print(f"Loading noise configuration for {Nl} from astropaint/lib/noise.yml\n")
+            Nl_exp = utilities.get_experiment_Nl(lmax=lmax, name=Nl, frequency=frequency,
+                                                 apply_beam=apply_beam)
+            Nl = Nl_exp
+        elif Nl.lower() == "white":
+            # build a custom white noise model
+            print(f"Building custom white noise configuration\n")
+            Nl_exp = utilities.get_custom_Nl(lmax=lmax, sigma_n=sigma_n, fwhm=fwhm_b,
+                                             frequency=frequency, apply_beam=apply_beam)
+            Nl = Nl_exp
+
+        # TODO: add to __init__ and make readonly?
+        try:
+            self.noise  # see if self.cmb exists and raise an error if it does
+            raise NoiseAlreadyAdded("Noise has been already added. You can remove it using "
+                                  "canvas.remove_noise()")
+        except AttributeError:
+            # add self.cmb if it does not already exist
+            self.noise = weight * hp.synfast(Nl, self.nside, *args, **kwargs)
+
+        if inplace:
+            self.pixels += self.noise
+        else:
+            return weight * self.noise #TODO: Check this
+
+    def remove_noise(self):
+        """Remove canvas.noise from the pixels
+        """
+        try:
+            self.pixels -= self.noise
+            del (self.noise)
+            print("Noise removed from canvas.pixels")
+        except AttributeError:
+            print("canvas.noise not Found")
 
 #########################################################
 #                   Painter Object
