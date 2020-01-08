@@ -2,15 +2,20 @@
 library containing [projected] halo profiles
 """
 
-__author__ = "Siavash Yasini"
-__email__ = "yasini@usc.edu"
+__author__ = ["Siavash Yasini", "Emmanuel Schaan"]
+__email__ = ["yasini@usc.edu", "eschaan@lbl.gov"]
 
-from copy import deepcopy
 import numpy as np
-from . import transform
+import matplotlib.pyplot as plt
+from scipy import integrate
+from abc import ABC, abstractmethod
+
 from astropy import units as u
 from astropy.constants import sigma_T, m_p
-from astropy.cosmology import Planck15 as cosmo
+from astropy.cosmology import Planck18_arXiv_v2 as cosmo
+
+from . import transform
+
 sigma_T = sigma_T.to(u.Mpc**2).value # [Mpc^2]
 m_p = m_p.to(u.M_sun).value # [M_sun]
 f_b = cosmo.Ob0/cosmo.Om0
