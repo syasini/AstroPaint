@@ -162,6 +162,15 @@ class NFW(Profile):
         Sigma = cls.rho_2D(R, rho_s, R_s)
         tau = sigma_T * x_e * X_H * (1 - f_s) * f_b * Sigma / mu / m_p
         return tau
+
+    @classmethod
+    def kSZ_T(cls, R, rho_s, R_s, v_r, *, T_cmb=T_cmb):
+        """kinetic Sunyaev Zeldovich effect
+        #TODO: add reference"""
+        tau = cls.tau_2D(R, rho_s, R_s)
+        dT = -tau * v_r / c * T_cmb
+
+        return dT
 # ------------------------
 #           3D
 # ------------------------
