@@ -144,6 +144,24 @@ class NFW(Profile):
 
         return alpha.real
 
+    @classmethod
+    def tau_2D(cls, R, rho_s, R_s):
+        """
+        projected NFW tau profile
+        Eq. 7 in Battaglia 2016 :
+
+        Returns
+        -------
+        tau: [NA]
+        """
+        X_H = 0.76
+        x_e = (X_H + 1) / 2 * X_H
+        f_s = 0.02
+        mu = 4 / (2 * X_H + 1 + X_H * x_e)
+
+        Sigma = cls.rho_2D(R, rho_s, R_s)
+        tau = sigma_T * x_e * X_H * (1 - f_s) * f_b * Sigma / mu / m_p
+        return tau
 # ------------------------
 #           3D
 # ------------------------
