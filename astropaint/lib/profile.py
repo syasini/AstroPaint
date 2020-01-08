@@ -268,4 +268,54 @@ class Profile(ABC):
         """
         f = lambda r: self.rho_3D(r, m, z) * 2. * r / np.sqrt(r ** 2 - R ** 2)
         result = integrate.quad(f, R, np.inf, epsabs=0., epsrel=1.e-2)[0]
-        return result
+        return resultclass NFW(Profile):
+    """
+    NFW profile
+    """
+
+    @classmethod
+    def rho_3D(cls, r, rho_s, r_s):
+        """
+        Calculate the 3D NFW density profile #TODO: add reference Eq.
+
+        Parameters
+        ----------
+        r:
+            distance from the center
+        rho_s:
+            density at radius r_s
+        r_s:
+            characterisic radius R_200c/c_200c
+
+        Returns
+        -------
+        rho = 4 * rho_s * r_s ** 3 / r / (r + r_s) ** 2
+        """
+
+        rho = 4 * rho_s * r_s ** 3 / r / (r + r_s) ** 2
+
+        return rho
+
+    @classmethod
+    def rho_2D(cls, r, rho_s, R_s):
+        """
+        projected NFW mass profile
+        Eq. 7 in Bartlemann 1996: https://arxiv.org/abs/astro-ph/9602053
+
+        Returns
+        -------
+        surface mass density: [M_sun/Mpc^2]
+        """
+
+        # FIXME: remove this
+        # print("flattening")
+
+        # r = deepcopy(r)
+        # r[r < 0.1] = 0.1  # flatten the core
+
+        x = np.asarray(r / R_s, dtype=np.complex)
+        f = 1 - 2 / np.sqrt(1 - x ** 2) * np.arctanh(np.sqrt((1 - x) / (1 + x)))
+        f = f.real
+        f = np.true_divide(f, x ** 2 - 1)
+        Sigma = 8 * rho_s * R_s * f
+        return Sigma
