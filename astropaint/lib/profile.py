@@ -268,7 +268,6 @@ class Profile(ABC):
         """
         f = lambda r: self.rho_3D(r, m, z) * 2. * r / np.sqrt(r ** 2 - R ** 2)
         result = integrate.quad(f, R, np.inf, epsabs=0., epsrel=1.e-2)[0]
-        return resultclass NFW(Profile):
         return result
 
 class NFW(Profile):
@@ -276,8 +275,8 @@ class NFW(Profile):
     NFW profile
     """
 
-    @classmethod
-    def rho_3D(cls, r, rho_s, r_s):
+    @staticmethod
+    def rho_3D(r, rho_s, r_s):
         """
         Calculate the 3D NFW density profile #TODO: add reference Eq.
 
@@ -299,8 +298,8 @@ class NFW(Profile):
 
         return rho
 
-    @classmethod
-    def rho_2D(cls, r, rho_s, R_s):
+    @staticmethod
+    def rho_2D(r, rho_s, R_s):
         """
         projected NFW mass profile
         Eq. 7 in Bartlemann 1996: https://arxiv.org/abs/astro-ph/9602053
