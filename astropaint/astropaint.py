@@ -1840,7 +1840,7 @@ class Painter:
     @template.setter
     def template(self, val):
         self._template = val
-        self._analyze_template()
+        self.R_arg_indx = self._analyze_template()
         #self._check_template()
 
     # ------------------------
@@ -1887,7 +1887,7 @@ class Painter:
 
 
 
-        R_mode = self.template_args_list[0]
+        R_mode = self.template_args_list[self.R_arg_indx]
 
         if R_mode is "R":
             R_pix2cent = canvas.discs.gen_cent2pix_mpc
@@ -1977,7 +1977,7 @@ class Painter:
 
         Returns
         -------
-        None
+        index of R or R_vec argument
         """
 
         self.template_name = self.template.__name__
@@ -1985,6 +1985,19 @@ class Painter:
         # get the list of args and keyword args
         self.template_args_list = inspect.getfullargspec(self.template).args
         self.template_kwargs_list = inspect.getfullargspec(self.template).kwonlyargs
+
+        # remove self and cls from the arguments
+        #TODO: automate this for any argumen name
+        try:
+            self.template_args_list.remove("self")
+        except ValueError:
+            pass
+
+        try:
+            self.template_args_list.remove("cls")
+        except ValueError:
+            pass
+
 
         # print out the list of args and kwargs
         message = f"The template '{self.template_name}' takes in the following arguments:\n" \
@@ -2001,14 +2014,18 @@ class Painter:
 
         # TODO: Relax this constraint
         # make sure either r or r_vec appears as the first argument
-        assert self.template_args_list[0] in ['R', 'R_vec'], \
-            "Either 'R' or 'R_vec' must be the template's first argument"
+        #assert self.template_args_list[0] in ['R', 'R_vec'], \
+        #    "Either 'R' or 'R_vec' must be the template's first argument"
 
-        # ensure the first argument of the profile template is 'r'
-        # assert self.template_args_list[0] == "r", "The first argument of the profile template " \
-        #                                          "must be 'r' (the distance from the center of " \
-        #                                          "the halo)."
+        # find the index of 'R' or 'R_vec'
+        try:
+            R_arg_index = self.template_args_list.index("R")
+        except ValueError:
+            R_arg_index = self.template_args_list.index("R_vec")
+
+
         print(message)
+        return R_arg_index
 
     def _check_template_kwargs(self, **template_kwargs):
         """Ensure the template_kwargs is pandas compatible"""
