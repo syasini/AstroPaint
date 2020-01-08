@@ -1879,29 +1879,29 @@ class Painter:
 
         # check the units
         #if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
-        #    r_pix2cent = canvas.discs.gen_cent2pix_mpc
+        #    R_pix2cent = canvas.discs.gen_cent2pix_mpc
         #elif distance_units.lower() in ["radians", "rad", "rads"]:
-        #     r_pix2cent = canvas.discs.gen_cent2pix_rad
+        #     R_pix2cent = canvas.discs.gen_cent2pix_rad
         # else:
         #     raise KeyError("distance_units must be either 'mpc' or 'radians'.")
 
 
 
-        r_mode = self.template_args_list[0]
+        R_mode = self.template_args_list[0]
 
-        if r_mode is "r":
-            r_pix2cent = canvas.discs.gen_cent2pix_mpc
-        if r_mode is "r_vec":
-            r_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
+        if R_mode is "R":
+            R_pix2cent = canvas.discs.gen_cent2pix_mpc
+        if R_mode is "R_vec":
+            R_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
 
         if not with_ray:
 
-            for halo, r, pixel_index in tqdm(zip(range(canvas.catalog.size),
-                                                  r_pix2cent(),
+            for halo, R, pixel_index in tqdm(zip(range(canvas.catalog.size),
+                                                  R_pix2cent(),
                                                   canvas.discs.gen_pixel_index()),
                                              total=canvas.catalog.size):
 
-                spray_dict = {r_mode: r, **spray_df.loc[halo]}
+                spray_dict = {R_mode: R, **spray_df.loc[halo]}
                 np.add.at(canvas.pixels,
                           pixel_index,
                           template(**spray_dict))
@@ -1932,8 +1932,8 @@ class Painter:
                 # _paint the shared pixels array in batches with ray
                 result = self._paint_batch.remote(shared_pixels,
                                                   halo_batch,
-                                                  r_mode,
-                                                  r_pix2cent,
+                                                  R_mode,
+                                                  R_pix2cent,
                                                   gen_pixel_index,
                                                   template,
                                                   spray_df)
@@ -1954,17 +1954,17 @@ class Painter:
         return shared_pixels
 
     @ray.remote
-    def _paint_batch(shared_pixels, halo_batch, r_mode, r_pix2cent, gen_pixel_index, template,
+    def _paint_batch(shared_pixels, halo_batch, R_mode, R_pix2cent, gen_pixel_index, template,
                      spray_df):
-        # for halo, r, pixel_index in zip(halo_batch,
+        # for halo, R, pixel_index in zip(halo_batch,
         #                                 r_pix2cent(halo_list=halo_batch),
         #                                 gen_pixel_index(halo_list=halo_batch)):
-        #     np.add.at(shared_pixels, pixel_index, template(r, **spray_df.loc[halo]))
+        #     np.add.at(shared_pixels, pixel_index, template(R, **spray_df.loc[halo]))
         #
-        for halo, r, pixel_index in zip(halo_batch,
-                                        r_pix2cent(halo_list=halo_batch),
+        for halo, R, pixel_index in zip(halo_batch,
+                                        R_pix2cent(halo_list=halo_batch),
                                         gen_pixel_index(halo_list=halo_batch)):
-            spray_dict = {r_mode: r, **spray_df.loc[halo]}
+            spray_dict = {R_mode: R, **spray_df.loc[halo]}
             np.add.at(shared_pixels,
                       pixel_index,
                       template(**spray_dict))
@@ -1994,14 +1994,15 @@ class Painter:
             message += f"and the following keyword-only arguments:\n" \
                        f"{self.template_kwargs_list}"
 
-        # make sure either r (distance) or r_vec are in the argument list
+        # make sure either R (distance) or R_vec are in the argument list
         # but not both!
-        assert sum([arg in self.template_args_list for arg in ['r', 'r_vec']]) == 1,\
-            "Either 'r' or 'r_vec' must be a template argument (only one of them and not both)."
+        assert sum([arg in self.template_args_list for arg in ['R', 'R_vec']]) == 1,\
+            "Either 'R' or 'R_vec' must be a template argument (only one of them and not both)."
 
+        # TODO: Relax this constraint
         # make sure either r or r_vec appears as the first argument
-        assert self.template_args_list[0] in ['r', 'r_vec'], \
-            "Either 'r' or 'r_vec' must be the template's first argument"
+        assert self.template_args_list[0] in ['R', 'R_vec'], \
+            "Either 'R' or 'R_vec' must be the template's first argument"
 
         # ensure the first argument of the profile template is 'r'
         # assert self.template_args_list[0] == "r", "The first argument of the profile template " \
