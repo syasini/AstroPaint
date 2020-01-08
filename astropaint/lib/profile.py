@@ -171,6 +171,22 @@ class NFW(Profile):
         dT = -tau * v_r / c * T_cmb
 
         return dT
+
+    @classmethod
+    def BG(cls, R_vec, c_200c, R_200c, M_200c, theta, phi, v_th, v_ph, *, T_cmb=T_cmb):
+        """Birkinshaw-Gull effect
+        aka moving lens
+        aka Rees-Sciama (moving gravitational potential)"""
+
+        R = np.linalg.norm(R_vec, axis=-1)
+        R_hat = np.true_divide(R_vec, R[:, None])
+
+        alpha = cls.deflect_angle(R, c_200c, R_200c, M_200c)
+        v_vec = transform.convert_velocity_sph2cart(theta, phi, 0, v_th, v_ph)
+        dT = -alpha * np.dot(R_hat, v_vec) / c * T_cmb
+
+        return dT
+
 # ------------------------
 #           3D
 # ------------------------
@@ -218,28 +234,6 @@ def linear_density(R, intercept, slope):
 
     return intercept + R * slope
 
-
-def mass_density_NFW(R, rho_s, R_s):
-    """
-    Calculate the NFW profile #TODO: add reference Eq.
-
-    Parameters
-    ----------
-    R:
-        distance from the center
-    rho_s:
-        density at radius R_s
-    R_s:
-        characterisic radius R_200c/c_200c
-
-    Returns
-    -------
-    rho = 4 * rho_s * R_s ** 3 / r / (r + R_s) ** 2
-    """
-
-    rho = 4 * rho_s * R_s ** 3 / R / (R + R_s) ** 2
-
-    return rho
 
 # ------------------------
 #        Projected
@@ -384,11 +378,4 @@ def BG_NFW(R_vec, c_200c, R_200c, M_200c, theta, phi, v_th, v_ph, *, T_cmb=T_cmb
 
     return dT
 
-def BG_NFW_old(R, R_hat, c_200c, R_200c, M_200c, theta, phi, v_th, v_ph, *, T_cmb=T_cmb):
-
-    alpha = deflect_angle_NFW(R, c_200c, R_200c, M_200c)
-    v_vec = transform.convert_velocity_sph2cart(theta, phi, 0, v_th, v_ph)
-    dT = -alpha * np.dot(R_hat, v_vec)/c * T_cmb
-
-    return dT
 
