@@ -21,7 +21,7 @@ logger.setLevel(logging.ERROR)
 #        constants
 # ------------------------
 from astropy.constants import sigma_T, m_p
-from astropy.cosmology import Planck15 as cosmo
+from astropy.cosmology import Planck18_arXiv_v2 as cosmo
 from astropy import units as u
 
 T_0 = 2.725E6 #uK
