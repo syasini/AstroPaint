@@ -269,6 +269,9 @@ class Profile(ABC):
         f = lambda r: self.rho_3D(r, m, z) * 2. * r / np.sqrt(r ** 2 - R ** 2)
         result = integrate.quad(f, R, np.inf, epsabs=0., epsrel=1.e-2)[0]
         return resultclass NFW(Profile):
+        return result
+
+class NFW(Profile):
     """
     NFW profile
     """
