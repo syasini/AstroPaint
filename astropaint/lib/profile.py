@@ -247,3 +247,25 @@ def BG_NFW_old(r, r_hat, c_200c, R_200c, M_200c, theta, phi, v_th, v_ph, *, T_cm
     dT = -alpha * np.dot(r_hat, v_vec)/c * T_cmb
 
     return dT
+
+
+class Profile(ABC):
+    """
+    A class for calculating the 3D and 2D spatial profiles of halos
+
+    takes an astropy.cosmology as input
+    """
+
+    def __init__(self, cosmo=cosmo):
+
+        self.cosmo = cosmo
+    @abstractmethod
+    def rho_3D(self, r, m, z):
+        pass
+
+    def rho_2D(self, R, m, z):
+        """project the 3d into the 2d profile
+        """
+        f = lambda r: self.rho_3D(r, m, z) * 2. * r / np.sqrt(r ** 2 - R ** 2)
+        result = integrate.quad(f, R, np.inf, epsabs=0., epsrel=1.e-2)[0]
+        return result
