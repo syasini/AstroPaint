@@ -27,6 +27,81 @@ Gcm2 = 4.785E-20 #(Mpc/M_sun)
 #                       Profiles
 #########################################################
 
+class Profile(ABC):
+    """
+    A class for calculating the 3D and 2D spatial profiles of halos
+
+    takes an astropy.cosmology as input
+    """
+
+    def __init__(self, cosmo=cosmo):
+
+        self.cosmo = cosmo
+
+    @staticmethod
+    def rho_3D(r, m, z):
+        pass
+
+    def rho_2D(cls, R, m, z):
+        """project the 3d into the 2d profile
+        """
+        f = lambda r: cls.rho_3D(r, m, z) * 2. * r / np.sqrt(r ** 2 - R ** 2)
+        result = integrate.quad(f, R, np.inf, epsabs=0., epsrel=1.e-2)[0]
+        return result
+
+class NFW(Profile):
+    """
+    NFW profile
+    """
+
+    @staticmethod
+    def rho_3D(r, rho_s, r_s):
+        """
+        Calculate the 3D NFW density profile #TODO: add reference Eq.
+
+        Parameters
+        ----------
+        r:
+            distance from the center
+        rho_s:
+            density at radius r_s
+        r_s:
+            characterisic radius R_200c/c_200c
+
+        Returns
+        -------
+        rho = 4 * rho_s * r_s ** 3 / r / (r + r_s) ** 2
+        """
+
+        rho = 4 * rho_s * r_s ** 3 / r / (r + r_s) ** 2
+
+        return rho
+
+    @staticmethod
+    def rho_2D(R, rho_s, R_s):
+        """
+        projected NFW mass profile
+        Eq. 7 in Bartlemann 1996: https://arxiv.org/abs/astro-ph/9602053
+
+        Returns
+        -------
+        surface mass density: [M_sun/Mpc^2]
+        """
+
+        # FIXME: remove this
+        # print("flattening")
+
+        # r = deepcopy(r)
+        # r[r < 0.1] = 0.1  # flatten the core
+
+        x = np.asarray(R / R_s, dtype=np.complex)
+        f = 1 - 2 / np.sqrt(1 - x ** 2) * np.arctanh(np.sqrt((1 - x) / (1 + x)))
+        f = f.real
+        f = np.true_divide(f, x ** 2 - 1)
+        Sigma = 8 * rho_s * R_s * f
+        return Sigma
+
+
 # ------------------------
 #           3D
 # ------------------------
@@ -248,77 +323,3 @@ def BG_NFW_old(R, R_hat, c_200c, R_200c, M_200c, theta, phi, v_th, v_ph, *, T_cm
 
     return dT
 
-
-class Profile(ABC):
-    """
-    A class for calculating the 3D and 2D spatial profiles of halos
-
-    takes an astropy.cosmology as input
-    """
-
-    def __init__(self, cosmo=cosmo):
-
-        self.cosmo = cosmo
-
-    @staticmethod
-    def rho_3D(r, m, z):
-        pass
-
-    def rho_2D(cls, R, m, z):
-        """project the 3d into the 2d profile
-        """
-        f = lambda r: cls.rho_3D(r, m, z) * 2. * r / np.sqrt(r ** 2 - R ** 2)
-        result = integrate.quad(f, R, np.inf, epsabs=0., epsrel=1.e-2)[0]
-        return result
-
-class NFW(Profile):
-    """
-    NFW profile
-    """
-
-    @staticmethod
-    def rho_3D(r, rho_s, r_s):
-        """
-        Calculate the 3D NFW density profile #TODO: add reference Eq.
-
-        Parameters
-        ----------
-        r:
-            distance from the center
-        rho_s:
-            density at radius r_s
-        r_s:
-            characterisic radius R_200c/c_200c
-
-        Returns
-        -------
-        rho = 4 * rho_s * r_s ** 3 / r / (r + r_s) ** 2
-        """
-
-        rho = 4 * rho_s * r_s ** 3 / r / (r + r_s) ** 2
-
-        return rho
-
-    @classmethod
-    def rho_2D(cls, R, rho_s, R_s):
-        """
-        projected NFW mass profile
-        Eq. 7 in Bartlemann 1996: https://arxiv.org/abs/astro-ph/9602053
-
-        Returns
-        -------
-        surface mass density: [M_sun/Mpc^2]
-        """
-
-        # FIXME: remove this
-        # print("flattening")
-
-        # r = deepcopy(r)
-        # r[r < 0.1] = 0.1  # flatten the core
-
-        x = np.asarray(R / R_s, dtype=np.complex)
-        f = 1 - 2 / np.sqrt(1 - x ** 2) * np.arctanh(np.sqrt((1 - x) / (1 + x)))
-        f = f.real
-        f = np.true_divide(f, x ** 2 - 1)
-        Sigma = 8 * rho_s * R_s * f
-        return Sigma
