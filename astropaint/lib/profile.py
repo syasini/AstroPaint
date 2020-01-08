@@ -45,6 +45,7 @@ class Profile(ABC):
     def rho_2D(cls, R, m, z):
         """project the 3d into the 2d profile
         """
+        #TODO: define partial function for ingeration to make args arbitrary
         f = lambda r: cls.rho_3D(r, m, z) * 2. * r / np.sqrt(r ** 2 - R ** 2)
         result = integrate.quad(f, R, np.inf, epsabs=0., epsrel=1.e-2)[0]
         return result
@@ -101,6 +102,47 @@ class NFW(Profile):
         Sigma = 8 * rho_s * R_s * f
         return Sigma
 
+    @staticmethod
+    def deflect_angle(R, c_200c, R_200c, M_200c, *, suppress=True, suppression_R=8):
+        """
+        calculate the deflection angle of a halo with NFW profile
+        Using Eq 6 in Baxter et al 2015 (1412.7521)
+
+        Parameters
+        ----------
+        R:
+            distance from the center of halo [Mpc]
+        c_200c:
+            halo concentration parameter
+        R_200c:
+            halo 200c radius in [Mpc]
+        M_200c:
+            halo 200c mass of halo in M_sun
+
+
+        Returns
+        -------
+            the deflection angle at distance R from the center of halo
+        """
+
+        A = M_200c * c_200c ** 2 / (np.log(1 + c_200c) - c_200c / (1 + c_200c)) / 4. / np.pi
+        C = 16 * np.pi * Gcm2 * A / c_200c / R_200c
+
+        R_s = R_200c / c_200c
+        x = R / R_s
+        x = x.astype(np.complex)
+
+        f = np.true_divide(1, x) * (np.log(x / 2) + 2 / np.sqrt(1 - x ** 2) *
+                                    np.arctanh(np.sqrt(np.true_divide(1 - x, 1 + x))))
+
+        alpha = C * f
+
+        # suppress alpha at large radii
+        if suppress:
+            suppress_radius = suppression_R * R_200c
+            alpha *= np.exp(-(R / suppress_radius) ** 3)
+
+        return alpha.real
 
 # ------------------------
 #           3D
