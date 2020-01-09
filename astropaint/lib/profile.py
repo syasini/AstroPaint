@@ -188,6 +188,36 @@ class NFW(Profile):
 
         return dT
 
+
+class Battaglia16(Profile):
+    """Tau profile, from Battaglia 2016
+    watch typos in paper. This code is correct.
+    """
+    def __repr__(self):
+        return "Battaglia16"
+
+    #use_correction_factor = False
+    mMin = 0.
+    mMax = np.inf
+    trunc = 2
+
+    # parameters from Battaglia 17
+    xc = 0.5
+    gamma = -0.2
+
+    # M_200c is in Msun/h, redshift is redshift
+
+    @staticmethod
+    def rho0(M_200c, redshift):
+        return 4.e3 * ((M_200c / h) / 1.e14) ** 0.29 * (1. + redshift) ** (-0.66)
+
+    @staticmethod
+    def alpha(M_200c, redshift):
+        return 0.88 * ((M_200c / h) / 1.e14) ** (-0.03) * (1. + redshift) ** 0.19
+
+    @staticmethod
+    def beta(M_200c, redshift):
+        return 3.83 * ((M_200c / h) / 1.e14) ** 0.04 * (1. + redshift) ** (-0.025)
 # ------------------------
 #           3D
 # ------------------------
