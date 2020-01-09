@@ -218,6 +218,29 @@ class Battaglia16(Profile):
     @staticmethod
     def beta(M_200c, redshift):
         return 3.83 * ((M_200c / h) / 1.e14) ** 0.04 * (1. + redshift) ** (-0.025)
+    @classmethod
+    def rhoFit3d(cls, r, R_200c, M_200c, redshift=0):
+        """3d scaled gas density profile
+        dimensionless
+        """
+        x = r / R_200c
+        result = 1. + (x / cls.xc) ** cls.alpha(M_200c, redshift)
+        result **= -(cls.beta(M_200c, redshift) + cls.gamma) / cls.alpha(M_200c, redshift)
+        result *= (x / cls.xc) ** cls.gamma
+        result *= cls.rho0(M_200c, redshift)
+        return result
+
+    @classmethod
+    def rhoFit2d(cls, R, R_200c, M_200c, redshift=0):
+        """2d scaled gas density profile
+        dimensionless
+        """
+        result=[]
+        for each_R in R:
+            f = lambda r: cls.rhoFit3d(r, R_200c, M_200c, redshift) * 2. * r / np.sqrt(r ** 2 -
+                                                                                       each_R ** 2)
+            result.append(integrate.quad(f, each_R, np.inf, epsabs=0., epsrel=1.e-2)[0])
+        return np.array(result)
 # ------------------------
 #           3D
 # ------------------------
