@@ -54,12 +54,16 @@ class Catalog:
     """
     def __init__(self,
                  data=None,
-                 redshift=0,
+                 calculate_redshifts=False,
+                 default_redshift=0,
                  ):
 
         #TODO: define attribute dictionary with __slots__
 
-        self.redshift = redshift
+        self.calculate_redshifts = calculate_redshifts
+        # if calculate_redshifts==False, assume this redshift for everything
+        self.default_redshift = default_redshift
+
         # if no input is provided generate a random catalog
         if data is None:
             self.generate_random_box()
@@ -110,7 +114,8 @@ class Catalog:
 
         # build the complete data frame
         # e.g. angular distances, radii, etc.
-        self.build_dataframe()
+        self.build_dataframe(calculate_redshifts=self.calculate_redshifts,
+                             default_redshift=self.default_redshift)
 
     # ------------------------
     #         sample data
@@ -247,7 +252,9 @@ class Catalog:
     #         methods
     # ------------------------
 
-    def build_dataframe(self):
+    def build_dataframe(self,
+                        calculate_redshifts=False,
+                        default_redshift=0):
 
         #TODO: add units documentation to the catalog for reference
 
@@ -259,6 +266,13 @@ class Catalog:
                                                                     self.data['x'].values,
                                                                     self.data['y'].values,
                                                                     self.data['z'].values)
+        if calculate_redshifts:
+            self.data['redshift'] = self.data['D_c'].apply(transform.D_c_to_redshift)
+        else:
+            try:
+                self.data['redshift']
+            except KeyError:
+                self.data['redshift'] = pd.Series([default_redshift]*len(self.data['D_c']))
 
         # theta = pi/2 - lat , phi = lon
         self.data['theta'] = np.pi / 2 - self.data['lat']
