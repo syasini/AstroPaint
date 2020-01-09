@@ -20,6 +20,7 @@ sigma_T = sigma_T.to(u.Mpc**2).value # [Mpc^2]
 m_p = m_p.to(u.M_sun).value # [M_sun]
 f_b = cosmo.Ob0/cosmo.Om0
 c = 299792. #km/s
+h = cosmo.h
 T_cmb = 2.7251
 Gcm2 = 4.785E-20 #(Mpc/M_sun)
 
