@@ -21,7 +21,7 @@ logger.setLevel(logging.ERROR)
 #        constants
 # ------------------------
 from astropy.constants import sigma_T, m_p
-from astropy.cosmology import Planck18_arXiv_v2 as cosmo
+from astropy.cosmology import z_at_value, Planck18_arXiv_v2 as cosmo
 from astropy import units as u
 
 T_0 = 2.725E6 #uK
@@ -95,7 +95,10 @@ def D_c_to_D_a(D_c, z):
     z)"""
 
     return D_c/(1+z)
+def D_c_to_redshift(D_c, units=u.Mpc):
+    """calculate the redshift from comoving distance (D_c)"""
 
+    return z_at_value(cosmo.comoving_distance, D_c * units)
 
 def radius_to_angsize(radius, D_a, arcmin=True):
     """calculate  the angular radius (theta) of the halo from its radius and angular diameter
