@@ -42,18 +42,21 @@ c = 299792. #km/s
 #                Halo Transformations
 #########################################################
 
+# --------------------
+# Mass Transformations
+# --------------------
 
-def M_200c_to_R_200c(M_200c, z):
-    """calculate R_200c from M_200c at redshift z
+def M_200c_to_R_200c(M_200c, redshift):
+    """calculate R_200c from M_200c at the given redshift
     see Eq. 1 in Huang et al 1701.04001"""
 
-    crit_dens = crit_dens_0 * (1+z)**3
+    crit_dens = crit_dens_0 * (1 + redshift) ** 3
     R_200c = np.power((3*M_200c)/(800*np.pi*crit_dens), 1/3)
 
     return R_200c
 
-def M_200c_to_c_200c(M_200c, z):
-    """calculate the concentration parameter from M_200c at redshift z
+def M_200c_to_c_200c(M_200c, redshift):
+    """calculate the concentration parameter from M_200c at the given redshift
     use fitting formula in Eq 19 of Child et al 2018 (1804.10199)"""
 
     #TODO: Double check this
@@ -70,19 +73,19 @@ def M_200c_to_c_200c(M_200c, z):
     m = -0.097
     M_0 = 2.E12/h #M_sun
 
-    c_200c = A * (1+z)**d * (M_200c/M_0)**m
+    c_200c = A * (1 + redshift) ** d * (M_200c / M_0) ** m
 
     return c_200c
 
 
-def M_200_to_rho_s(M_200c, z, R_200c=None, c_200c=None):
-    """calculate the NFW rho_s parameter from M_200c at redshift z
+def M_200c_to_rho_s(M_200c, redshift, R_200c=None, c_200c=None):
+    """calculate the NFW rho_s parameter from M_200c at the given redshift
     if R_200c and c_200c are not given, calculate them"""
 
     if R_200c is None:
-        R_200c = M_200c_to_R_200c(M_200c, z)
+        R_200c = M_200c_to_R_200c(M_200c, redshift)
     if c_200c is None:
-        c_200c = M_200c_to_c_200c(M_200c, z)
+        c_200c = M_200c_to_c_200c(M_200c, redshift)
 
     R_s = R_200c / c_200c
     A_c = np.log(1+c_200c) - c_200c/(1+c_200c)
@@ -90,11 +93,26 @@ def M_200_to_rho_s(M_200c, z, R_200c=None, c_200c=None):
 
     return rho_s
 
-def D_c_to_D_a(D_c, z):
-    """calculate the angular diameter distance (D_a) from comoving distance (D_c) and redshift (
-    z)"""
+def M_to_tau(M):
 
-    return D_c/(1+z)
+    X_H = 0.76
+    x_e = (X_H+1)/2*X_H
+    f_s = 0.02
+    mu = 4/(2*X_H+1+X_H*x_e)
+
+    tau = sigma_T * x_e * X_H * (1-f_s) * f_b * M / mu / m_p
+
+    return tau
+# ------------------------
+# Distance Transformations
+# ------------------------
+
+def D_c_to_D_a(D_c, redshift):
+    """calculate the angular diameter distance (D_a) from comoving distance (D_c) and redshift (
+    redshift)"""
+
+    return D_c/(1 + redshift)
+
 def D_c_to_redshift(D_c, units=u.Mpc):
     """calculate the redshift from comoving distance (D_c)"""
 
@@ -114,16 +132,7 @@ def radius_to_angsize(radius, D_a, arcmin=True):
 
     return ang_size
 
-def M_to_tau(M):
 
-    X_H = 0.76
-    x_e = (X_H+1)/2*X_H
-    f_s = 0.02
-    mu = 4/(2*X_H+1+X_H*x_e)
-
-    tau = sigma_T * x_e * X_H * (1-f_s) * f_b * M / mu / m_p
-
-    return tau
 
 #########################################################
 #           Coordinate Transformations
