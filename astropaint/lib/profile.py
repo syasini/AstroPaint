@@ -20,6 +20,7 @@ sigma_T = sigma_T.to(u.Mpc**2).value # [Mpc^2]
 m_p = m_p.to(u.M_sun).value # [M_sun]
 f_b = cosmo.Ob0/cosmo.Om0
 c = 299792. #km/s
+h = cosmo.h
 T_cmb = 2.7251
 Gcm2 = 4.785E-20 #(Mpc/M_sun)
 
@@ -187,6 +188,59 @@ class NFW(Profile):
 
         return dT
 
+
+class Battaglia16(Profile):
+    """Tau profile, from Battaglia 2016
+    watch typos in paper. This code is correct.
+    """
+    def __repr__(self):
+        return "Battaglia16"
+
+    #use_correction_factor = False
+    mMin = 0.
+    mMax = np.inf
+    trunc = 2
+
+    # parameters from Battaglia 17
+    xc = 0.5
+    gamma = -0.2
+
+    # M_200c is in Msun/h, redshift is redshift
+
+    @staticmethod
+    def rho0(M_200c, redshift):
+        return 4.e3 * ((M_200c / h) / 1.e14) ** 0.29 * (1. + redshift) ** (-0.66)
+
+    @staticmethod
+    def alpha(M_200c, redshift):
+        return 0.88 * ((M_200c / h) / 1.e14) ** (-0.03) * (1. + redshift) ** 0.19
+
+    @staticmethod
+    def beta(M_200c, redshift):
+        return 3.83 * ((M_200c / h) / 1.e14) ** 0.04 * (1. + redshift) ** (-0.025)
+    @classmethod
+    def rhoFit3d(cls, r, R_200c, M_200c, redshift=0):
+        """3d scaled gas density profile
+        dimensionless
+        """
+        x = r / R_200c
+        result = 1. + (x / cls.xc) ** cls.alpha(M_200c, redshift)
+        result **= -(cls.beta(M_200c, redshift) + cls.gamma) / cls.alpha(M_200c, redshift)
+        result *= (x / cls.xc) ** cls.gamma
+        result *= cls.rho0(M_200c, redshift)
+        return result
+
+    @classmethod
+    def rhoFit2d(cls, R, R_200c, M_200c, redshift=0):
+        """2d scaled gas density profile
+        dimensionless
+        """
+        result=[]
+        for each_R in R:
+            f = lambda r: cls.rhoFit3d(r, R_200c, M_200c, redshift) * 2. * r / np.sqrt(r ** 2 -
+                                                                                       each_R ** 2)
+            result.append(integrate.quad(f, each_R, np.inf, epsabs=0., epsrel=1.e-2)[0])
+        return np.array(result)
 # ------------------------
 #           3D
 # ------------------------

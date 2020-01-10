@@ -54,12 +54,16 @@ class Catalog:
     """
     def __init__(self,
                  data=None,
-                 redshift=0,
+                 calculate_redshifts=False,
+                 default_redshift=0,
                  ):
 
         #TODO: define attribute dictionary with __slots__
 
-        self.redshift = redshift
+        self.calculate_redshifts = calculate_redshifts
+        # if calculate_redshifts==False, assume this redshift for everything
+        self.default_redshift = default_redshift
+
         # if no input is provided generate a random catalog
         if data is None:
             self.generate_random_box()
@@ -110,7 +114,8 @@ class Catalog:
 
         # build the complete data frame
         # e.g. angular distances, radii, etc.
-        self.build_dataframe()
+        self.build_dataframe(calculate_redshifts=self.calculate_redshifts,
+                             default_redshift=self.default_redshift)
 
     # ------------------------
     #         sample data
@@ -247,7 +252,9 @@ class Catalog:
     #         methods
     # ------------------------
 
-    def build_dataframe(self):
+    def build_dataframe(self,
+                        calculate_redshifts=False,
+                        default_redshift=0):
 
         #TODO: add units documentation to the catalog for reference
 
@@ -259,6 +266,13 @@ class Catalog:
                                                                     self.data['x'].values,
                                                                     self.data['y'].values,
                                                                     self.data['z'].values)
+        if calculate_redshifts:
+            self.data['redshift'] = self.data['D_c'].apply(transform.D_c_to_redshift)
+        else:
+            try:
+                self.data['redshift']
+            except KeyError:
+                self.data['redshift'] = pd.Series([default_redshift]*len(self.data['D_c']))
 
         # theta = pi/2 - lat , phi = lon
         self.data['theta'] = np.pi / 2 - self.data['lat']
@@ -268,18 +282,18 @@ class Catalog:
         self.data['lon'], self.data['lat'] = np.rad2deg((self.data['lon'], self.data['lat']))
 
         # calculate angular diameter distance, virial radius and angular size
-        self.data['D_a'] = transform.D_c_to_D_a(self.data['D_c'], self.redshift)
-        self.data['R_200c'] = transform.M_200c_to_R_200c(self.data['M_200c'], self.redshift)
-        self.data['c_200c'] = transform.M_200c_to_c_200c(self.data['M_200c'], self.redshift)
+        self.data['D_a'] = transform.D_c_to_D_a(self.data['D_c'], self.data['redshift'])
+        self.data['R_200c'] = transform.M_200c_to_R_200c(self.data['M_200c'], self.data['redshift'])
+        self.data['c_200c'] = transform.M_200c_to_c_200c(self.data['M_200c'], self.data['redshift'])
         self.data['R_th_200c'] = transform.radius_to_angsize(self.data['R_200c'],
                                                              self.data['D_a'], arcmin=True)
         #TODO: change redshift to nonuniversal value
-        self.data["rho_s"] = transform.M_200_to_rho_s(self.data["M_200c"],
-                                                      self.redshift,
-                                                      self.data["R_200c"],
-                                                      self.data["c_200c"])
+        self.data['rho_s'] = transform.M_200c_to_rho_s(self.data['M_200c'],
+                                                       self.data['redshift'],
+                                                       self.data['R_200c'],
+                                                       self.data['c_200c'])
 
-        self.data["R_s"] = np.true_divide(self.data["R_200c"], self.data["c_200c"])
+        self.data['R_s'] = np.true_divide(self.data['R_200c'], self.data['c_200c'])
 
         # find the cartesian to spherical coords transformation matrix
         J_cart2sph = transform.get_cart2sph_jacobian(self.data['theta'].values,
