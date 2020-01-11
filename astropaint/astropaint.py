@@ -641,7 +641,7 @@ class Canvas:
 
         self._pixels = np.zeros(self.npix)
         self._Cl = np.zeros(self.lmax+1)
-        self._Cl_is_outdated = False
+        self._Cl_is_outdated = True
 
         self._catalog = catalog
         self.centers_D_a = self._catalog.data.D_a
