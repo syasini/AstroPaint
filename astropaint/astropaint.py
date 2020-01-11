@@ -54,12 +54,16 @@ class Catalog:
     """
     def __init__(self,
                  data=None,
-                 redshift=0,
+                 calculate_redshifts=False,
+                 default_redshift=0,
                  ):
 
         #TODO: define attribute dictionary with __slots__
 
-        self.redshift = redshift
+        self.calculate_redshifts = calculate_redshifts
+        # if calculate_redshifts==False, assume this redshift for everything
+        self.default_redshift = default_redshift
+
         # if no input is provided generate a random catalog
         if data is None:
             self.generate_random_box()
@@ -110,7 +114,8 @@ class Catalog:
 
         # build the complete data frame
         # e.g. angular distances, radii, etc.
-        self.build_dataframe()
+        self.build_dataframe(calculate_redshifts=self.calculate_redshifts,
+                             default_redshift=self.default_redshift)
 
     # ------------------------
     #         sample data
@@ -247,7 +252,9 @@ class Catalog:
     #         methods
     # ------------------------
 
-    def build_dataframe(self):
+    def build_dataframe(self,
+                        calculate_redshifts=False,
+                        default_redshift=0):
 
         #TODO: add units documentation to the catalog for reference
 
@@ -259,6 +266,13 @@ class Catalog:
                                                                     self.data['x'].values,
                                                                     self.data['y'].values,
                                                                     self.data['z'].values)
+        if calculate_redshifts:
+            self.data['redshift'] = self.data['D_c'].apply(transform.D_c_to_redshift)
+        else:
+            try:
+                self.data['redshift']
+            except KeyError:
+                self.data['redshift'] = pd.Series([default_redshift]*len(self.data['D_c']))
 
         # theta = pi/2 - lat , phi = lon
         self.data['theta'] = np.pi / 2 - self.data['lat']
@@ -268,18 +282,18 @@ class Catalog:
         self.data['lon'], self.data['lat'] = np.rad2deg((self.data['lon'], self.data['lat']))
 
         # calculate angular diameter distance, virial radius and angular size
-        self.data['D_a'] = transform.D_c_to_D_a(self.data['D_c'], self.redshift)
-        self.data['R_200c'] = transform.M_200c_to_R_200c(self.data['M_200c'], self.redshift)
-        self.data['c_200c'] = transform.M_200c_to_c_200c(self.data['M_200c'], self.redshift)
+        self.data['D_a'] = transform.D_c_to_D_a(self.data['D_c'], self.data['redshift'])
+        self.data['R_200c'] = transform.M_200c_to_R_200c(self.data['M_200c'], self.data['redshift'])
+        self.data['c_200c'] = transform.M_200c_to_c_200c(self.data['M_200c'], self.data['redshift'])
         self.data['R_th_200c'] = transform.radius_to_angsize(self.data['R_200c'],
                                                              self.data['D_a'], arcmin=True)
         #TODO: change redshift to nonuniversal value
-        self.data["rho_s"] = transform.M_200_to_rho_s(self.data["M_200c"],
-                                                      self.redshift,
-                                                      self.data["R_200c"],
-                                                      self.data["c_200c"])
+        self.data['rho_s'] = transform.M_200c_to_rho_s(self.data['M_200c'],
+                                                       self.data['redshift'],
+                                                       self.data['R_200c'],
+                                                       self.data['c_200c'])
 
-        self.data["R_s"] = np.true_divide(self.data["R_200c"], self.data["c_200c"])
+        self.data['R_s'] = np.true_divide(self.data['R_200c'], self.data['c_200c'])
 
         # find the cartesian to spherical coords transformation matrix
         J_cart2sph = transform.get_cart2sph_jacobian(self.data['theta'].values,
@@ -627,7 +641,7 @@ class Canvas:
 
         self._pixels = np.zeros(self.npix)
         self._Cl = np.zeros(self.lmax+1)
-        self._Cl_is_outdated = False
+        self._Cl_is_outdated = True
 
         self._catalog = catalog
         self.centers_D_a = self._catalog.data.D_a
@@ -1840,7 +1854,7 @@ class Painter:
     @template.setter
     def template(self, val):
         self._template = val
-        self._analyze_template()
+        self.R_arg_indx = self._analyze_template()
         #self._check_template()
 
     # ------------------------
@@ -1879,29 +1893,29 @@ class Painter:
 
         # check the units
         #if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
-        #    r_pix2cent = canvas.discs.gen_cent2pix_mpc
+        #    R_pix2cent = canvas.discs.gen_cent2pix_mpc
         #elif distance_units.lower() in ["radians", "rad", "rads"]:
-        #     r_pix2cent = canvas.discs.gen_cent2pix_rad
+        #     R_pix2cent = canvas.discs.gen_cent2pix_rad
         # else:
         #     raise KeyError("distance_units must be either 'mpc' or 'radians'.")
 
 
 
-        r_mode = self.template_args_list[0]
+        R_mode = self.template_args_list[self.R_arg_indx]
 
-        if r_mode is "r":
-            r_pix2cent = canvas.discs.gen_cent2pix_mpc
-        if r_mode is "r_vec":
-            r_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
+        if R_mode is "R":
+            R_pix2cent = canvas.discs.gen_cent2pix_mpc
+        if R_mode is "R_vec":
+            R_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
 
         if not with_ray:
 
-            for halo, r, pixel_index in tqdm(zip(range(canvas.catalog.size),
-                                                  r_pix2cent(),
+            for halo, R, pixel_index in tqdm(zip(range(canvas.catalog.size),
+                                                  R_pix2cent(),
                                                   canvas.discs.gen_pixel_index()),
                                              total=canvas.catalog.size):
 
-                spray_dict = {r_mode: r, **spray_df.loc[halo]}
+                spray_dict = {R_mode: R, **spray_df.loc[halo]}
                 np.add.at(canvas.pixels,
                           pixel_index,
                           template(**spray_dict))
@@ -1932,8 +1946,8 @@ class Painter:
                 # _paint the shared pixels array in batches with ray
                 result = self._paint_batch.remote(shared_pixels,
                                                   halo_batch,
-                                                  r_mode,
-                                                  r_pix2cent,
+                                                  R_mode,
+                                                  R_pix2cent,
                                                   gen_pixel_index,
                                                   template,
                                                   spray_df)
@@ -1954,17 +1968,17 @@ class Painter:
         return shared_pixels
 
     @ray.remote
-    def _paint_batch(shared_pixels, halo_batch, r_mode, r_pix2cent, gen_pixel_index, template,
+    def _paint_batch(shared_pixels, halo_batch, R_mode, R_pix2cent, gen_pixel_index, template,
                      spray_df):
-        # for halo, r, pixel_index in zip(halo_batch,
+        # for halo, R, pixel_index in zip(halo_batch,
         #                                 r_pix2cent(halo_list=halo_batch),
         #                                 gen_pixel_index(halo_list=halo_batch)):
-        #     np.add.at(shared_pixels, pixel_index, template(r, **spray_df.loc[halo]))
+        #     np.add.at(shared_pixels, pixel_index, template(R, **spray_df.loc[halo]))
         #
-        for halo, r, pixel_index in zip(halo_batch,
-                                        r_pix2cent(halo_list=halo_batch),
+        for halo, R, pixel_index in zip(halo_batch,
+                                        R_pix2cent(halo_list=halo_batch),
                                         gen_pixel_index(halo_list=halo_batch)):
-            spray_dict = {r_mode: r, **spray_df.loc[halo]}
+            spray_dict = {R_mode: R, **spray_df.loc[halo]}
             np.add.at(shared_pixels,
                       pixel_index,
                       template(**spray_dict))
@@ -1977,7 +1991,7 @@ class Painter:
 
         Returns
         -------
-        None
+        index of R or R_vec argument
         """
 
         self.template_name = self.template.__name__
@@ -1985,6 +1999,19 @@ class Painter:
         # get the list of args and keyword args
         self.template_args_list = inspect.getfullargspec(self.template).args
         self.template_kwargs_list = inspect.getfullargspec(self.template).kwonlyargs
+
+        # remove self and cls from the arguments
+        #TODO: automate this for any argumen name
+        try:
+            self.template_args_list.remove("self")
+        except ValueError:
+            pass
+
+        try:
+            self.template_args_list.remove("cls")
+        except ValueError:
+            pass
+
 
         # print out the list of args and kwargs
         message = f"The template '{self.template_name}' takes in the following arguments:\n" \
@@ -1994,20 +2021,25 @@ class Painter:
             message += f"and the following keyword-only arguments:\n" \
                        f"{self.template_kwargs_list}"
 
-        # make sure either r (distance) or r_vec are in the argument list
+        # make sure either R (distance) or R_vec are in the argument list
         # but not both!
-        assert sum([arg in self.template_args_list for arg in ['r', 'r_vec']]) == 1,\
-            "Either 'r' or 'r_vec' must be a template argument (only one of them and not both)."
+        assert sum([arg in self.template_args_list for arg in ['R', 'R_vec']]) == 1,\
+            "Either 'R' or 'R_vec' must be a template argument (only one of them and not both)."
 
+        # TODO: Relax this constraint
         # make sure either r or r_vec appears as the first argument
-        assert self.template_args_list[0] in ['r', 'r_vec'], \
-            "Either 'r' or 'r_vec' must be the template's first argument"
+        #assert self.template_args_list[0] in ['R', 'R_vec'], \
+        #    "Either 'R' or 'R_vec' must be the template's first argument"
 
-        # ensure the first argument of the profile template is 'r'
-        # assert self.template_args_list[0] == "r", "The first argument of the profile template " \
-        #                                          "must be 'r' (the distance from the center of " \
-        #                                          "the halo)."
+        # find the index of 'R' or 'R_vec'
+        try:
+            R_arg_index = self.template_args_list.index("R")
+        except ValueError:
+            R_arg_index = self.template_args_list.index("R_vec")
+
+
         print(message)
+        return R_arg_index
 
     def _check_template_kwargs(self, **template_kwargs):
         """Ensure the template_kwargs is pandas compatible"""
