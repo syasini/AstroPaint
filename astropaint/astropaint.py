@@ -1824,6 +1824,29 @@ class Canvas:
         except AttributeError:
             print("canvas.noise not Found")
 
+    def beam_smooth(self,
+                    fwhm_b=0.0,
+                    sigma_b=None,
+                    *args,
+                    **kwargs):
+        """
+        Smoothes canvas.pixels with a gaussian beam using healpy.sphtfunc.smoothing
+
+        Parameters
+        ----------
+        fwhm_b
+        sigma_b
+        args
+        kwargs
+
+        Returns
+        -------
+        None
+        """
+
+        self.pixels = hp.smoothing(self.pixels, fwhm=fwhm_b, sigma=sigma_b, *args, **kwargs)
+        
+
 #########################################################
 #                   Painter Object
 #########################################################
