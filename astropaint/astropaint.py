@@ -492,6 +492,7 @@ class Catalog:
         # reset data and rebuild the dataframe
         self.data = data
 
+    #TODO: for the cutting methods, avoid rebuilding the dataframe after every cut
     def cut_M_200c(self, mass_min=0., mass_max=np.inf):
         """
         Cut the catalog according the the given mass range
@@ -561,6 +562,25 @@ class Catalog:
         D_min < D_a < D_max
         """
         self.data = self.data[(self.data.D_a > D_min) & (self.data.D_a < D_max)]
+
+    def cut_redshift(self, redshift_min=0., redshift_max=np.inf):
+        """
+        Cut the catalog according the the given redshift range
+
+        Parameters
+        ----------
+        redshift_min
+            minimum halo redshift to keep
+        redshift_max
+            maximum halo redshift to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with redshift in the range
+        redshift_min < redshift < redshift_max
+        """
+        self.data = self.data[(self.data.redshift > redshift_min) &
+                              (self.data.redshift < redshift_max)]
 
     def cut_lon_lat(self,
                    lon_range=[0, 360],
