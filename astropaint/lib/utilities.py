@@ -48,7 +48,7 @@ def load_Cl_Planck2018(lmin=0):
     return Cls
 
 
-def get_CMB_Cl(lmax, lmin=0, mode="TT", return_ell=False):
+def get_CMB_Cl(lmax, lmin=0, mode="TT", return_ell=False, uK=False):
     """
     load Cl from camb generated Dl file
 
@@ -60,6 +60,8 @@ def get_CMB_Cl(lmax, lmin=0, mode="TT", return_ell=False):
         min ell number
     mode: str
         CMB mode to return (e.g. "TT", "EE", etc)
+    return_ell: bool
+        if True, returns the corresponding ell array as well
 
     Returns
     -------
@@ -77,6 +79,8 @@ def get_CMB_Cl(lmax, lmin=0, mode="TT", return_ell=False):
     L = Cls['L'][lmin:lmax+1]
     Cl = Cls[mode][lmin:lmax+1]
 
+    if uK:
+        Cl *= 1E12
     if return_ell:
         return L, Cl
     else:
