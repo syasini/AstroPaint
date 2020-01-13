@@ -338,3 +338,53 @@ def load_noise_yaml():
         noise_yml = yaml.load(file, Loader=yaml.FullLoader)
 
     return noise_yml
+
+
+# --------------------
+# Beam Power Spectrum
+# --------------------
+def get_custom_B2l(fwhm, lmax, lmin=0, arcmin=True, return_ell=False):
+    """
+    Compute the instrumental Beam power spectrum
+
+    After smoothing the map with a beam of size fwhm, the power spectrum would be suppressed by a
+    factor
+
+    B2l= np.exp(-ell * (ell + 1) * sigma_b)
+
+    where sigma_b = fwhm ** 2 / 8 / np.log(2)
+
+    Parameters
+    ----------
+    fwhm [arcmin]:
+        beam fwhm in arcmins (or radians if arcmin=False)
+    lmax:
+        maximum ell mode in the power spectrum
+    lmin:
+        minimum ell mode in the power spectrum
+    arcmin: bool
+        set to True if fwhm is in arcmin
+    return_ell: bool
+        if True, returns the corresponding ell array as well
+
+    Returns
+    -------
+    Bl^2
+    or
+    ell, Bl^2
+    """
+
+
+    # set up ell
+    L = np.arange(lmin, lmax + 1)
+
+    sigma_b = fwhm2sigma(fwhm, arcmin=arcmin)
+
+
+    # calculate the beam power spectrum
+    B2l = np.exp(-L * (L + 1) * sigma_b)
+
+    if return_ell:
+        return L, B2l
+    else:
+        return B2l
