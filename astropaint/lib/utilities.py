@@ -52,7 +52,7 @@ def load_Cl_Planck2018(lmin=0):
 # Noise Power Spectrum
 # --------------------
 
-def compute_Nl(sigma_n, lmax, lmin=0, fwhm=None, apply_beam=False):
+def compute_Nl(sigma_n, lmax, lmin=0, fwhm=None, apply_beam=False, return_ell=False):
     """
     compute the instrumental noise power spectrum (uK^2)
 
@@ -120,11 +120,14 @@ def compute_Nl(sigma_n, lmax, lmin=0, fwhm=None, apply_beam=False):
         else:
             raise ValueError("fwhm is not provided")
 
+    if return_ell:
+        return L, Nl_channel
+    else:
+        return Nl_channel
 
-    return Nl_channel
 
-
-def get_experiment_Nl(lmax, lmin=0, name="Planck", frequency=[217], apply_beam=False, uK=False):
+def get_experiment_Nl(lmax, lmin=0, name="Planck", frequency=[217], apply_beam=False, uK=False,
+                      return_ell=False):
     """
     get temperature and polarization noise power spectra for various experiments
 
@@ -179,11 +182,18 @@ def get_experiment_Nl(lmax, lmin=0, name="Planck", frequency=[217], apply_beam=F
     # combine the frequency channels
     Nl_TT = combine_Nl(Nl_TT)
     # Nl_EE = combine_Nl(Nl_EE)
+    L = np.arange(lmin, lmax+1)
+
     if uK==False:
         Nl_TT *= 1E-12
-    return Nl_TT  # , Nl_EE
 
-def get_custom_Nl(lmax, sigma_n, fwhm, frequency=[217], lmin=0, apply_beam=False, uK=False):
+    if return_ell:
+        return L, Nl_TT
+    else:
+        return Nl_TT
+
+def get_custom_Nl(lmax, sigma_n, fwhm, frequency=[217], lmin=0, apply_beam=False, uK=False,
+                  return_ell=False):
     """
     get temperature and polarization noise power spectra for various experiments
 
@@ -226,9 +236,15 @@ def get_custom_Nl(lmax, sigma_n, fwhm, frequency=[217], lmin=0, apply_beam=False
     # combine the frequency channels
     Nl_TT = combine_Nl(Nl_TT)
     # Nl_EE = combine_Nl(Nl_EE)
+    L = np.arange(lmin, lmax + 1)
+
     if uK==False:
         Nl_TT *= 1E-12
-    return Nl_TT  # , Nl_EE
+
+    if return_ell:
+        return L, Nl_TT
+    else:
+        return Nl_TT
 
 
 def combine_Nl(Nls):
