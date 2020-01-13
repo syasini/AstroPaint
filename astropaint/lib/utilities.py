@@ -4,7 +4,7 @@ import numpy as np
 __author__ = "Siavash Yasini"
 __email__ = "yasini@usc.edu"
 
-from .transform import arcmin2rad
+from .transform import arcmin2rad, fwhm2sigma
 import yaml
 from pprint import pprint
 

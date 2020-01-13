@@ -239,6 +239,26 @@ def convert_velocity_cart2sph(th, ph, v_x, v_y, v_z):
     return v_r, v_th, v_ph
 
 
+def fwhm2sigma(fwhm, arcmin=True):
+    """
+    Convert fwhm to sigma
+
+    Parameters
+    ----------
+    fwhm: float
+        Full Width Half Maximum (fwhm)
+    arcmin: bool
+        if True, fwhm will be converted from arcmin to rad
+
+    Returns
+    -------
+    sigma: float [rad]
+        fwhm ** 2 / 8 / np.log(2)
+
+    """
+    if arcmin:
+        fwhm = arcmin2rad(fwhm)
+    return fwhm ** 2 / 8 / np.log(2)
 #########################################################
 #          Patch Transformations (for stacking)
 #########################################################
@@ -248,3 +268,5 @@ def rotate_patch(patch, angle):
     rotated_patch = rotate(patch, angle, reshape=False)
 
     return rotated_patch
+
+
