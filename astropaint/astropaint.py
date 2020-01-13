@@ -1675,7 +1675,8 @@ class Canvas:
         if lmax is None:
             lmax = 3 * self.nside -1
         if Cl is "LCDM":
-            Cl_file = utilities.load_Cl_Planck2018(lmax=lmax)
+            # TODO: add lmax implementation
+            Cl_file = utilities.get_CMB_Cl(lmax=lmax, mode=mode)
             Cl = Cl_file[mode]
 
         # TODO: add to __init__ and make readonly?
