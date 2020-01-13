@@ -91,7 +91,7 @@ def get_CMB_Cl(lmax, lmin=0, mode="TT", return_ell=False, uK=False):
 # Noise Power Spectrum
 # --------------------
 
-def compute_Nl(sigma_n, lmax, lmin=0, fwhm=None, apply_beam=False, return_ell=False):
+def _compute_Nl(sigma_n, lmax, lmin=0, fwhm=None, apply_beam=False, uK=False, return_ell=False):
     """
     compute the instrumental noise power spectrum (uK^2)
 
@@ -110,10 +110,16 @@ def compute_Nl(sigma_n, lmax, lmin=0, fwhm=None, apply_beam=False, return_ell=Fa
         can be scalar or an array for multiple channels
     apply_beam:
         if True, deconvolves the noise with beam
+    uK: bool
+        if True, the returned Nl will be in uK^2 units
+    return_ell: bool
+        if True, returns the corresponding ell array as well
 
     Returns
     -------
-    N_ell [uK^2]
+    Nl [K^2]
+    or
+    ell, Nl [K^2]
     """
 
     # make sure input is an array
@@ -158,6 +164,9 @@ def compute_Nl(sigma_n, lmax, lmin=0, fwhm=None, apply_beam=False, return_ell=Fa
 
         else:
             raise ValueError("fwhm is not provided")
+
+    if uK:
+        Nl_channel *= 1E12
 
     if return_ell:
         return L, Nl_channel
