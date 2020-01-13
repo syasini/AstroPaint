@@ -16,7 +16,7 @@ from pprint import pprint
 # CMB Power Spectrum
 # ------------------
 
-def load_Cl_Planck2018(lmax, lmin=0,):
+def load_Cl_Planck2018(lmin=0):
     """
     load Cl from camb generated Dl file
 
@@ -31,6 +31,9 @@ def load_Cl_Planck2018(lmax, lmin=0,):
 
     available keys in Cls : L, TT, EE, BB, TE
     """
+    assert lmin == 0, "lmin=0 cannot be changed. It is only to indicate explicitly that the " \
+                    "returned results will start from lmin=0.\n" \
+                    "If you want to get the Cl in a custom ell range use utilities.get_CMB_Cl."
 
     Cl_fname = os.path.join(os.path.dirname(__file__),
                             "Cl_Planck2018_camb.npz")
