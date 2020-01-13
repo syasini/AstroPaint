@@ -190,11 +190,14 @@ def get_experiment_Nl(lmax, lmin=0, name="Planck", frequency=[217], apply_beam=F
         string in ["Planck" , "SO" , "S4"]
     apply_beam:
         if True, deconvolves the noise with beam
-
+    return_ell: bool
+        if True, returns the corresponding ell array as well
 
     Returns
     -------
-    Nl_TT [uK^2]
+    Nl_TT [K^2]
+    or
+    ell, Nl_TT [K^2]
     """
 
     # make sure input is an array
@@ -224,7 +227,8 @@ def get_experiment_Nl(lmax, lmin=0, name="Planck", frequency=[217], apply_beam=F
           )
 
     # calculate the noise power spectrum
-    Nl_TT = compute_Nl(sigma_n=sigma_T, lmax=lmax, lmin=lmin, fwhm=fwhm, apply_beam=apply_beam)
+    Nl_TT = _compute_Nl(sigma_n=sigma_T, lmax=lmax, lmin=lmin, fwhm=fwhm, apply_beam=apply_beam,
+                        uK=False)
     # Nl_EE = compute_Nl(sigma_n=sigma_P, lmax=lmax, lmin=lmin, fwhm=fwhm, apply_beam=apply_beam)
 
     # combine the frequency channels
@@ -232,7 +236,7 @@ def get_experiment_Nl(lmax, lmin=0, name="Planck", frequency=[217], apply_beam=F
     # Nl_EE = combine_Nl(Nl_EE)
     L = np.arange(lmin, lmax+1)
 
-    if uK==False:
+    if not uK:
         Nl_TT *= 1E-12
 
     if return_ell:
@@ -240,27 +244,35 @@ def get_experiment_Nl(lmax, lmin=0, name="Planck", frequency=[217], apply_beam=F
     else:
         return Nl_TT
 
-def get_custom_Nl(lmax, sigma_n, fwhm, frequency=[217], lmin=0, apply_beam=False, uK=False,
+
+def get_custom_Nl(sigma_n, lmax, fwhm=None, frequency=[217], lmin=0, apply_beam=False, uK=False,
                   return_ell=False):
     """
-    get temperature and polarization noise power spectra for various experiments
+    get temperature and polarization noise power spectra for a custom experiment
 
     Parameters
     ----------
+    sigma_n [uK-arcmin]:
+        noise level in uK-arcmin
+        can a scalar or an array for multiple channels
+        the length must match that of fwhm
     lmax: scalar
         maximum ell mode of the power spectrum
+    fwhm [arcmin]:
+        beam fwhm in arcmins
+        can be scalar or an array for multiple channels
     lmin: scalar
         minimum ell mode of the power spectrum
-    name:
-        name of the experiment
-        string in ["Planck" , "SO" , "S4"]
     apply_beam:
         if True, deconvolves the noise with beam
-
+    return_ell: bool
+        if True, returns the corresponding ell array as well
 
     Returns
     -------
-    Nl_TT [uK^2]
+    Nl [K^2]
+    or
+    ell, Nl [K^2]
     """
 
     # make sure input is an array
@@ -277,8 +289,9 @@ def get_custom_Nl(lmax, sigma_n, fwhm, frequency=[217], lmin=0, apply_beam=False
           # f"sigma_P [uK-arcmin] = {sigma_P}"
           )
 
-    # calculate the noise power spectrum
-    Nl_TT = compute_Nl(sigma_n=sigma_n, lmax=lmax, lmin=lmin, fwhm=fwhm, apply_beam=apply_beam)
+    # calculate the noise power spectrum in K^2
+    Nl_TT = _compute_Nl(sigma_n=sigma_n, lmax=lmax, lmin=lmin, fwhm=fwhm, apply_beam=apply_beam,
+                        uK=False)
     # Nl_EE = compute_Nl(sigma_n=sigma_P, lmax=lmax, lmin=lmin, fwhm=fwhm, apply_beam=apply_beam)
 
     # combine the frequency channels
@@ -286,7 +299,7 @@ def get_custom_Nl(lmax, sigma_n, fwhm, frequency=[217], lmin=0, apply_beam=False
     # Nl_EE = combine_Nl(Nl_EE)
     L = np.arange(lmin, lmax + 1)
 
-    if uK==False:
+    if not uK:
         Nl_TT *= 1E-12
 
     if return_ell:
