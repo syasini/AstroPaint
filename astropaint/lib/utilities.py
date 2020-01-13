@@ -48,6 +48,41 @@ def load_Cl_Planck2018(lmin=0):
     return Cls
 
 
+def get_CMB_Cl(lmax, lmin=0, mode="TT", return_ell=False):
+    """
+    load Cl from camb generated Dl file
+
+    Parameters
+    ----------
+    lmax: int
+        max ell number
+    lmin: int
+        min ell number
+    mode: str
+        CMB mode to return (e.g. "TT", "EE", etc)
+
+    Returns
+    -------
+    Cl [K^2]
+    or
+    ell, Cl [K^2]
+
+    available keys in Cls : L, TT, EE, BB, TE
+    """
+
+    Cl_fname = os.path.join(os.path.dirname(__file__),
+                            "Cl_Planck2018_camb.npz")
+
+    Cls = load_Cl_Planck2018()
+    L = Cls['L'][lmin:lmax+1]
+    Cl = Cls[mode][lmin:lmax+1]
+
+    if return_ell:
+        return L, Cl
+    else:
+        return Cl
+
+
 # --------------------
 # Noise Power Spectrum
 # --------------------
