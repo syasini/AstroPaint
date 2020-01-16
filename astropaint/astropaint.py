@@ -17,7 +17,7 @@ import ray
 import re
 from functools import partial
 from tqdm.auto import tqdm
-
+import pdb
 #from memory_profiler import profile
 from astropaint.lib.log import CMBAlreadyAdded, NoiseAlreadyAdded
 
@@ -1431,7 +1431,7 @@ class Canvas:
             lat_range = lon_range
         if halo_list is "all":
             halo_list = range(self.catalog.size)
-
+        #pdb.set_trace()
         # match the size of the args and kwargs dataframes
         # if func_kwargs are scalars, extend then to the size of the catalog
         # TODO: rewrite using _check_template_args()?
@@ -1439,21 +1439,25 @@ class Canvas:
             if not hasattr(value, "__len__"):
                 func_kwargs[key] = [value]
 
+
         func_kwargs_df = pd.DataFrame(func_kwargs)
         if len(func_kwargs_df) == 1:
             func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
                                            ignore_index=True)
+
+        # make sure the df index matches the halo_list
+        func_kwargs_df.index = halo_list
+
         cart_projector = hp.projector.CartesianProj(lonra=lon_range, latra=lat_range,
                                                     xsize=xpix, ysize=ypix,
                                                     #*args, **kwargs,
                                                     )
 
         for halo in halo_list:
-            lon, lat = self.catalog.data[["lon", "lat"]].iloc[halo]
+            lon, lat = self.catalog.data[["lon", "lat"]].loc[halo]
             cut_out = cart_projector.projmap(self.pixels,
                                             rot=(lon, lat),
                                             vec2pix_func=partial(hp.vec2pix, self.nside))
-
             if apply_func:
                 if func_kwargs:
                     func_dict = {**func_kwargs_df.loc[halo]}
