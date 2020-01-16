@@ -8,7 +8,6 @@ __email__ = "yasini@usc.edu"
 import os
 import numpy as np
 import pandas as pd
-import yaml
 from matplotlib import cm
 from warnings import warn
 import inspect
@@ -20,11 +19,10 @@ from functools import partial
 from tqdm.auto import tqdm
 
 #from memory_profiler import profile
-from .lib.log import CMBAlreadyAdded, NoiseAlreadyAdded
+from astropaint.lib.log import CMBAlreadyAdded, NoiseAlreadyAdded
 
 try:
     import healpy as hp
-
 except ModuleNotFoundError:
     warn("Healpy is not installed. You cannot use the full sky canvas without it.")
 
