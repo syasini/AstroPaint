@@ -76,6 +76,7 @@ def get_CMB_Cl(lmax, lmin=0, mode="TT", return_ell=False, uK=False):
                             "Cl_Planck2018_camb.npz")
 
     Cls = load_Cl_Planck2018()
+
     L = Cls['L'][lmin:lmax+1]
     Cl = Cls[mode][lmin:lmax+1]
 
