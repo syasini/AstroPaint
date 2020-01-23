@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate
 from abc import ABC, abstractmethod
+import pdb
 
 from astropy import units as u
 from astropy.constants import sigma_T, m_p
@@ -180,7 +181,8 @@ class NFW(Profile):
         aka Rees-Sciama (moving gravitational potential)"""
 
         R = np.linalg.norm(R_vec, axis=-1)
-        R_hat = np.true_divide(R_vec, R[:, None])
+        #R_hat = np.true_divide(R_vec, R[:, None])
+        R_hat = np.true_divide(R_vec, np.expand_dims(R, axis=-1))
 
         alpha = cls.deflect_angle(R, c_200c, R_200c, M_200c)
         v_vec = transform.convert_velocity_sph2cart(theta, phi, 0, v_th, v_ph)

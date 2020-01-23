@@ -1466,7 +1466,8 @@ class Canvas:
                                            ignore_index=True)
 
         # make sure the df index matches the halo_list
-        func_kwargs_df.index = halo_list
+        if len(func_kwargs_df.index) == len(halo_list):
+            func_kwargs_df.index = halo_list
 
         cart_projector = hp.projector.CartesianProj(lonra=lon_range, latra=lat_range,
                                                     xsize=xpix, ysize=ypix,
