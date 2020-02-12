@@ -126,6 +126,13 @@ class Catalog:
 
         self.data = pd.read_csv(fname, index_col=0)
 
+    def save_sample(self, sample_name):
+        """load sample data using the name of dataset"""
+        fname = os.path.join(path_dir, "data", f"{sample_name}.csv")
+
+        self.data.to_csv(fname)
+        print(f"The catalog was saved in \n{fname}")
+
     def generate_random_box(self,
                             box_size=50,
                             v_max=100,
