@@ -546,7 +546,7 @@ class Catalog:
         self.data = data
 
     #TODO: for the cutting methods, avoid rebuilding the dataframe after every cut
-    def cut_M_200c(self, mass_min=0., mass_max=np.inf):
+    def cut_M_200c(self, mass_min=0., mass_max=np.inf, inplace=True):
         """
         Cut the catalog according the the given mass range
 
@@ -561,9 +561,14 @@ class Catalog:
         None
         catalog.data will only contain halos with mass M in the range mass_min < M < mass_max
         """
-        self.data = self.data[(self.data.M_200c > mass_min) & (self.data.M_200c < mass_max)]
+        data = self.data[(self.data.M_200c > mass_min) & (self.data.M_200c < mass_max)]
 
-    def cut_R_200c(self, R_min=0., R_max=np.inf):
+        if inplace:
+            self.data = data
+        else:
+            return data
+
+    def cut_R_200c(self, R_min=0., R_max=np.inf, inplace=True):
         """
         Cut the catalog according the the given radius range
 
@@ -578,9 +583,14 @@ class Catalog:
         None
         catalog.data will only contain halos with radius R in the range R_min < R < R_max
         """
-        self.data = self.data[(self.data.R_200c > R_min) & (self.data.R_200c < R_max)]
+        data = self.data[(self.data.R_200c > R_min) & (self.data.R_200c < R_max)]
 
-    def cut_D_c(self, D_min=0., D_max=np.inf):
+        if inplace:
+            self.data = data
+        else:
+            return data
+
+    def cut_D_c(self, D_min=0., D_max=np.inf, inplace=True):
         """
         Cut the catalog according the the given comoving distance range
 
@@ -596,9 +606,14 @@ class Catalog:
         catalog.data will only contain halos with comoving distance D_c in the range D_min < D_c <
         D_max
         """
-        self.data = self.data[(self.data.D_c > D_min) & (self.data.D_c < D_max)]
+        data = self.data[(self.data.D_c > D_min) & (self.data.D_c < D_max)]
 
-    def cut_D_a(self, D_min=0., D_max=np.inf):
+        if inplace:
+            self.data = data
+        else:
+            return data
+
+    def cut_D_a(self, D_min=0., D_max=np.inf, inplace=True):
         """
         Cut the catalog according the the given angular diameter distance range
 
@@ -614,9 +629,14 @@ class Catalog:
         catalog.data will only contain halos with angular diameter distance D_a in the range
         D_min < D_a < D_max
         """
-        self.data = self.data[(self.data.D_a > D_min) & (self.data.D_a < D_max)]
+        data = self.data[(self.data.D_a > D_min) & (self.data.D_a < D_max)]
 
-    def cut_redshift(self, redshift_min=0., redshift_max=np.inf):
+        if inplace:
+            self.data = data
+        else:
+            return data
+
+    def cut_redshift(self, redshift_min=0., redshift_max=np.inf, inplace=True):
         """
         Cut the catalog according the the given redshift range
 
@@ -632,12 +652,18 @@ class Catalog:
         catalog.data will only contain halos with redshift in the range
         redshift_min < redshift < redshift_max
         """
-        self.data = self.data[(self.data.redshift > redshift_min) &
+        data = self.data[(self.data.redshift > redshift_min) &
                               (self.data.redshift < redshift_max)]
+
+        if inplace:
+            self.data = data
+        else:
+            return data
 
     def cut_lon_lat(self,
                    lon_range=[0, 360],
-                   lat_range=[-90, 90]):
+                   lat_range=[-90, 90],
+                   inplace=True):
         """
         Cut the catalog according the the given longitude and latitude range 
         
@@ -654,14 +680,20 @@ class Catalog:
         latitudes in the range lat_range
         """
 
-        self.data = self.data[(self.data.lon > lon_range[0]) &
+        data = self.data[(self.data.lon > lon_range[0]) &
                               (self.data.lon < lon_range[1]) &
                               (self.data.lat > lat_range[0]) &
                               (self.data.lat < lat_range[1])]
 
+        if inplace:
+            self.data = data
+        else:
+            return data
+
     def cut_theta_phi(self,
                     theta_range=[0, np.pi],
-                    phi_range=[0, 2 * np.pi]):
+                    phi_range=[0, 2 * np.pi],
+                    inplace=True):
         """
         Cut the catalog according the the given longitude and latitude range
 
@@ -678,11 +710,15 @@ class Catalog:
         phi in the range phi_range
         """
 
-        self.data = self.data[(self.data.theta > theta_range[0]) &
-                              (self.data.theta < theta_range[1]) &
-                              (self.data.phi > phi_range[0]) &
-                              (self.data.phi < phi_range[1])]
+        data = self.data[(self.data.theta > theta_range[0]) &
+                         (self.data.theta < theta_range[1]) &
+                         (self.data.phi > phi_range[0]) &
+                         (self.data.phi < phi_range[1])]
 
+        if inplace:
+            self.data = data
+        else:
+            return data
 
     def cut_mask(self, mask, threshold=0.5, inplace=True):
         """cut the catalog according to the input mask
