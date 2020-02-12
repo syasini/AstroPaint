@@ -211,7 +211,7 @@ def convert_velocity_sph2cart(th, ph, v_r, v_th, v_ph):
 
     J = get_sph2cart_jacobian(th, ph)
 
-    vij_sph = np.array([ v_r, v_th, v_ph])
+    vij_sph = np.array([v_r, v_th, v_ph])
     vij_cart = np.einsum('ij...,i...->j...', J, vij_sph)
     logger.info(f"v_ij.shape = {vij_cart.shape}")
 
