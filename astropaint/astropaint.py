@@ -1700,7 +1700,7 @@ class Canvas:
         if Cl is "LCDM":
             # TODO: add lmax implementation
             Cl_file = utilities.get_CMB_Cl(lmax=lmax, mode=mode)
-            Cl = Cl_file[mode]
+            Cl = Cl_file
 
         # TODO: add to __init__ and make readonly?
         try:
