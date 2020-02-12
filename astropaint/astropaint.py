@@ -56,7 +56,48 @@ class Catalog:
                  default_redshift=0,
                  ):
 
+        """
+
+        Parameters
+        ----------
+        data: dataframe or str
+            Input data can be either a pandas dataframe or any table with the
+            following columns:
+
+            ["x", "y", "z", "v_x", "v_y", "M_200c"]
+
+            Alternatively data can be set to a string indicating the name of
+            a halo catalog to be loaded. There are various options for the input
+            string:
+
+            "random box" and "random shell" (case insensitive) respectively call
+            .generate_random_box() and .generate_random_shell() methods with the
+            default arguments.
+
+            "test" generates 6 test halos in the positive and negative x, y, z
+            directions. This is useful for testing and building prototypes.
+
+            Any other string will be looked up as the name of a csv file under
+            astropaint/data/
+
+            e.g. "websky", "MICE", or "Sehgal"
+
+        calculate_redshifts: bool
+            if True, redshifts of objects will be calculated from the comoving
+            distance according to the latest Planck cosmology (astropy.cosmo.Planck18_arXiv_v2)
+
+            This can be numerically expensive for large catalogs so if your
+            catalog already comes with redshifts, set this to False to save time.
+
+        default_redshift: float
+
+            If calculate_redshift is set to False, this value will be used as the
+            default redshift for all the halos.
+
+        """
         #TODO: define attribute dictionary with __slots__
+
+        self._instance_counter = 0
 
         self.calculate_redshifts = calculate_redshifts
         # if calculate_redshifts==False, assume this redshift for everything
@@ -109,7 +150,8 @@ class Catalog:
         self.size = len(self._data)
         self.box_size = self._get_box_size()
 
-        print("Catalog data has been modified...\n")
+        if self._instance_counter>0:
+            print("Catalog data has been modified...\n")
         # build the complete data frame
         # e.g. angular distances, radii, etc.
         self.build_dataframe(calculate_redshifts=self.calculate_redshifts,
@@ -262,7 +304,7 @@ class Catalog:
                         default_redshift=0):
 
         #TODO: add units documentation to the catalog for reference
-
+        self._instance_counter = 1
         print("Building the dataframe and updating all the parameters...\n")
 
         # calculate the comoving distance and angular position (theta and phi in radians)
