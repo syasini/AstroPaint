@@ -97,7 +97,7 @@ class Catalog:
         """
         #TODO: define attribute dictionary with __slots__
 
-        self._instance_counter = 0
+        self._build_counter = 0
 
         self.calculate_redshifts = calculate_redshifts
         # if calculate_redshifts==False, assume this redshift for everything
@@ -150,7 +150,7 @@ class Catalog:
         self.size = len(self._data)
         self.box_size = self._get_box_size()
 
-        if self._instance_counter>0:
+        if self._build_counter>0:
             print("Catalog data has been modified...\n")
         # build the complete data frame
         # e.g. angular distances, radii, etc.
@@ -308,7 +308,7 @@ class Catalog:
                         default_redshift=0):
 
         #TODO: add units documentation to the catalog for reference
-        self._instance_counter = 1
+        self._build_counter = 1
         print("Building the dataframe and updating all the parameters...\n")
 
         # calculate the comoving distance and angular position (theta and phi in radians)
