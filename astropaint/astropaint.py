@@ -115,7 +115,7 @@ class Catalog:
             elif re.match(".*test.*", data, re.IGNORECASE):
                 self.generate_test_box(configuration=["all"])
             else:
-                self.load_sample(data)
+                self.load_from_csv(data)
         else:
             #FIXME: check data type and columns
             self.data = data
@@ -162,10 +162,14 @@ class Catalog:
     # ------------------------
 
     #TODO: support inputs other than csv
-    def load_sample(self, sample_name="MICE"):
+    def load_from_csv(self, sample_name="MICE"):
         """load sample data using the name of dataset"""
-        fname = os.path.join(path_dir, "data", f"{sample_name}.csv")
+        if not sample_name.endswith(".csv"):
+            sample_name += ".csv"
+        fname = os.path.join(path_dir, "data", f"{sample_name}")
 
+        print(f"Loading: {fname}")
+        
         self.data = pd.read_csv(fname, index_col=0)
 
     def save_sample(self, sample_name):
