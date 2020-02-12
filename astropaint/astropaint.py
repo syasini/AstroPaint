@@ -684,6 +684,28 @@ class Catalog:
                               (self.data.phi < phi_range[1])]
 
 
+    def cut_mask(self, mask, threshold=0.5, inplace=True):
+        """cut the catalog according to the input mask
+        halos outside of the mask (mask<threshold) will be discarded"""
+
+        # make sure npix is valid and then get the corresponding nside
+        npix = len(mask)
+        assert hp.isnpixok(npix), "bad number of pixels"
+        nside = hp.npix2nside(npix)
+
+        # find the pixels where each halo lies in
+        angs = hp.ang2pix(nside, *self.data[["lon", "lat"]].values.T, lonlat=True)
+
+        # check to see if the pixel is masked
+        is_in_mask = mask[angs] >= threshold
+
+        # slice the halos outside the mask
+        data = self.data[is_in_mask]
+
+        if inplace:
+            self.data = data
+        else:
+            return data
 #########################################################
 #                  Canvas Object
 #########################################################
