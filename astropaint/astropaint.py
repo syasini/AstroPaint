@@ -168,16 +168,19 @@ class Catalog:
             sample_name += ".csv"
         fname = os.path.join(path_dir, "data", f"{sample_name}")
 
-        print(f"Loading: {fname}")
-        
+        print(f"Catalog loaded from:\n{fname}")
+
         self.data = pd.read_csv(fname, index_col=0)
 
-    def save_sample(self, sample_name):
+    def save_to_csv(self, sample_name):
         """load sample data using the name of dataset"""
-        fname = os.path.join(path_dir, "data", f"{sample_name}.csv")
+        if not sample_name.endswith(".csv"):
+            sample_name += ".csv"
+
+        fname = os.path.join(path_dir, "data", f"{sample_name}")
 
         self.data.to_csv(fname)
-        print(f"The catalog was saved in \n{fname}")
+        print(f"Catalog saved to:\n{fname}")
 
     def generate_random_box(self,
                             box_size=50,
