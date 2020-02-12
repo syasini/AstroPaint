@@ -64,7 +64,8 @@ class Catalog:
 
         # if no input is provided generate a random catalog
         if data is None:
-            self.generate_random_box()
+            self.data = self._initialize_catalog(1)
+            #self.generate_random_box()
         elif isinstance(data, str):
             if re.match(".*random.*box", data, re.IGNORECASE):
                 self.generate_random_box()
@@ -107,9 +108,8 @@ class Catalog:
 
         self.size = len(self._data)
         self.box_size = self._get_box_size()
-        print("Input data has been modified. Rebuilding the dataframe using "
-              "catalog.build_dataframe to update all the parameters...\n")
 
+        print("Catalog data has been modified...\n")
         # build the complete data frame
         # e.g. angular distances, radii, etc.
         self.build_dataframe(calculate_redshifts=self.calculate_redshifts,
@@ -256,8 +256,7 @@ class Catalog:
 
         #TODO: add units documentation to the catalog for reference
 
-
-        print("Building the dataframe...\n")
+        print("Building the dataframe and updating all the parameters...\n")
 
         # calculate the comoving distance and angular position (theta and phi in radians)
         self.data['D_c'], self.data['lat'], self.data['lon'] = cartesian_to_spherical(
