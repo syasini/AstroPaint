@@ -771,6 +771,7 @@ class Canvas:
         self.inclusive = inclusive
 
         self._pixels = np.zeros(self.npix)
+        self._alm = None
         self._Cl = np.zeros(self.lmax+1)
         self._Cl_is_outdated = True
 
@@ -818,6 +819,15 @@ class Canvas:
     def ell(self):
         return self._ell
 
+    @property
+    def alm(self):
+        return self._alm
+
+    @alm.setter
+    def alm(self, val):
+        self._Cl_is_outdated = True
+        self._alm = val
+        
     @property
     def Cl(self):
         if self._Cl_is_outdated:
