@@ -772,6 +772,7 @@ class Canvas:
 
         self._pixels = np.zeros(self.npix)
         self._alm = None
+        self._alm_is_outdated = True
         self._Cl = np.zeros(self.lmax+1)
         self._Cl_is_outdated = True
 
@@ -821,13 +822,15 @@ class Canvas:
 
     @property
     def alm(self):
+        if self._alm_is_outdated:
+            self.get_alm()
         return self._alm
 
-    @alm.setter
-    def alm(self, val):
-        self._Cl_is_outdated = True
-        self._alm = val
-        
+    # @alm.setter
+    # def alm(self, val):
+    #     self._Cl_is_outdated = True
+    #     self._alm = val
+    #
     @property
     def Cl(self):
         if self._Cl_is_outdated:
@@ -870,6 +873,7 @@ class Canvas:
     @pixels.setter
     def pixels(self, val):
         self._pixels = val
+        self._alm_is_outdated = True
         self._Cl_is_outdated = True
 
     # ------------------------
@@ -1261,11 +1265,23 @@ class Canvas:
 
         self.pixels = np.zeros(self.npix)
 
-    def get_Cl(self):
+    def get_alm(self):
+        """find the alm coefficients of the map"""
+
+        self._alm = hp.map2alm(self.pixels, lmax=self.lmax)
+        print("results saved in canvas.alm")
+        self._alm_is_outdated = False
+
+
+    def get_Cl(self, save_alm=False):
         """find the power spectrum of the map (.pixels)"""
 
-        self._Cl = hp.anafast(self.pixels,
-                              lmax=self.lmax)
+        if save_alm:
+            self.get_alm()
+        elif not self._alm_is_outdated:
+            self._Cl = hp.alm2cl(self.alm, lmax=self.lmax)
+        else:
+            self._Cl = hp.anafast(self.pixels, lmax=self.lmax)
 
         self._Cl_is_outdated = False
 
