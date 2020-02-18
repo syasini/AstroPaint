@@ -187,9 +187,37 @@ class NFW(Profile):
         alpha = cls.deflect_angle(R, c_200c, R_200c, M_200c)
         v_vec = transform.convert_velocity_sph2cart(theta, phi, 0, v_th, v_ph)
         dT = -alpha * np.dot(R_hat, v_vec) / c * T_cmb
-
         return dT
 
+    @staticmethod
+    def _R(R):
+        """
+        comoving distance from the center of halo
+
+        Returns
+        -------
+        projected radius R
+        """
+
+        return R
+
+    @staticmethod
+    def _Rvec2R(R_vec):
+        """
+        comoving distance from the center of halo
+
+        Returns
+        -------
+        projected radius R
+        """
+
+        # FIXME: remove this
+        # print("flattening")
+
+        # r = deepcopy(r)
+        # r[r < 0.1] = 0.1  # flatten the core
+        R = np.linalg.norm(R_vec, axis=-1)
+        return R
 
 class Battaglia16(Profile):
     """Tau profile, from Battaglia 2016
