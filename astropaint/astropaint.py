@@ -2013,7 +2013,7 @@ class Canvas:
 
         self.pixels = hp.smoothing(self.pixels, fwhm=fwhm_b, sigma=sigma_b, *args, **kwargs)
 
-    def cut_alm(self, lmin=0, lmax=None, inplace=True):
+    def mask_alm(self, lmin=0, lmax=None, inplace=True):
         """only keep alms in the range between lmin and lmax (inclusive)"""
 
         if lmax is None:
@@ -2025,9 +2025,6 @@ class Canvas:
 
         fl = np.zeros(lmax+1)
         fl[lmin:lmax+1] = 1
-
-        import matplotlib.pyplot as plt
-        plt.plot(fl)
 
         alm = hp.almxfl(alm, fl)
         if inplace:
