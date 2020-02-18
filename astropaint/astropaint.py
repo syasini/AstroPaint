@@ -1273,13 +1273,15 @@ class Canvas:
         self._alm_is_outdated = False
 
 
-    def get_Cl(self, save_alm=False):
+    def get_Cl(self, save_alm=True):
         """find the power spectrum of the map (.pixels)"""
 
         if save_alm:
-            self.get_alm()
-        elif not self._alm_is_outdated:
+            if self._alm_is_outdated:
+                self.get_alm()
+
             self._Cl = hp.alm2cl(self.alm, lmax=self.lmax)
+            
         else:
             self._Cl = hp.anafast(self.pixels, lmax=self.lmax)
 
@@ -2010,7 +2012,32 @@ class Canvas:
         """
 
         self.pixels = hp.smoothing(self.pixels, fwhm=fwhm_b, sigma=sigma_b, *args, **kwargs)
-        
+
+    def cut_alm(self, lmin=0, lmax=None, inplace=True):
+        """only keep alms in the range between lmin and lmax (inclusive)"""
+
+        if lmax is None:
+            lmax = self.lmax
+
+        assert lmin == int(lmin) and lmax == int(lmax); "lmin and lmax must be integers"
+
+        alm = self.alm
+
+        fl = np.zeros(lmax+1)
+        fl[lmin:lmax+1] = 1
+
+        import matplotlib.pyplot as plt
+        plt.plot(fl)
+        pdb.set_trace()
+        alm = hp.almxfl(alm, fl)
+        if inplace:
+            self._alm = alm
+            self._alm_is_outdated = False
+
+            self._pixels = hp.alm2map(self._alm, nside=self.nside)
+            self._Cl_is_outdated = True
+        else:
+            return alm
 
 #########################################################
 #                   Painter Object
