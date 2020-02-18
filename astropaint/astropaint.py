@@ -2039,6 +2039,21 @@ class Canvas:
         else:
             return alm
 
+    def almxfl(self, fl, inplace=True):
+        """wrapper for healpy.almxfl
+        multiplies the alms by the array fl (lmin=0, to lmax=3*nside+1)"""
+
+        alm = hp.almxfl(self.alm, fl, inplace=False)
+
+        if inplace:
+            self._alm = alm
+            self._Cl_is_outdated = True
+
+        else:
+            return alm
+
+
+
 #########################################################
 #                   Painter Object
 #########################################################
