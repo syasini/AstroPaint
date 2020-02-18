@@ -8,7 +8,6 @@ __email__ = "yasini@usc.edu"
 import os
 import numpy as np
 import pandas as pd
-import yaml
 from matplotlib import cm
 from warnings import warn
 import inspect
@@ -18,13 +17,12 @@ import ray
 import re
 from functools import partial
 from tqdm.auto import tqdm
-
+import pdb
 #from memory_profiler import profile
-from .lib.log import CMBAlreadyAdded, NoiseAlreadyAdded
+from astropaint.lib.log import CMBAlreadyAdded, NoiseAlreadyAdded
 
 try:
     import healpy as hp
-
 except ModuleNotFoundError:
     warn("Healpy is not installed. You cannot use the full sky canvas without it.")
 
@@ -54,15 +52,61 @@ class Catalog:
     """
     def __init__(self,
                  data=None,
-                 redshift=0,
+                 calculate_redshifts=False,
+                 default_redshift=0,
                  ):
 
+        """
+
+        Parameters
+        ----------
+        data: dataframe or str
+            Input data can be either a pandas dataframe or any table with the
+            following columns:
+
+            ["x", "y", "z", "v_x", "v_y", "M_200c"]
+
+            Alternatively data can be set to a string indicating the name of
+            a halo catalog to be loaded. There are various options for the input
+            string:
+
+            "random box" and "random shell" (case insensitive) respectively call
+            .generate_random_box() and .generate_random_shell() methods with the
+            default arguments.
+
+            "test" generates 6 test halos in the positive and negative x, y, z
+            directions. This is useful for testing and building prototypes.
+
+            Any other string will be looked up as the name of a csv file under
+            astropaint/data/
+
+            e.g. "websky", "MICE", or "Sehgal"
+
+        calculate_redshifts: bool
+            if True, redshifts of objects will be calculated from the comoving
+            distance according to the latest Planck cosmology (astropy.cosmo.Planck18_arXiv_v2)
+
+            This can be numerically expensive for large catalogs so if your
+            catalog already comes with redshifts, set this to False to save time.
+
+        default_redshift: float
+
+            If calculate_redshift is set to False, this value will be used as the
+            default redshift for all the halos.
+
+        """
         #TODO: define attribute dictionary with __slots__
 
-        self.redshift = redshift
+        self._build_counter = 0
+
+        self.calculate_redshifts = calculate_redshifts
+        # if calculate_redshifts==False, assume this redshift for everything
+        self.default_redshift = default_redshift
+
         # if no input is provided generate a random catalog
         if data is None:
-            self.generate_random_box()
+            self.data = self._initialize_catalog(1)
+            #self.generate_random_box()
         elif isinstance(data, str):
             if re.match(".*random.*box", data, re.IGNORECASE):
                 self.generate_random_box()
@@ -71,7 +115,7 @@ class Catalog:
             elif re.match(".*test.*", data, re.IGNORECASE):
                 self.generate_test_box(configuration=["all"])
             else:
-                self.load_sample(data)
+                self.load_from_csv(data)
         else:
             #FIXME: check data type and columns
             self.data = data
@@ -105,23 +149,38 @@ class Catalog:
 
         self.size = len(self._data)
         self.box_size = self._get_box_size()
-        print("Input data has been modified. Rebuilding the dataframe using "
-              "catalog.build_dataframe to update all the parameters...\n")
 
+        if self._build_counter>0:
+            print("Catalog data has been modified...\n")
         # build the complete data frame
         # e.g. angular distances, radii, etc.
-        self.build_dataframe()
+        self.build_dataframe(calculate_redshifts=self.calculate_redshifts,
+                             default_redshift=self.default_redshift)
 
     # ------------------------
     #         sample data
     # ------------------------
 
     #TODO: support inputs other than csv
-    def load_sample(self, sample_name="MICE"):
+    def load_from_csv(self, sample_name="MICE"):
         """load sample data using the name of dataset"""
-        fname = os.path.join(path_dir, "data", f"{sample_name}.csv")
+        if not sample_name.endswith(".csv"):
+            sample_name += ".csv"
+        fname = os.path.join(path_dir, "data", f"{sample_name}")
+
+        print(f"Catalog loaded from:\n{fname}")
 
         self.data = pd.read_csv(fname, index_col=0)
+
+    def save_to_csv(self, sample_name):
+        """load sample data using the name of dataset"""
+        if not sample_name.endswith(".csv"):
+            sample_name += ".csv"
+
+        fname = os.path.join(path_dir, "data", f"{sample_name}")
+
+        self.data.to_csv(fname)
+        print(f"Catalog saved to:\n{fname}")
 
     def generate_random_box(self,
                             box_size=50,
@@ -247,18 +306,26 @@ class Catalog:
     #         methods
     # ------------------------
 
-    def build_dataframe(self):
+    def build_dataframe(self,
+                        calculate_redshifts=False,
+                        default_redshift=0):
 
         #TODO: add units documentation to the catalog for reference
-
-
-        print("Building the dataframe...\n")
+        self._build_counter = 1
+        print("Building the dataframe and updating all the parameters...\n")
 
         # calculate the comoving distance and angular position (theta and phi in radians)
         self.data['D_c'], self.data['lat'], self.data['lon'] = cartesian_to_spherical(
                                                                     self.data['x'].values,
                                                                     self.data['y'].values,
                                                                     self.data['z'].values)
+        if calculate_redshifts:
+            self.data['redshift'] = self.data['D_c'].apply(transform.D_c_to_redshift)
+        else:
+            try:
+                self.data['redshift']
+            except KeyError:
+                self.data['redshift'] = pd.Series([default_redshift]*len(self.data['D_c']))
 
         # theta = pi/2 - lat , phi = lon
         self.data['theta'] = np.pi / 2 - self.data['lat']
@@ -268,18 +335,18 @@ class Catalog:
         self.data['lon'], self.data['lat'] = np.rad2deg((self.data['lon'], self.data['lat']))
 
         # calculate angular diameter distance, virial radius and angular size
-        self.data['D_a'] = transform.D_c_to_D_a(self.data['D_c'], self.redshift)
-        self.data['R_200c'] = transform.M_200c_to_R_200c(self.data['M_200c'], self.redshift)
-        self.data['c_200c'] = transform.M_200c_to_c_200c(self.data['M_200c'], self.redshift)
+        self.data['D_a'] = transform.D_c_to_D_a(self.data['D_c'], self.data['redshift'])
+        self.data['R_200c'] = transform.M_200c_to_R_200c(self.data['M_200c'], self.data['redshift'])
+        self.data['c_200c'] = transform.M_200c_to_c_200c(self.data['M_200c'], self.data['redshift'])
         self.data['R_th_200c'] = transform.radius_to_angsize(self.data['R_200c'],
                                                              self.data['D_a'], arcmin=True)
         #TODO: change redshift to nonuniversal value
-        self.data["rho_s"] = transform.M_200_to_rho_s(self.data["M_200c"],
-                                                      self.redshift,
-                                                      self.data["R_200c"],
-                                                      self.data["c_200c"])
+        self.data['rho_s'] = transform.M_200c_to_rho_s(self.data['M_200c'],
+                                                       self.data['redshift'],
+                                                       self.data['R_200c'],
+                                                       self.data['c_200c'])
 
-        self.data["R_s"] = np.true_divide(self.data["R_200c"], self.data["c_200c"])
+        self.data['R_s'] = np.true_divide(self.data['R_200c'], self.data['c_200c'])
 
         # find the cartesian to spherical coords transformation matrix
         J_cart2sph = transform.get_cart2sph_jacobian(self.data['theta'].values,
@@ -478,7 +545,8 @@ class Catalog:
         # reset data and rebuild the dataframe
         self.data = data
 
-    def cut_M_200c(self, mass_min=0., mass_max=np.inf):
+    #TODO: for the cutting methods, avoid rebuilding the dataframe after every cut
+    def cut_M_200c(self, mass_min=0., mass_max=np.inf, inplace=True):
         """
         Cut the catalog according the the given mass range
 
@@ -493,9 +561,14 @@ class Catalog:
         None
         catalog.data will only contain halos with mass M in the range mass_min < M < mass_max
         """
-        self.data = self.data[(self.data.M_200c > mass_min) & (self.data.M_200c < mass_max)]
+        data = self.data[(self.data.M_200c > mass_min) & (self.data.M_200c < mass_max)]
 
-    def cut_R_200c(self, R_min=0., R_max=np.inf):
+        if inplace:
+            self.data = data
+        else:
+            return data
+
+    def cut_R_200c(self, R_min=0., R_max=np.inf, inplace=True):
         """
         Cut the catalog according the the given radius range
 
@@ -510,9 +583,14 @@ class Catalog:
         None
         catalog.data will only contain halos with radius R in the range R_min < R < R_max
         """
-        self.data = self.data[(self.data.R_200c > R_min) & (self.data.R_200c < R_max)]
+        data = self.data[(self.data.R_200c > R_min) & (self.data.R_200c < R_max)]
 
-    def cut_D_c(self, D_min=0., D_max=np.inf):
+        if inplace:
+            self.data = data
+        else:
+            return data
+
+    def cut_D_c(self, D_min=0., D_max=np.inf, inplace=True):
         """
         Cut the catalog according the the given comoving distance range
 
@@ -528,9 +606,14 @@ class Catalog:
         catalog.data will only contain halos with comoving distance D_c in the range D_min < D_c <
         D_max
         """
-        self.data = self.data[(self.data.D_c > D_min) & (self.data.D_c < D_max)]
+        data = self.data[(self.data.D_c > D_min) & (self.data.D_c < D_max)]
 
-    def cut_D_a(self, D_min=0., D_max=np.inf):
+        if inplace:
+            self.data = data
+        else:
+            return data
+
+    def cut_D_a(self, D_min=0., D_max=np.inf, inplace=True):
         """
         Cut the catalog according the the given angular diameter distance range
 
@@ -546,11 +629,41 @@ class Catalog:
         catalog.data will only contain halos with angular diameter distance D_a in the range
         D_min < D_a < D_max
         """
-        self.data = self.data[(self.data.D_a > D_min) & (self.data.D_a < D_max)]
+        data = self.data[(self.data.D_a > D_min) & (self.data.D_a < D_max)]
+
+        if inplace:
+            self.data = data
+        else:
+            return data
+
+    def cut_redshift(self, redshift_min=0., redshift_max=np.inf, inplace=True):
+        """
+        Cut the catalog according the the given redshift range
+
+        Parameters
+        ----------
+        redshift_min
+            minimum halo redshift to keep
+        redshift_max
+            maximum halo redshift to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with redshift in the range
+        redshift_min < redshift < redshift_max
+        """
+        data = self.data[(self.data.redshift > redshift_min) &
+                              (self.data.redshift < redshift_max)]
+
+        if inplace:
+            self.data = data
+        else:
+            return data
 
     def cut_lon_lat(self,
                    lon_range=[0, 360],
-                   lat_range=[-90, 90]):
+                   lat_range=[-90, 90],
+                   inplace=True):
         """
         Cut the catalog according the the given longitude and latitude range 
         
@@ -567,14 +680,20 @@ class Catalog:
         latitudes in the range lat_range
         """
 
-        self.data = self.data[(self.data.lon > lon_range[0]) &
+        data = self.data[(self.data.lon > lon_range[0]) &
                               (self.data.lon < lon_range[1]) &
                               (self.data.lat > lat_range[0]) &
                               (self.data.lat < lat_range[1])]
 
+        if inplace:
+            self.data = data
+        else:
+            return data
+
     def cut_theta_phi(self,
                     theta_range=[0, np.pi],
-                    phi_range=[0, 2 * np.pi]):
+                    phi_range=[0, 2 * np.pi],
+                    inplace=True):
         """
         Cut the catalog according the the given longitude and latitude range
 
@@ -591,12 +710,38 @@ class Catalog:
         phi in the range phi_range
         """
 
-        self.data = self.data[(self.data.theta > theta_range[0]) &
-                              (self.data.theta < theta_range[1]) &
-                              (self.data.phi > phi_range[0]) &
-                              (self.data.phi < phi_range[1])]
+        data = self.data[(self.data.theta > theta_range[0]) &
+                         (self.data.theta < theta_range[1]) &
+                         (self.data.phi > phi_range[0]) &
+                         (self.data.phi < phi_range[1])]
 
+        if inplace:
+            self.data = data
+        else:
+            return data
 
+    def cut_mask(self, mask, threshold=0.5, inplace=True):
+        """cut the catalog according to the input mask
+        halos outside of the mask (mask<threshold) will be discarded"""
+
+        # make sure npix is valid and then get the corresponding nside
+        npix = len(mask)
+        assert hp.isnpixok(npix), "bad number of pixels"
+        nside = hp.npix2nside(npix)
+
+        # find the pixels where each halo lies in
+        angs = hp.ang2pix(nside, *self.data[["lon", "lat"]].values.T, lonlat=True)
+
+        # check to see if the pixel is masked
+        is_in_mask = mask[angs] >= threshold
+
+        # slice the halos outside the mask
+        data = self.data[is_in_mask]
+
+        if inplace:
+            self.data = data
+        else:
+            return data
 #########################################################
 #                  Canvas Object
 #########################################################
@@ -626,8 +771,10 @@ class Canvas:
         self.inclusive = inclusive
 
         self._pixels = np.zeros(self.npix)
+        self._alm = None
+        self._alm_is_outdated = True
         self._Cl = np.zeros(self.lmax+1)
-        self._Cl_is_outdated = False
+        self._Cl_is_outdated = True
 
         self._catalog = catalog
         self.centers_D_a = self._catalog.data.D_a
@@ -674,6 +821,17 @@ class Canvas:
         return self._ell
 
     @property
+    def alm(self):
+        if self._alm_is_outdated:
+            self.get_alm()
+        return self._alm
+
+    # @alm.setter
+    # def alm(self, val):
+    #     self._Cl_is_outdated = True
+    #     self._alm = val
+    #
+    @property
     def Cl(self):
         if self._Cl_is_outdated:
             self.get_Cl()
@@ -715,6 +873,7 @@ class Canvas:
     @pixels.setter
     def pixels(self, val):
         self._pixels = val
+        self._alm_is_outdated = True
         self._Cl_is_outdated = True
 
     # ------------------------
@@ -1106,11 +1265,25 @@ class Canvas:
 
         self.pixels = np.zeros(self.npix)
 
-    def get_Cl(self):
+    def get_alm(self):
+        """find the alm coefficients of the map"""
+
+        self._alm = hp.map2alm(self.pixels, lmax=self.lmax)
+        print("results saved in canvas.alm")
+        self._alm_is_outdated = False
+
+
+    def get_Cl(self, save_alm=True):
         """find the power spectrum of the map (.pixels)"""
 
-        self._Cl = hp.anafast(self.pixels,
-                              lmax=self.lmax)
+        if save_alm:
+            if self._alm_is_outdated:
+                self.get_alm()
+
+            self._Cl = hp.alm2cl(self.alm, lmax=self.lmax)
+
+        else:
+            self._Cl = hp.anafast(self.pixels, lmax=self.lmax)
 
         self._Cl_is_outdated = False
 
@@ -1235,6 +1408,7 @@ class Canvas:
                          filename=None,
                          prefix=None,
                          suffix=None,
+                         overwrite=True,
                          ):
         """save the healpy map to file
 
@@ -1267,7 +1441,8 @@ class Canvas:
                        f".fits"
 
         hp.write_map(filename,
-                     self.pixels)
+                     self.pixels,
+                     overwrite=overwrite)
 
     def load_map_from_file(self,
                            filename=None,
@@ -1419,7 +1594,7 @@ class Canvas:
             lat_range = lon_range
         if halo_list is "all":
             halo_list = range(self.catalog.size)
-
+        #pdb.set_trace()
         # match the size of the args and kwargs dataframes
         # if func_kwargs are scalars, extend then to the size of the catalog
         # TODO: rewrite using _check_template_args()?
@@ -1427,21 +1602,26 @@ class Canvas:
             if not hasattr(value, "__len__"):
                 func_kwargs[key] = [value]
 
+
         func_kwargs_df = pd.DataFrame(func_kwargs)
         if len(func_kwargs_df) == 1:
             func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
                                            ignore_index=True)
+
+        # make sure the df index matches the halo_list
+        if len(func_kwargs_df.index) == len(halo_list):
+            func_kwargs_df.index = halo_list
+
         cart_projector = hp.projector.CartesianProj(lonra=lon_range, latra=lat_range,
                                                     xsize=xpix, ysize=ypix,
                                                     #*args, **kwargs,
                                                     )
 
         for halo in halo_list:
-            lon, lat = self.catalog.data[["lon", "lat"]].iloc[halo]
+            lon, lat = self.catalog.data[["lon", "lat"]].loc[halo]
             cut_out = cart_projector.projmap(self.pixels,
                                             rot=(lon, lat),
                                             vec2pix_func=partial(hp.vec2pix, self.nside))
-
             if apply_func:
                 if func_kwargs:
                     func_dict = {**func_kwargs_df.loc[halo]}
@@ -1661,8 +1841,9 @@ class Canvas:
         if lmax is None:
             lmax = 3 * self.nside -1
         if Cl is "LCDM":
-            Cl_file = utilities.load_Cl_Planck2018(lmax=lmax)
-            Cl = Cl_file[mode]
+            # TODO: add lmax implementation
+            Cl_file = utilities.get_CMB_Cl(lmax=lmax, mode=mode)
+            Cl = Cl_file
 
         # TODO: add to __init__ and make readonly?
         try:
@@ -1810,6 +1991,69 @@ class Canvas:
         except AttributeError:
             print("canvas.noise not Found")
 
+    def beam_smooth(self,
+                    fwhm_b=0.0,
+                    sigma_b=None,
+                    *args,
+                    **kwargs):
+        """
+        Smoothes canvas.pixels with a gaussian beam using healpy.sphtfunc.smoothing
+
+        Parameters
+        ----------
+        fwhm_b
+        sigma_b
+        args
+        kwargs
+
+        Returns
+        -------
+        None
+        """
+
+        self.pixels = hp.smoothing(self.pixels, fwhm=fwhm_b, sigma=sigma_b, *args, **kwargs)
+
+    def cut_alm(self, lmin=0, lmax=None, inplace=True):
+        """only keep alms in the range between lmin and lmax (inclusive)"""
+
+        if lmax is None:
+            lmax = self.lmax
+
+        assert lmin == int(lmin) and lmax == int(lmax); "lmin and lmax must be integers"
+
+        alm = self.alm
+
+        fl = np.zeros(lmax+1)
+        fl[lmin:lmax+1] = 1
+
+        import matplotlib.pyplot as plt
+        plt.plot(fl)
+
+        alm = hp.almxfl(alm, fl)
+        if inplace:
+            self._alm = alm
+            self._alm_is_outdated = False
+
+            self._pixels = hp.alm2map(self._alm, nside=self.nside)
+            self._Cl_is_outdated = True
+        else:
+            return alm
+
+    def almxfl(self, fl, inplace=True):
+        """wrapper for healpy.almxfl
+        multiplies the alms by the array fl (lmin=0, to lmax=3*nside+1)"""
+
+        alm = hp.almxfl(self.alm, fl, inplace=False)
+
+        if inplace:
+            self._alm = alm
+            self._Cl_is_outdated = True
+
+        else:
+            return alm
+
+
+
 #########################################################
 #                   Painter Object
 #########################################################
@@ -1840,7 +2084,7 @@ class Painter:
     @template.setter
     def template(self, val):
         self._template = val
-        self._analyze_template()
+        self.R_arg_indx = self._analyze_template()
         #self._check_template()
 
     # ------------------------
@@ -1879,29 +2123,29 @@ class Painter:
 
         # check the units
         #if distance_units.lower() in ["mpc", "megaparsecs", "mega parsecs"]:
-        #    r_pix2cent = canvas.discs.gen_cent2pix_mpc
+        #    R_pix2cent = canvas.discs.gen_cent2pix_mpc
         #elif distance_units.lower() in ["radians", "rad", "rads"]:
-        #     r_pix2cent = canvas.discs.gen_cent2pix_rad
+        #     R_pix2cent = canvas.discs.gen_cent2pix_rad
         # else:
         #     raise KeyError("distance_units must be either 'mpc' or 'radians'.")
 
 
 
-        r_mode = self.template_args_list[0]
+        R_mode = self.template_args_list[self.R_arg_indx]
 
-        if r_mode is "r":
-            r_pix2cent = canvas.discs.gen_cent2pix_mpc
-        if r_mode is "r_vec":
-            r_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
+        if R_mode is "R":
+            R_pix2cent = canvas.discs.gen_cent2pix_mpc
+        if R_mode is "R_vec":
+            R_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
 
         if not with_ray:
 
-            for halo, r, pixel_index in tqdm(zip(range(canvas.catalog.size),
-                                                  r_pix2cent(),
+            for halo, R, pixel_index in tqdm(zip(range(canvas.catalog.size),
+                                                  R_pix2cent(),
                                                   canvas.discs.gen_pixel_index()),
                                              total=canvas.catalog.size):
 
-                spray_dict = {r_mode: r, **spray_df.loc[halo]}
+                spray_dict = {R_mode: R, **spray_df.loc[halo]}
                 np.add.at(canvas.pixels,
                           pixel_index,
                           template(**spray_dict))
@@ -1932,8 +2176,8 @@ class Painter:
                 # _paint the shared pixels array in batches with ray
                 result = self._paint_batch.remote(shared_pixels,
                                                   halo_batch,
-                                                  r_mode,
-                                                  r_pix2cent,
+                                                  R_mode,
+                                                  R_pix2cent,
                                                   gen_pixel_index,
                                                   template,
                                                   spray_df)
@@ -1954,17 +2198,17 @@ class Painter:
         return shared_pixels
 
     @ray.remote
-    def _paint_batch(shared_pixels, halo_batch, r_mode, r_pix2cent, gen_pixel_index, template,
+    def _paint_batch(shared_pixels, halo_batch, R_mode, R_pix2cent, gen_pixel_index, template,
                      spray_df):
-        # for halo, r, pixel_index in zip(halo_batch,
+        # for halo, R, pixel_index in zip(halo_batch,
         #                                 r_pix2cent(halo_list=halo_batch),
         #                                 gen_pixel_index(halo_list=halo_batch)):
-        #     np.add.at(shared_pixels, pixel_index, template(r, **spray_df.loc[halo]))
+        #     np.add.at(shared_pixels, pixel_index, template(R, **spray_df.loc[halo]))
         #
-        for halo, r, pixel_index in zip(halo_batch,
-                                        r_pix2cent(halo_list=halo_batch),
+        for halo, R, pixel_index in zip(halo_batch,
+                                        R_pix2cent(halo_list=halo_batch),
                                         gen_pixel_index(halo_list=halo_batch)):
-            spray_dict = {r_mode: r, **spray_df.loc[halo]}
+            spray_dict = {R_mode: R, **spray_df.loc[halo]}
             np.add.at(shared_pixels,
                       pixel_index,
                       template(**spray_dict))
@@ -1977,7 +2221,7 @@ class Painter:
 
         Returns
         -------
-        None
+        index of R or R_vec argument
         """
 
         self.template_name = self.template.__name__
@@ -1985,6 +2229,19 @@ class Painter:
         # get the list of args and keyword args
         self.template_args_list = inspect.getfullargspec(self.template).args
         self.template_kwargs_list = inspect.getfullargspec(self.template).kwonlyargs
+
+        # remove self and cls from the arguments
+        #TODO: automate this for any argumen name
+        try:
+            self.template_args_list.remove("self")
+        except ValueError:
+            pass
+
+        try:
+            self.template_args_list.remove("cls")
+        except ValueError:
+            pass
+
 
         # print out the list of args and kwargs
         message = f"The template '{self.template_name}' takes in the following arguments:\n" \
@@ -1994,20 +2251,25 @@ class Painter:
             message += f"and the following keyword-only arguments:\n" \
                        f"{self.template_kwargs_list}"
 
-        # make sure either r (distance) or r_vec are in the argument list
+        # make sure either R (distance) or R_vec are in the argument list
         # but not both!
-        assert sum([arg in self.template_args_list for arg in ['r', 'r_vec']]) == 1,\
-            "Either 'r' or 'r_vec' must be a template argument (only one of them and not both)."
+        assert sum([arg in self.template_args_list for arg in ['R', 'R_vec']]) == 1,\
+            "Either 'R' or 'R_vec' must be a template argument (only one of them and not both)."
 
+        # TODO: Relax this constraint
         # make sure either r or r_vec appears as the first argument
-        assert self.template_args_list[0] in ['r', 'r_vec'], \
-            "Either 'r' or 'r_vec' must be the template's first argument"
+        #assert self.template_args_list[0] in ['R', 'R_vec'], \
+        #    "Either 'R' or 'R_vec' must be the template's first argument"
 
-        # ensure the first argument of the profile template is 'r'
-        # assert self.template_args_list[0] == "r", "The first argument of the profile template " \
-        #                                          "must be 'r' (the distance from the center of " \
-        #                                          "the halo)."
+        # find the index of 'R' or 'R_vec'
+        try:
+            R_arg_index = self.template_args_list.index("R")
+        except ValueError:
+            R_arg_index = self.template_args_list.index("R_vec")
+
+
         print(message)
+        return R_arg_index
 
     def _check_template_kwargs(self, **template_kwargs):
         """Ensure the template_kwargs is pandas compatible"""
