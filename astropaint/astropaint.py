@@ -1281,7 +1281,7 @@ class Canvas:
                 self.get_alm()
 
             self._Cl = hp.alm2cl(self.alm, lmax=self.lmax)
-            
+
         else:
             self._Cl = hp.anafast(self.pixels, lmax=self.lmax)
 
@@ -2028,7 +2028,7 @@ class Canvas:
 
         import matplotlib.pyplot as plt
         plt.plot(fl)
-        pdb.set_trace()
+
         alm = hp.almxfl(alm, fl)
         if inplace:
             self._alm = alm
