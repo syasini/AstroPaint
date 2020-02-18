@@ -1406,6 +1406,7 @@ class Canvas:
                          filename=None,
                          prefix=None,
                          suffix=None,
+                         overwrite=True,
                          ):
         """save the healpy map to file
 
@@ -1438,7 +1439,8 @@ class Canvas:
                        f".fits"
 
         hp.write_map(filename,
-                     self.pixels)
+                     self.pixels,
+                     overwrite=overwrite)
 
     def load_map_from_file(self,
                            filename=None,
