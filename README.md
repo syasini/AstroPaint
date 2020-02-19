@@ -32,7 +32,7 @@ That's it! Now you can check out your masterpiece using
 
 `canvas.show_map()`
 
-![BG](BG_sample.png)
+![BG](BG_websky.png)
 
 
 # How to contribute
