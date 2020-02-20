@@ -6,6 +6,8 @@ __author__ = "Siavash Yasini"
 __email__ = "yasini@usc.edu"
 
 import os
+from sys import getsizeof
+
 import numpy as np
 import pandas as pd
 from matplotlib import cm
@@ -1719,8 +1721,8 @@ class Canvas:
             print("Stacking in parallel with ray...")
             print("progress bar is not available in parallel mode.")
             # count the number of available cpus
-            import psutil
-            n_cpus = (psutil.cpu_count(logical=True))
+            #import psutil
+            n_cpus = (os.cpu_count())
             print(f"n_cpus = {n_cpus}")
             ray.init(num_cpus=n_cpus)
 
@@ -2153,10 +2155,14 @@ class Painter:
             print("progress bar is not available in parallel mode.")
 
             # count the number of available cpus
-            import psutil
-            n_cpus = (psutil.cpu_count(logical=True))
+            #import psutil
+            n_cpus = (os.cpu_count())
+            canvas_memory_size = getsizeof(canvas.pixels)
+            print(f"\ncanvas memory size [GB]: {canvas_memory_size/1024**3}\n")
             print(f"n_cpus = {n_cpus}")
-            ray.init(num_cpus=n_cpus)
+            ray.init(num_cpus=n_cpus,
+                     #object_store_memory=2 * canvas_memory_size,
+                     )
 
             # put the canvas pixels in the object store
             shared_pixels = ray.put(canvas.pixels)
