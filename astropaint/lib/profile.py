@@ -15,6 +15,7 @@ from astropy import units as u
 from astropy.constants import sigma_T, m_p
 from astropy.cosmology import Planck18_arXiv_v2 as cosmo
 
+from .utilities import interpolate, LOS_integrate
 from . import transform
 
 sigma_T = sigma_T.to(u.Mpc**2).value # [Mpc^2]
@@ -29,6 +30,7 @@ Gcm2 = 4.785E-20 #(Mpc/M_sun)
 #                       Profiles
 #########################################################
 
+
 class Profile(ABC):
     """
     A class for calculating the 3D and 2D spatial profiles of halos
@@ -40,17 +42,6 @@ class Profile(ABC):
 
         self.cosmo = cosmo
 
-    @staticmethod
-    def rho_3D(r, m, z):
-        pass
-
-    def rho_2D(cls, R, m, z):
-        """project the 3d into the 2d profile
-        """
-        #TODO: define partial function for ingeration to make args arbitrary
-        f = lambda r: cls.rho_3D(r, m, z) * 2. * r / np.sqrt(r ** 2 - R ** 2)
-        result = integrate.quad(f, R, np.inf, epsabs=0., epsrel=1.e-2)[0]
-        return result
 
 class NFW(Profile):
     """
@@ -91,18 +82,13 @@ class NFW(Profile):
         surface mass density: [M_sun/Mpc^2]
         """
 
-        # FIXME: remove this
-        # print("flattening")
-
-        # r = deepcopy(r)
-        # r[r < 0.1] = 0.1  # flatten the core
-
         x = np.asarray(R / R_s, dtype=np.complex)
         f = 1 - 2 / np.sqrt(1 - x ** 2) * np.arctanh(np.sqrt((1 - x) / (1 + x)))
         f = f.real
         f = np.true_divide(f, x ** 2 - 1)
         Sigma = 8 * rho_s * R_s * f
         return Sigma
+
 
     @staticmethod
     def deflect_angle(R, c_200c, R_200c, M_200c, *, suppress=True, suppression_R=8):
@@ -189,35 +175,6 @@ class NFW(Profile):
         dT = -alpha * np.dot(R_hat, v_vec) / c * T_cmb
         return dT
 
-    @staticmethod
-    def _R(R):
-        """
-        comoving distance from the center of halo
-
-        Returns
-        -------
-        projected radius R
-        """
-
-        return R
-
-    @staticmethod
-    def _Rvec2R(R_vec):
-        """
-        comoving distance from the center of halo
-
-        Returns
-        -------
-        projected radius R
-        """
-
-        # FIXME: remove this
-        # print("flattening")
-
-        # r = deepcopy(r)
-        # r[r < 0.1] = 0.1  # flatten the core
-        R = np.linalg.norm(R_vec, axis=-1)
-        return R
 
 class Battaglia16(Profile):
     """Tau profile, from Battaglia 2016
