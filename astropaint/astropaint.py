@@ -766,7 +766,7 @@ class Canvas:
         self._npix = hp.nside2npix(self.nside)
         self._lmax = 3 * self.nside-1
         self._ell = np.arange(self.lmax+1)
-        self._cmap = cm.Greys_r
+        self._cmap = cm.RdBu_r
         self.R_times = R_times
         self.inclusive = inclusive
 
