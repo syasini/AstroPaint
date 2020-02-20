@@ -1,8 +1,15 @@
 import os
+import time
+
 import numpy as np
 
 __author__ = "Siavash Yasini"
 __email__ = "yasini@usc.edu"
+
+from decorator import decorator
+
+from scipy import integrate
+from scipy.interpolate import interp1d
 
 from .transform import arcmin2rad, fwhm2sigma
 import yaml
@@ -12,24 +19,6 @@ from contextlib import contextmanager
 #########################################################
 #           CMB and Noise Power Spectra
 #########################################################
-
-@contextmanager
-def timeit(process_name="Process"):
-    '''Time the code in mins'''
-    import time
-
-    time_stamp = time.strftime("%H:%M:%S %p")
-    print("{:=>50}\n{} started at {}\n".format("",process_name,time_stamp))
-    t_i = time.time()
-
-    yield
-
-    t_f = time.time()
-
-    t = t_f-t_i
-
-    print("{} was done in {:.1f} min.\n{:=>50}\n".format(process_name, t/60,""))
-
 
 # ------------------
 # CMB Power Spectrum
@@ -408,3 +397,99 @@ def get_custom_B2l(fwhm, lmax, lmin=0, arcmin=True, return_ell=False):
         return L, B2l
     else:
         return B2l
+
+
+#########################################################
+#       sampling, projection, and interpolation
+#########################################################
+
+def sample_array(array, n_samples, method="linspace"):
+    """sample an input array"""
+
+    assert method in ["linspace", "logspace", "random"]
+
+    array_min = array.min()
+    array_max = array.max()
+
+    if method == "linspace":
+        samples = np.linspace(array_min, array_max, n_samples)
+    elif method == "logspace":
+        #TODO: fix the min max range issue
+        samples = np.logspace(np.log10(array_min), np.log10(array_max), n_samples)
+    elif method == "random":
+        samples = np.random.uniform(array_min, array_max, size=n_samples)
+
+    return samples
+
+
+@decorator
+def LOS_integrate(profile_3D, *args, **kwargs):
+    """integrate along the line of sight for all 3D r's that correspond to the 2D R"""
+
+    # extract R
+    R = args[0]
+    args = args[1:]
+    #TODO: Add support for R_vec too
+
+    # see if R is a scalar or a list (array)
+    R_is_scalar = False
+    if not hasattr(R, "__iter__"):
+        R_is_scalar = True
+        R = [R]
+
+    # integrate along LOS for each R
+    LOS_integrated = []
+    for R_i in R:
+        #TODO: Take f outside and profile the funtion
+        f = lambda r: profile_3D(r, *args, **kwargs) * 2. * r / np.sqrt(r ** 2 - R_i ** 2)
+        LOS_integrated.append(integrate.quad(f, R_i, np.inf, epsabs=0., epsrel=1.e-2)[0])
+
+    # if R was a scalar, return a scalar
+    if R_is_scalar:
+        LOS_integrated = LOS_integrated[0]
+
+    return LOS_integrated
+
+
+@decorator
+def interpolate(profile,
+                n_samples=10, sampling_method="linspace", interp_method="linear",
+                *args, **kwargs):
+    """interpolate the profile function instead of calculating it at every given R"""
+
+    # extract R
+    R = args[0]
+    args = args[1:]
+    # TODO: Add support for R_vec too
+
+    # sample the input R and evaluate profile at those points
+    R_samples = sample_array(R, n_samples, method=sampling_method)
+    sample_values = np.array([profile(R_samp, *args, **kwargs) for R_samp in R_samples])
+
+    # initialize the scipy 1d interpolator
+    profile_interp = interp1d(R_samples, sample_values, kind=interp_method)
+
+    return profile_interp(R)
+
+
+#########################################################
+#                   custom timer
+#########################################################
+
+@contextmanager
+def timeit(process_name="Process"):
+    """Time the code in mins"""
+
+    time_stamp = time.strftime("%H:%M:%S %p")
+    print("{:=>50}\n{} started at {}\n".format("",process_name,time_stamp))
+    t_i = time.time()
+
+    yield
+
+    t_f = time.time()
+
+    t = t_f-t_i
+
+    print("{} was done in {:.1f} min.\n{:=>50}\n".format(process_name, t/60,""))
+
+
