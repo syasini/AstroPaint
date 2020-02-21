@@ -9,7 +9,7 @@ __email__ = "yasini@usc.edu"
 from decorator import decorator
 
 from scipy import integrate
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, InterpolatedUnivariateSpline
 
 from .transform import arcmin2rad, fwhm2sigma
 import yaml
@@ -453,23 +453,31 @@ def LOS_integrate(profile_3D, *args, **kwargs):
 
 @decorator
 def interpolate(profile,
-                n_samples=10, sampling_method="linspace", interp_method="linear",
+                n_samples=10, sampling_method="logspace",
+                interpolator=InterpolatedUnivariateSpline,
                 *args, **kwargs):
     """interpolate the profile function instead of calculating it at every given R"""
+
+    assert n_samples > 1, "number of samples must be larger than 1"
 
     # extract R
     R = args[0]
     args = args[1:]
     # TODO: Add support for R_vec too
 
-    # sample the input R and evaluate profile at those points
-    R_samples = sample_array(R, n_samples, method=sampling_method)
-    sample_values = np.array([profile(R_samp, *args, **kwargs) for R_samp in R_samples])
+    # if the input R vector is small, just calculate the profile directly
+    if len(R) < n_samples:
+        return profile(R, *args, **kwargs)
 
-    # initialize the scipy 1d interpolator
-    profile_interp = interp1d(R_samples, sample_values, kind=interp_method)
+    else:
+        # sample the input R and evaluate profile at those points
+        R_samples = sample_array(R, n_samples, method=sampling_method)
+        sample_values = np.array([profile(R_samp, *args, **kwargs) for R_samp in R_samples])
 
-    return profile_interp(R)
+        # initialize the scipy interpolator
+        profile_interp = interpolator(R_samples, sample_values)
+            
+        return profile_interp(R)
 
 
 #########################################################
