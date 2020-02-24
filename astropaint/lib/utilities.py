@@ -403,7 +403,7 @@ def get_custom_B2l(fwhm, lmax, lmin=0, arcmin=True, return_ell=False):
 #       sampling, projection, and interpolation
 #########################################################
 
-def sample_array(array, n_samples, method="linspace"):
+def sample_array(array, n_samples, method="linspace", eps=0.001):
     """sample an input array"""
 
     assert method in ["linspace", "logspace", "random"]
@@ -415,6 +415,9 @@ def sample_array(array, n_samples, method="linspace"):
         samples = np.linspace(array_min, array_max, n_samples)
     elif method == "logspace":
         #TODO: fix the min max range issue
+        if array_min < eps:
+            array_min = eps
+            print(array_min)
         samples = np.logspace(np.log10(array_min), np.log10(array_max), n_samples)
     elif method == "random":
         samples = np.random.uniform(array_min, array_max, size=n_samples)
@@ -453,7 +456,7 @@ def LOS_integrate(profile_3D, *args, **kwargs):
 
 @decorator
 def interpolate(profile,
-                n_samples=10, sampling_method="logspace",
+                n_samples=20, sampling_method="logspace",
                 interpolator=InterpolatedUnivariateSpline,
                 *args, **kwargs):
     """interpolate the profile function instead of calculating it at every given R"""
@@ -475,8 +478,8 @@ def interpolate(profile,
         sample_values = np.array([profile(R_samp, *args, **kwargs) for R_samp in R_samples])
 
         # initialize the scipy interpolator
-        profile_interp = interpolator(R_samples, sample_values)
-            
+        profile_interp = interpolator(R_samples, sample_values, k=2)
+        #print(k)
         return profile_interp(R)
 
 
@@ -489,7 +492,7 @@ def timeit(process_name="Process"):
     """Time the code in mins"""
 
     time_stamp = time.strftime("%H:%M:%S %p")
-    print("{:=>50}\n{} started at {}\n".format("",process_name,time_stamp))
+    print("{:=>50}\n{} started at {}\n".format("", process_name, time_stamp))
     t_i = time.time()
 
     yield
