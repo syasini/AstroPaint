@@ -10,6 +10,7 @@ from sys import getsizeof
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from matplotlib import cm
 from warnings import warn
 import inspect
@@ -2110,9 +2111,11 @@ class Painter:
 
         """
         print("Painting the canvas...")
+        # set template name on canvas
+        canvas.template_name = self.template.__name__
 
         # prepare the data frame to be used when spraying the canvas
-        spray_df = self._shake_canister(canvas, template_kwargs)
+        spray_df = self._shake_canister(canvas.catalog, template_kwargs)
         template = self.template
 
         assert distance_units.lower() in ["mpc", "mpcs", "megaparsecs", "megaparsec"],\
@@ -2322,11 +2325,8 @@ class Painter:
         template_args_df = catalog.data[parameters]
         return template_args_df
 
-    def _shake_canister(self, canvas, template_kwargs):
+    def _shake_canister(self, catalog, template_kwargs):
         """prepare a dataframe to be used by the spray method"""
-
-        # set template name on canvas
-        canvas.template_name = self.template.__name__
 
         #TODO: check the arg list and if the parameter is not in the catalog add it there
 
@@ -2339,7 +2339,7 @@ class Painter:
         # convert the template_kwargs into a dataframe
         template_kwargs_df = self._check_template_kwargs(**template_kwargs)
         # use template args to grab the relevant columns from the catalog dataframe
-        template_args_df = self._check_template_args(canvas.catalog)
+        template_args_df = self._check_template_args(catalog)
 
         # match the size of the args and kwargs dataframes
         # if template kwargs are scalars, extend then to the size of the catalog
