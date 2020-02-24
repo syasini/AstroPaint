@@ -23,6 +23,7 @@ from tqdm.auto import tqdm
 import pdb
 #from memory_profiler import profile
 from astropaint.lib.log import CMBAlreadyAdded, NoiseAlreadyAdded
+from astropaint.lib import plot_configs
 
 try:
     import healpy as hp
@@ -2359,7 +2360,7 @@ class Painter:
 
     def calculate_template(self, R, catalog, halo_list=[0,], **template_kwargs):
         """calculate the 1D profile of the template as a function of R [Mpc]"""
-        
+
         assert hasattr(halo_list, "__iter__"), "halo_list must be an iterable"
         # extract the relative columns from the catalog
         temp_df = self._shake_canister(catalog, template_kwargs)
