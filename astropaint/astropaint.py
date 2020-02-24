@@ -2357,5 +2357,36 @@ class Painter:
 
         return spray_df
 
+    def calculate_template(self, R, catalog, halo_list=[0,], **template_kwargs):
+        """calculate the 1D profile of the template as a function of R [Mpc]"""
+        
+        assert hasattr(halo_list, "__iter__"), "halo_list must be an iterable"
+        # extract the relative columns from the catalog
+        temp_df = self._shake_canister(catalog, template_kwargs)
 
+        template_array = []
+        for halo in halo_list:
+            temp_dict = {"R": R, **temp_df.loc[halo]}
+            template = self.template(**temp_dict)
+            template_array.append(template)
+
+        return np.array(template_array)
+
+
+    def plot_template(self, R, catalog, halo_list=[0,], axis=None, **template_kwargs):
+        """plot the 1D profile of the template as a function of R [Mpc]
+        """
+        assert hasattr(halo_list, "__iter__"), "halo_list must be an iterable"
+        # calculate the template profile for each halo in the list
+        template_array = self.calculate_template(R, catalog, halo_list, **template_kwargs)
+
+        if axis is None:
+            fig, axis = plt.subplots(figsize=(8, 6), dpi=100)
+
+        for halo, template in zip(halo_list, template_array):
+            # add the result to the fig
+            axis.plot(R, template, label=f"halo # {halo}")
+            axis.set_xlabel("R [Mpc]")
+            axis.set_ylabel(self.template_name)
+        return axis
 
