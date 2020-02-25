@@ -506,7 +506,6 @@ def interpolate(profile,
         assert 0 <= min_frac <= 1, "min_frac must be between 0 to 1"
         n_samples = max(n_samples, min_frac * len(R))
 
-    print(n_samples)
     # if the input R vector is small, just calculate the profile directly
     if len(R) < n_samples:
         return profile(R, *args, **kwargs)

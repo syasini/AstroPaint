@@ -33,8 +33,6 @@ trunc = 2
 xc = 0.5
 gamma = -0.2
 
-# M_200c is in Msun/h, redshift is redshift
-
 
 def _rho0(M_200c, redshift):
     return 4.e3 * ((M_200c / h) / 1.e14) ** 0.29 * (1. + redshift) ** (-0.66)
@@ -47,6 +45,10 @@ def _alpha(M_200c, redshift):
 def _beta(M_200c, redshift):
     return 3.83 * ((M_200c / h) / 1.e14) ** 0.04 * (1. + redshift) ** (-0.025)
 
+
+# -----------
+# 3D profiles
+# -----------
 
 def rho_gas_3D(r, R_200c, M_200c, redshift):
     """3d physical gas density profile
@@ -64,29 +66,13 @@ def rho_gas_3D(r, R_200c, M_200c, redshift):
     fit *= _rho0(M_200c, redshift)
 
     # rescale with comoving critical density, in (Msun/h) / (Mpc/h)^3
-    rho_3d = fit * cosmo.critical_density(redshift).to(u.Msun/u.Mpc**3)
+    rho_3d = fit * cosmo.critical_density(redshift).to(u.Msun/u.Mpc**3).value
 
     # rescale with the baryon fraction
     rho_3d *= cosmo.Ob0 / cosmo.Om0
 
     return rho_3d
 
-
-@interpolate(min_frac=0.1, sampling_method="logspace")
-@LOS_integrate
-def rho_gas_2D_interp(R, R_200c, M_200c, redshift):
-    """2D scaled gas density profile
-    dimensionless
-    """
-    return rho_gas_3D(R, R_200c, M_200c, redshift)
-
-
-@LOS_integrate
-def rho_gas_2D(R, R_200c, M_200c, redshift):
-    """2D scaled gas density profile
-    dimensionless
-    """
-    return rho_gas_3D(R, R_200c, M_200c, redshift)
 
 def ne_3D(r, R_200c, M_200c, redshift):
     """3d physical electron number density profile
@@ -115,10 +101,62 @@ def ne_3D(r, R_200c, M_200c, redshift):
     return result
 
 
+def tau_3D(r, R_200c, M_200c, redshift):
+    """Thompson scattering optical depth 3D profile
+    in 1/(Mpc/h) comoving
+    ie you get the 2d tau profile by projecting this profile
+    along the physical (not comoving) radial coordinate
+    assuming fully ionized gas and primordial He abundance
+    m is mVir in Msun/h
+    r is comoving radius in Mpc/h
+    """
+
+    ne3d = ne_3D(r, R_200c, M_200c, redshift)
+
+    # multiply by Thompson cross section (physical)
+    tau = sigma_T * ne3d
+
+    return tau
+
+
+# ---------------
+# LOS projections
+# ---------------
+
+@interpolate(min_frac=0.1, sampling_method="logspace")
+@LOS_integrate
+def rho_gas_2D_interp(R, R_200c, M_200c, redshift):
+    """2D scaled gas density profile
+    dimensionless
+    """
+    return rho_gas_3D(R, R_200c, M_200c, redshift)
+
+
+@LOS_integrate
+def rho_gas_2D(R, R_200c, M_200c, redshift):
+    """2D scaled gas density profile
+    dimensionless
+    """
+    return rho_gas_3D(R, R_200c, M_200c, redshift)
+
+
 @interpolate
 @LOS_integrate
 def ne_2D(R, R_200c, M_200c, redshift):
 
     return ne_3D(R, R_200c, M_200c, redshift)
+
+
+@LOS_integrate
+def tau_2D(R, R_200c, M_200c, redshift):
+
+    return tau_3D(R, R_200c, M_200c, redshift)
+
+
+@interpolate
+@LOS_integrate
+def tau_2D_interp(R, R_200c, M_200c, redshift):
+
+    return tau_3D(R, R_200c, M_200c, redshift)
 
 
