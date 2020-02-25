@@ -457,19 +457,56 @@ def LOS_integrate(profile_3D, *args, **kwargs):
 @decorator
 def interpolate(profile,
                 n_samples=20,
+                min_frac=None,
                 sampling_method="linspace",
                 k=3,
                 interpolator=InterpolatedUnivariateSpline,
                 *args, **kwargs):
-    """interpolate the profile function instead of calculating it at every given R"""
+    """
+    interpolate the profile function instead of calculating it at every given R
+
+    Parameters
+    ----------
+    profile:
+        wrapped profile to be interpolated (implicit)
+
+    n_samples: int
+        number of points to sample in R
+
+    min_frac: float
+        fraction of points in R to sample, unless n_sample is larger
+        if min_frac: n_samples = max(n_samples, min_frac * len(R))
+
+        e.g. for n_sample=10, min_frac=0.1 if len(R)=200, 20 (0.1*200) points will be sampled,
+        but if len(R)=50 10 points will be sampled
+
+    sampling_method: str in ["linspace", "logspace", "random"]
+        determines how the points are sampled
+
+    k: int
+        interpolation order
+
+    interpolator: func
+        interpolating function
+
+    Returns
+    -------
+    Interpolated profile
+    """
 
     assert n_samples > 1, "number of samples must be larger than 1"
+
 
     # extract R
     R = args[0]
     args = args[1:]
     # TODO: Add support for R_vec too
 
+    if min_frac:
+        assert 0 <= min_frac <= 1, "min_frac must be between 0 to 1"
+        n_samples = max(n_samples, min_frac * len(R))
+
+    print(n_samples)
     # if the input R vector is small, just calculate the profile directly
     if len(R) < n_samples:
         return profile(R, *args, **kwargs)
