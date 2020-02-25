@@ -156,7 +156,11 @@ This is much faster, but the speed comes at a small price. If your 3D profile
   
 ![interp](images/tophat_interp.png) 
 
-
+You can minimize this deviation by increasing the `n_samples` argument of the
+ `@interpolate` decorator, but that will obviously decrease the painting speed.
+ 
+ Does this plot agree with what you would expect a LOS integrated top hat
+  profile (a.k.a. a solid sphere) to look like? 
 
 # How to contribute
 
