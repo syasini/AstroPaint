@@ -1277,17 +1277,20 @@ class Canvas:
         self._alm_is_outdated = False
 
 
-    def get_Cl(self, save_alm=True):
+    def get_Cl(self, save_alm=True, lmax=None):
         """find the power spectrum of the map (.pixels)"""
+
+        if lmax is None:
+            lmax = self.lmax
 
         if save_alm:
             if self._alm_is_outdated:
                 self.get_alm()
 
-            self._Cl = hp.alm2cl(self.alm, lmax=self.lmax)
+            self._Cl = hp.alm2cl(self.alm, lmax=lmax)
 
         else:
-            self._Cl = hp.anafast(self.pixels, lmax=self.lmax)
+            self._Cl = hp.anafast(self.pixels, lmax=lmax)
 
         self._Cl_is_outdated = False
 
