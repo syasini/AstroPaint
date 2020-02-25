@@ -456,7 +456,9 @@ def LOS_integrate(profile_3D, *args, **kwargs):
 
 @decorator
 def interpolate(profile,
-                n_samples=20, sampling_method="logspace",
+                n_samples=20,
+                sampling_method="linspace",
+                k=3,
                 interpolator=InterpolatedUnivariateSpline,
                 *args, **kwargs):
     """interpolate the profile function instead of calculating it at every given R"""
@@ -478,7 +480,7 @@ def interpolate(profile,
         sample_values = np.array([profile(R_samp, *args, **kwargs) for R_samp in R_samples])
 
         # initialize the scipy interpolator
-        profile_interp = interpolator(R_samples, sample_values, k=2)
+        profile_interp = interpolator(R_samples, sample_values, k=k)
         #print(k)
         return profile_interp(R)
 
