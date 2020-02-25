@@ -57,7 +57,7 @@ catalog.cut_lon_lat(lon_range=[0,10], lat_range=[0,10])
 canvas = Canvas(catalog, nside=4096, R_times=5)
 
 # define a random template and plot it
-def a_random_template(R, R_200c, x, y,z):
+def a_random_template(R, R_200c, x, y, z):
     
     return np.exp(-(R/R_200c/3)**2)*(x+y+z)
 
@@ -66,7 +66,7 @@ painter = Painter(template=a_random_template)
 
 # plot the template for halos #0, #10, and #100 for R between 0 to 5 Mpc 
 R = np.linspace(0,5,100)
-ax = painter.plot_template(R, catalog, halo_list=[0,10,100])
+painter.plot_template(R, catalog, halo_list=[0,10,100])
 
 ```
 ![template](images/a_random_template.png)
@@ -93,17 +93,17 @@ plt.imshow(canvas.stack)
 ```
 
 ![stack](images/a_random_stack.png)
-
+ 
+ If this is taking too long, use `with_ray=True` for *parallel stacking*. 
 
 ## Line-Of-Sight integration of 3D profiles
 
 AstroPaint only allows you to paint 2D (line-of-sight integrated) profiles on
  your catalog halos, so if you already have the analytical expression of
-  the projected profile you want to paint with, we are in business. However, not
-   all 3D profiles can be LOS integrated analytically (e.g. Einasto or
-    generalized NFW, etc), and integrating profiles numerically along every
-     single LOS is generally expensive. In order to alleviate this problem
-     , AstroPaint offers two python decorators
+  the projected profile you want to paint, we are in business. However, not
+   all 3D profiles can be LOS integrated analytically (e.g. generalized NFW
+    or Einasto, etc), and integrating profiles numerically along every
+     single LOS is generally expensive. In order to alleviate this problem, AstroPaint offers two python decorators
  `@LOS_integrate` and `@interpolate` which make 3D -> 2D projections effortless.
  
  To convert a 3D profile into a 2D LOS integrated profile, all you need to do
@@ -127,16 +127,16 @@ into a 2D projected one:
 from astropaint.lib.utilities import LOS_integrate
 
 @LOS_integrate
-def tophat_2D(R):
+def tophat_2D(R, R_200c):
     """project tophat_3D along the line of sight"""
 
-    return tophat_3D(R)
+    return tophat_3D(R, R_200c)
 ``` 
 This function integrates the `tophat_3D` function along every single line of
  sight. If you have many halos in a high resolution map, this can take
   forever. The trick to make this faster would be to integrate along a
    several LOSs and interpolate the values in between. This is what the
-    `@interpolate` decorato does. So a faster version of the `tophat_2D
+    `@interpolate` decorator does. So, a faster version of the `tophat_2D
     ` function can be constructed as the following:
     
 
@@ -145,10 +145,10 @@ from astropaint.lib.utilities import interpolate
 
 @interpolate(n_samples=20)
 @LOS_integrate
-def tophat_2D_interp(R):
+def tophat_2D_interp(R, R_200c):
     """project and interpolate tophat_3D along the line of sight"""
  
-    return tophat_3D(R)
+    return tophat_3D(R, R_200c)
 ```   
 This is much faster, but the speed comes at a small price. If your 3D profile
  is not smooth, the interpolated 2D projection will slightly deviate from the
