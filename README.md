@@ -37,9 +37,9 @@ That's it! Now you can check out your masterpiece using
 
 # Examples
 
-## Random Template
+## Nonsense Template
 
-Here's an example script that paints a random template on a 10 x 10 [sqr deg]
+Here's an example script that paints a nonsense template on a 10 x 10 [sqr deg]
  patch of the `Sehgal` catalog: 
 
 
@@ -56,21 +56,26 @@ catalog.cut_lon_lat(lon_range=[0,10], lat_range=[0,10])
 # pass the catalog to canvas
 canvas = Canvas(catalog, nside=4096, R_times=5)
 
-# define a random template and plot it
-def a_random_template(R, R_200c, x, y, z):
+# define a nonsense template and plot it
+def a_nonsense_template(R, R_200c, x, y, z):
     
     return np.exp(-(R/R_200c/3)**2)*(x+y+z)
 
 # pass the template to the painter
-painter = Painter(template=a_random_template)
+painter = Painter(template=a_nonsense_template)
 
 # plot the template for halos #0, #10, and #100 for R between 0 to 5 Mpc 
 R = np.linspace(0,5,100)
 painter.plot_template(R, catalog, halo_list=[0,10,100])
-
 ```
+
+
 ![template](images/a_random_template.png)
 
+The painter automatically extracts the parameters `R_200c` and `x,y,z
+` coordinates of the halo from the catalog that the canvas was initialized
+ with. Let's spray ths canvas now:
+ 
 ```python
 # spray the template over the canvas
 painter.spray(canvas)
@@ -80,6 +85,8 @@ canvas.show_map("cartview", lonra=[0,10], latra=[0,10])
 ```
 ![map](images/a_random_map.png)
 
+_Voila!_
+## Stacking
 You can easily stack cutouts of the map using the following:
 
 ```python
@@ -161,6 +168,49 @@ You can minimize this deviation by increasing the `n_samples` argument of the
  
  Does this plot agree with what you would expect a LOS integrated top hat
   profile (a.k.a. a solid sphere) to look like? 
+
+## Painting Optical Depth and kSZ Profiles on the WebSky Catalog  
+
+Let's use the `Battaglia16` gas profiles to paint tau (optical depth) and
+ kinetic Sunyaev-Zeldovich (kSZ) on the WebSky catalog halos. 
+ 
+ ```python
+from astropaint.profiles import Battaglia16
+ 
+ tau_painter = Painter(Battaglia16.tau_2D_interp)
+```
+ 
+ Since the shape of the profile is smooth, we won't lose accuracy by using the
+  interpolator. 
+  
+  
+![tau](images/battaglia16_tau.png)  
+
+Let's paint this on a 5x5 sqr deg patch of the WebSky catalog with a mass
+ cut of 8E13 M_sun. 
+ 
+ ```python
+catalog = Catalog("websky_lite_redshift")
+catalog.cut_lon_lat(lon_range=[5,10], lat_range=[5,10])
+catalog.cut_M_200c(8E13)
+
+canvas = Canvas(catalog, nside=8192, R_times=3)
+
+tau_painter.spray(canvas)
+``` 
+![tau_map](images/tau_map_battaglia.png)
+
+The `Battaglia16.kSZ_T` function uses this tau and multiplies it by the
+ dimensionless velocity of the halos to get the kSZ signal. 
+ 
+```python 
+kSZ_painter = Painter(Battaglia16.kSZ_T)
+kSZ_painter.spray(canvas)
+```
+
+And here is what it looks like:
+![ksz_map](images/ksz_map_battaglia.png)
+
 
 # How to contribute
 
