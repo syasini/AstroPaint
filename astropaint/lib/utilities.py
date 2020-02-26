@@ -451,7 +451,7 @@ def LOS_integrate(profile_3D, *args, **kwargs):
     if R_is_scalar:
         LOS_integrated = LOS_integrated[0]
 
-    return LOS_integrated
+    return np.asarray(LOS_integrated)
 
 
 @decorator
