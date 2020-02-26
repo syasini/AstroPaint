@@ -153,10 +153,17 @@ def tau_2D(R, R_200c, M_200c, redshift):
     return tau_3D(R, R_200c, M_200c, redshift)
 
 
-@interpolate
+@interpolate(n_samples=15)
 @LOS_integrate
 def tau_2D_interp(R, R_200c, M_200c, redshift):
 
     return tau_3D(R, R_200c, M_200c, redshift)
 
 
+def kSZ_T(R, R_200c, M_200c, v_r, redshift, *, T_cmb=T_cmb):
+    """kinetic Sunyaev Zeldovich effect
+    #TODO: add reference"""
+    tau = tau_2D_interp(R, R_200c, M_200c, redshift)
+    dT = -tau * v_r / c * T_cmb
+
+    return dT
