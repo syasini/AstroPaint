@@ -10,6 +10,7 @@ from sys import getsizeof
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from matplotlib import cm
 from warnings import warn
 import inspect
@@ -22,6 +23,7 @@ from tqdm.auto import tqdm
 import pdb
 #from memory_profiler import profile
 from astropaint.lib.log import CMBAlreadyAdded, NoiseAlreadyAdded
+from astropaint.lib import plot_configs
 
 try:
     import healpy as hp
@@ -1275,17 +1277,20 @@ class Canvas:
         self._alm_is_outdated = False
 
 
-    def get_Cl(self, save_alm=True):
+    def get_Cl(self, save_alm=True, lmax=None):
         """find the power spectrum of the map (.pixels)"""
+
+        if lmax is None:
+            lmax = self.lmax
 
         if save_alm:
             if self._alm_is_outdated:
                 self.get_alm()
 
-            self._Cl = hp.alm2cl(self.alm, lmax=self.lmax)
+            self._Cl = hp.alm2cl(self.alm, lmax=lmax)
 
         else:
-            self._Cl = hp.anafast(self.pixels, lmax=self.lmax)
+            self._Cl = hp.anafast(self.pixels, lmax=lmax)
 
         self._Cl_is_outdated = False
 
@@ -2110,9 +2115,11 @@ class Painter:
 
         """
         print("Painting the canvas...")
+        # set template name on canvas
+        canvas.template_name = self.template.__name__
 
         # prepare the data frame to be used when spraying the canvas
-        spray_df = self._shake_canister(canvas, template_kwargs)
+        spray_df = self._shake_canister(canvas.catalog, template_kwargs)
         template = self.template
 
         assert distance_units.lower() in ["mpc", "mpcs", "megaparsecs", "megaparsec"],\
@@ -2322,11 +2329,8 @@ class Painter:
         template_args_df = catalog.data[parameters]
         return template_args_df
 
-    def _shake_canister(self, canvas, template_kwargs):
+    def _shake_canister(self, catalog, template_kwargs):
         """prepare a dataframe to be used by the spray method"""
-
-        # set template name on canvas
-        canvas.template_name = self.template.__name__
 
         #TODO: check the arg list and if the parameter is not in the catalog add it there
 
@@ -2339,7 +2343,7 @@ class Painter:
         # convert the template_kwargs into a dataframe
         template_kwargs_df = self._check_template_kwargs(**template_kwargs)
         # use template args to grab the relevant columns from the catalog dataframe
-        template_args_df = self._check_template_args(canvas.catalog)
+        template_args_df = self._check_template_args(catalog)
 
         # match the size of the args and kwargs dataframes
         # if template kwargs are scalars, extend then to the size of the catalog
@@ -2357,5 +2361,36 @@ class Painter:
 
         return spray_df
 
+    def calculate_template(self, R, catalog, halo_list=[0,], **template_kwargs):
+        """calculate the 1D profile of the template as a function of R [Mpc]"""
 
+        assert hasattr(halo_list, "__iter__"), "halo_list must be an iterable"
+        # extract the relative columns from the catalog
+        temp_df = self._shake_canister(catalog, template_kwargs)
+
+        template_array = []
+        for halo in halo_list:
+            temp_dict = {"R": R, **temp_df.loc[halo]}
+            template = self.template(**temp_dict)
+            template_array.append(template)
+
+        return np.array(template_array)
+
+
+    def plot_template(self, R, catalog, halo_list=[0,], axis=None, **template_kwargs):
+        """plot the 1D profile of the template as a function of R [Mpc]
+        """
+        assert hasattr(halo_list, "__iter__"), "halo_list must be an iterable"
+        # calculate the template profile for each halo in the list
+        template_array = self.calculate_template(R, catalog, halo_list, **template_kwargs)
+
+        if axis is None:
+            fig, axis = plt.subplots(figsize=(8, 6), dpi=100)
+
+        for halo, template in zip(halo_list, template_array):
+            # add the result to the fig
+            axis.plot(R, template, label=f"halo # {halo}")
+            axis.set_xlabel("R [Mpc]")
+            axis.set_ylabel(self.template_name)
+        return axis
 

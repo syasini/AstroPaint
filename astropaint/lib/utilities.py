@@ -9,7 +9,7 @@ __email__ = "yasini@usc.edu"
 from decorator import decorator
 
 from scipy import integrate
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, InterpolatedUnivariateSpline
 
 from .transform import arcmin2rad, fwhm2sigma
 import yaml
@@ -403,7 +403,7 @@ def get_custom_B2l(fwhm, lmax, lmin=0, arcmin=True, return_ell=False):
 #       sampling, projection, and interpolation
 #########################################################
 
-def sample_array(array, n_samples, method="linspace"):
+def sample_array(array, n_samples, method="linspace", eps=0.001):
     """sample an input array"""
 
     assert method in ["linspace", "logspace", "random"]
@@ -415,6 +415,9 @@ def sample_array(array, n_samples, method="linspace"):
         samples = np.linspace(array_min, array_max, n_samples)
     elif method == "logspace":
         #TODO: fix the min max range issue
+        if array_min < eps:
+            array_min = eps
+            print(array_min)
         samples = np.logspace(np.log10(array_min), np.log10(array_max), n_samples)
     elif method == "random":
         samples = np.random.uniform(array_min, array_max, size=n_samples)
@@ -448,28 +451,74 @@ def LOS_integrate(profile_3D, *args, **kwargs):
     if R_is_scalar:
         LOS_integrated = LOS_integrated[0]
 
-    return LOS_integrated
+    return np.asarray(LOS_integrated)
 
 
 @decorator
 def interpolate(profile,
-                n_samples=10, sampling_method="linspace", interp_method="linear",
+                n_samples=20,
+                min_frac=None,
+                sampling_method="linspace",
+                k=3,
+                interpolator=InterpolatedUnivariateSpline,
                 *args, **kwargs):
-    """interpolate the profile function instead of calculating it at every given R"""
+    """
+    interpolate the profile function instead of calculating it at every given R
+
+    Parameters
+    ----------
+    profile:
+        wrapped profile to be interpolated (implicit)
+
+    n_samples: int
+        number of points to sample in R
+
+    min_frac: float
+        fraction of points in R to sample, unless n_sample is larger
+        if min_frac: n_samples = max(n_samples, min_frac * len(R))
+
+        e.g. for n_sample=10, min_frac=0.1 if len(R)=200, 20 (0.1*200) points will be sampled,
+        but if len(R)=50 10 points will be sampled
+
+    sampling_method: str in ["linspace", "logspace", "random"]
+        determines how the points are sampled
+
+    k: int
+        interpolation order
+
+    interpolator: func
+        interpolating function
+
+    Returns
+    -------
+    Interpolated profile
+    """
+
+    assert n_samples > 1, "number of samples must be larger than 1"
+
 
     # extract R
     R = args[0]
     args = args[1:]
     # TODO: Add support for R_vec too
 
-    # sample the input R and evaluate profile at those points
-    R_samples = sample_array(R, n_samples, method=sampling_method)
-    sample_values = np.array([profile(R_samp, *args, **kwargs) for R_samp in R_samples])
+    if min_frac:
+        assert 0 <= min_frac <= 1, "min_frac must be between 0 to 1"
+        n_samples = max(n_samples, min_frac * len(R))
 
-    # initialize the scipy 1d interpolator
-    profile_interp = interp1d(R_samples, sample_values, kind=interp_method)
+    # if the input R vector is small, just calculate the profile directly
+    if len(R) < n_samples:
+        return profile(R, *args, **kwargs)
 
-    return profile_interp(R)
+    else:
+        # sample the input R and evaluate profile at those points
+        R_samples = sample_array(R, n_samples, method=sampling_method)
+        sample_values = np.array([profile(R_samp, *args, **kwargs) for R_samp in R_samples])
+
+        # initialize the scipy interpolator
+        profile_interp = interpolator(R_samples, sample_values, k=k)
+        #print(k)
+        return profile_interp(R)
 
 
 #########################################################
@@ -481,7 +530,7 @@ def timeit(process_name="Process"):
     """Time the code in mins"""
 
     time_stamp = time.strftime("%H:%M:%S %p")
-    print("{:=>50}\n{} started at {}\n".format("",process_name,time_stamp))
+    print("{:=>50}\n{} started at {}\n".format("", process_name, time_stamp))
     t_i = time.time()
 
     yield
