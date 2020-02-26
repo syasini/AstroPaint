@@ -207,8 +207,8 @@ The `Battaglia16.kSZ_T` function uses this tau and multiplies it by the
 kSZ_painter = Painter(Battaglia16.kSZ_T)
 kSZ_painter.spray(canvas)
 ```
-
 And here is what it looks like:
+
 ![ksz_map](images/ksz_map_battaglia.png)
 
 
