@@ -1,4 +1,4 @@
-![logo|250x250, 20%](images/logo.png)
+![logo](images/logo.png)
 # AstroPaint
 _A python package for painting the sky_ 
 
