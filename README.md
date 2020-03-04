@@ -1,5 +1,8 @@
+![logo|250x250, 20%](images/logo.png)
 # AstroPaint
-_A python package for creating mock maps of astrophysical signals from a halo catalog_
+_A python package for painting the sky_ 
+
+<img src="images/logo.png" alt="logo" height="200"/>
 
 You can install **AstroPaint** by running the following in the command line:
 
@@ -32,7 +35,7 @@ That's it! Now you can check out your masterpiece using
 
 `canvas.show_map()`
 
-![BG](BG_websky.png)
+![BG](images/BG_websky_cover.png)
 
 
 # Examples
