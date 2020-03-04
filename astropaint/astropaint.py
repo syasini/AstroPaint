@@ -2082,6 +2082,31 @@ class Canvas:
             return alm
 
 
+    def ud_grade(self, nside_out, inplace=True, **kwargs):
+        """"wrapper for healpy.ud_grade() function
+        changes the nside of canvas.pixels to nside_out
+
+        Parameters
+        ----------
+        nside_out: int
+            nside of the new map
+        inplace: bool
+            if True, change canvas.pixels, otherwise return the new map
+        kwargs: kwargs or dict
+            kwargs to be passeed to hp.ud_grade()
+        """
+
+        new_map = hp.ud_grade(self.pixels, nside_out, **kwargs)
+
+        if inplace:
+            self.pixels = new_map
+            self._nside = nside_out
+            self._npix = hp.nside2npix(self.nside)
+            self._lmax = 3 * self.nside - 1
+            self._ell = np.arange(self.lmax + 1)
+            #FIXME: self.pixel_is_outdated
+        else:
+            return new_map
 
 #########################################################
 #                   Painter Object
