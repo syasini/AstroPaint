@@ -84,7 +84,7 @@ painter.spray(canvas)
 # show the results
 canvas.show_map("cartview", lonra=[0,10], latra=[0,10])
 ```
-<img src="images/a_random_map.png" alt="map" height="300"/>
+<img src="images/a_random_map.png" alt="map" height="400"/>
 
 _Voila!_
 ## Stacking
@@ -207,6 +207,7 @@ kSZ_painter = Painter(Battaglia16.kSZ_T)
 kSZ_painter.spray(canvas)
 ```
 And here is what it looks like:
+
 <img src="images/ksz_map_battaglia.png" alt="ksz_map" height="300"/>
 
 
