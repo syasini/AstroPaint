@@ -1,8 +1,7 @@
-![logo](images/logo.PNG)
+<img src="images/logo.PNG" alt="logo" height="250"/>
+
 # AstroPaint
 _A python package for painting the sky_ 
-
-<img src="images/logo.png" alt="logo" height="200"/>
 
 You can install **AstroPaint** by running the following in the command line:
 
@@ -72,8 +71,7 @@ R = np.linspace(0,5,100)
 painter.plot_template(R, catalog, halo_list=[0,10,100])
 ```
 
-
-![template](images/a_random_template.png)
+<img src="images/a_random_template.png" alt="template" height="300"/>
 
 The painter automatically extracts the parameters `R_200c` and `x,y,z
 ` coordinates of the halo from the catalog that the canvas was initialized
