@@ -17,6 +17,10 @@ from astropy.cosmology import Planck18_arXiv_v2 as cosmo
 
 from astropaint.lib.utilities import interpolate, LOS_integrate
 
+# ---------
+# constants
+# ---------
+
 sigma_T = sigma_T.to(u.Mpc**2).value # [Mpc^2]
 m_p = m_p.to(u.M_sun).value # [M_sun]
 f_b = cosmo.Ob0/cosmo.Om0
@@ -51,13 +55,21 @@ def _beta(M_200c, redshift):
 # -----------
 
 def rho_gas_3D(r, R_200c, M_200c, redshift):
-    """3d physical gas density profile
-        in (Msun/h) / (Mpc/h)^3
-        M_200c is in Msun/h
-        R_200c is comoving radius in Mpc/h
-        """
+    """3D physical gas density profile in (Msun/h) / (Mpc/h)^3
 
-    # calculate the dimensionless 3d scaled gas density profile
+    Parameters
+    ----------
+    r: arraylike, float
+        3D distance from the center of the halo
+    R_200c: float [Mpc/h]
+        comoving radius of the halo
+    M_200c: float [Msun/h]
+        mass of the halo
+    redshift:
+        redshift of the halo
+    """
+
+    # calculate the dimensionless 3D scaled gas density profile
     # fitting function from Battaglia 17
     x = r / R_200c
     fit = 1. + (x / xc) ** _alpha(M_200c, redshift)
@@ -75,11 +87,19 @@ def rho_gas_3D(r, R_200c, M_200c, redshift):
 
 
 def ne_3D(r, R_200c, M_200c, redshift):
-    """3d physical electron number density profile
-    in 1/(Mpc/h)^3
+    """3D physical electron number density profile in 1/(Mpc/h)^3
     assuming fully ionized gas and primordial He abundance
-    m is mVir in Msun/h
-    r is comoving radius in Mpc/h
+
+    Parameters
+    ----------
+    r: arraylike, float
+        3D distance from the center of the halo
+    R_200c: float [Mpc/h]
+        comoving radius of the halo
+    M_200c: float [Msun/h]
+        mass of the halo
+    redshift:
+        redshift of the halo
     """
     result = rho_gas_3D(r, R_200c, M_200c, redshift)  # (Msun/h) / (Mpc/h)^3
 
@@ -95,20 +115,28 @@ def ne_3D(r, R_200c, M_200c, redshift):
     factor /= msun  # in Msun
     factor *= h  # in Msun/h
 
-    # get the physical 3d electron number density
+    # get the physical 3D electron number density
     result /= factor  # in (Mpc/h)^(-3)
 
     return result
 
 
 def tau_3D(r, R_200c, M_200c, redshift):
-    """Thompson scattering optical depth 3D profile
-    in 1/(Mpc/h) comoving
-    ie you get the 2d tau profile by projecting this profile
+    """Thompson scattering optical depth 3D profile in 1/(Mpc/h) comoving
+    ie you get the 2D tau profile by projecting this profile
     along the physical (not comoving) radial coordinate
     assuming fully ionized gas and primordial He abundance
-    m is mVir in Msun/h
-    r is comoving radius in Mpc/h
+
+    Parameters
+    ----------
+    r: arraylike, float
+        3D distance from the center of the halo
+    R_200c: float [Mpc/h]
+        comoving radius of the halo
+    M_200c: float [Msun/h]
+        mass of the halo
+    redshift:
+        redshift of the halo
     """
 
     ne3d = ne_3D(r, R_200c, M_200c, redshift)
@@ -126,16 +154,38 @@ def tau_3D(r, R_200c, M_200c, redshift):
 @interpolate(min_frac=0.1, sampling_method="logspace")
 @LOS_integrate
 def rho_gas_2D_interp(R, R_200c, M_200c, redshift):
-    """2D scaled gas density profile
-    dimensionless
+    """Interpolated version of rho_gas_2D
+    2D physical gas density profile in (Msun/h) / (Mpc/h)^3
+
+    Parameters
+    ----------
+    R: arraylike, float
+        2D projected distance from the center of the halo
+    R_200c: float [Mpc/h]
+        comoving radius of the halo
+    M_200c: float [Msun/h]
+        mass of the halo
+    redshift:
+        redshift of the halo
     """
+
     return rho_gas_3D(R, R_200c, M_200c, redshift)
 
 
 @LOS_integrate
 def rho_gas_2D(R, R_200c, M_200c, redshift):
-    """2D scaled gas density profile
-    dimensionless
+    """2D physical gas density profile in (Msun/h) / (Mpc/h)^3
+
+    Parameters
+    ----------
+    R: arraylike, float
+        2D projected distance from the center of the halo
+    R_200c: float [Mpc/h]
+        comoving radius of the halo
+    M_200c: float [Msun/h]
+        mass of the halo
+    redshift:
+        redshift of the halo
     """
     return rho_gas_3D(R, R_200c, M_200c, redshift)
 
@@ -143,20 +193,64 @@ def rho_gas_2D(R, R_200c, M_200c, redshift):
 @interpolate
 @LOS_integrate
 def ne_2D(R, R_200c, M_200c, redshift):
+    """2D physical electron number density profile in 1/(Mpc/h)^3
+        assuming fully ionized gas and primordial He abundance
 
+    Parameters
+    ----------
+    R: arraylike, float
+        2D projected distance from the center of the halo
+    R_200c: float [Mpc/h]
+        comoving radius of the halo
+    M_200c: float [Msun/h]
+        mass of the halo
+    redshift:
+        redshift of the halo
+        """
     return ne_3D(R, R_200c, M_200c, redshift)
 
 
 @LOS_integrate
 def tau_2D(R, R_200c, M_200c, redshift):
+    """Thompson scattering optical depth 2D projected profile in 1/(Mpc/h) comoving
+        ie you get the 2D tau profile by projecting this profile
+        along the physical (not comoving) radial coordinate
+        assuming fully ionized gas and primordial He abundance
 
+    Parameters
+    ----------
+    R: arraylike, float
+        2D projected distance from the center of the halo
+    R_200c: float [Mpc/h]
+        comoving radius of the halo
+    M_200c: float [Msun/h]
+        mass of the halo
+    redshift:
+        redshift of the halo
+        """
     return tau_3D(R, R_200c, M_200c, redshift)
 
 
 @interpolate(n_samples=15)
 @LOS_integrate
 def tau_2D_interp(R, R_200c, M_200c, redshift):
+    """ Interpolated version of tau_2D:
+    Thompson scattering optical depth 2D projected profile in 1/(Mpc/h) comoving
+    ie you get the 2D tau profile by projecting this profile
+    along the physical (not comoving) radial coordinate
+    assuming fully ionized gas and primordial He abundance
 
+    Parameters
+    ----------
+    R: arraylike, float
+        2D projected distance from the center of the halo
+    R_200c: float [Mpc/h]
+        comoving radius of the halo
+    M_200c: float [Msun/h]
+        mass of the halo
+    redshift:
+        redshift of the halo
+        """
     return tau_3D(R, R_200c, M_200c, redshift)
 
 
@@ -164,6 +258,6 @@ def kSZ_T(R, R_200c, M_200c, v_r, redshift, *, T_cmb=T_cmb):
     """kinetic Sunyaev Zeldovich effect
     #TODO: add reference"""
     tau = tau_2D_interp(R, R_200c, M_200c, redshift)
-    dT = -tau * v_r / c * T_cmb
+    dT = -tau * v_r / c * T_cmb * (1+redshift)
 
     return dT

@@ -774,9 +774,13 @@ class Canvas:
         self.R_times = R_times
         self.inclusive = inclusive
 
+        # set all the healpy pixels to zero initially
         self._pixels = np.zeros(self.npix)
+        self._pixel_is_outdated = False
+
         self._alm = None
         self._alm_is_outdated = True
+
         self._Cl = np.zeros(self.lmax+1)
         self._Cl_is_outdated = True
 
@@ -825,16 +829,31 @@ class Canvas:
         return self._ell
 
     @property
+    def pixels(self):
+        if self._pixel_is_outdated:
+            self.get_pixels_from_alm()
+        return self._pixels
+
+    @pixels.setter
+    def pixels(self, val):
+        self._pixels = val
+        self._pixel_is_outdated = False
+        self._alm_is_outdated = True
+        self._Cl_is_outdated = True
+
+    @property
     def alm(self):
         if self._alm_is_outdated:
-            self.get_alm()
+            self.get_alm_from_pixels()
         return self._alm
 
-    # @alm.setter
-    # def alm(self, val):
-    #     self._Cl_is_outdated = True
-    #     self._alm = val
-    #
+    @alm.setter
+    def alm(self, val):
+        self._alm = val
+        self._alm_is_outdated = False
+        self._pixel_is_outdated = True
+        self._Cl_is_outdated = True
+
     @property
     def Cl(self):
         if self._Cl_is_outdated:
@@ -870,15 +889,7 @@ class Canvas:
         self._cmap = val
         self._cmap.set_under("white")
 
-    @property
-    def pixels(self):
-        return self._pixels
 
-    @pixels.setter
-    def pixels(self, val):
-        self._pixels = val
-        self._alm_is_outdated = True
-        self._Cl_is_outdated = True
 
     # ------------------------
     #     Disc inner class
@@ -1267,15 +1278,29 @@ class Canvas:
         None
         """
 
-        self.pixels = np.zeros(self.npix)
+        self._pixels = np.zeros(self.npix)
+        self._pixel_is_outdated = False
 
-    def get_alm(self):
+        self._alm = None
+        self._alm_is_outdated = True
+
+        self._Cl = np.zeros(self.lmax + 1)
+        self._Cl_is_outdated = True
+
+
+    def get_pixels_from_alm(self):
+        """get the map from the alm coefficients"""
+
+        self._pixels = hp.map2alm(self._alm, lmax=self.lmax)
+        print("pixels saved in canvas.pixels")
+        self._pixel_is_outdated = False
+
+    def get_alm_from_pixels(self):
         """find the alm coefficients of the map"""
 
         self._alm = hp.map2alm(self.pixels, lmax=self.lmax)
-        print("results saved in canvas.alm")
+        print("alms saved in canvas.alm")
         self._alm_is_outdated = False
-
 
     def get_Cl(self, save_alm=True, lmax=None):
         """find the power spectrum of the map (.pixels)"""
@@ -1285,7 +1310,7 @@ class Canvas:
 
         if save_alm:
             if self._alm_is_outdated:
-                self.get_alm()
+                self.get_alm_from_pixels()
 
             self._Cl = hp.alm2cl(self.alm, lmax=lmax)
 
@@ -2057,6 +2082,31 @@ class Canvas:
             return alm
 
 
+    def ud_grade(self, nside_out, inplace=True, **kwargs):
+        """"wrapper for healpy.ud_grade() function
+        changes the nside of canvas.pixels to nside_out
+
+        Parameters
+        ----------
+        nside_out: int
+            nside of the new map
+        inplace: bool
+            if True, change canvas.pixels, otherwise return the new map
+        kwargs: kwargs or dict
+            kwargs to be passeed to hp.ud_grade()
+        """
+
+        new_map = hp.ud_grade(self.pixels, nside_out, **kwargs)
+
+        if inplace:
+            self.pixels = new_map
+            self._nside = nside_out
+            self._npix = hp.nside2npix(self.nside)
+            self._lmax = 3 * self.nside - 1
+            self._ell = np.arange(self.lmax + 1)
+            #FIXME: self.pixel_is_outdated
+        else:
+            return new_map
 
 #########################################################
 #                   Painter Object

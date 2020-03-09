@@ -20,7 +20,7 @@ f_b = cosmo.Ob0/cosmo.Om0
 c = 299792. #km/s
 h = cosmo.h
 T_cmb = 2.7251
-Gcm2 = 4.785E-20 #(Mpc/M_sun)
+Gcm2 = 4.785E-20 # G/c^2 (Mpc/M_sun)
 
 
 # -----------
