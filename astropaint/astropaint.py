@@ -342,7 +342,7 @@ class Catalog:
         self.data['D_a'] = transform.D_c_to_D_a(self.data['D_c'], self.data['redshift'])
         self.data['R_200c'] = transform.M_200c_to_R_200c(self.data['M_200c'], self.data['redshift'])
         self.data['c_200c'] = transform.M_200c_to_c_200c(self.data['M_200c'], self.data['redshift'])
-        self.data['R_th_200c'] = transform.radius_to_angsize(self.data['R_200c'],
+        self.data['R_ang_200c'] = transform.radius_to_angsize(self.data['R_200c'],
                                                              self.data['D_a'], arcmin=True)
         #TODO: change redshift to nonuniversal value
         self.data['rho_s'] = transform.M_200c_to_rho_s(self.data['M_200c'],
@@ -1032,7 +1032,7 @@ class Canvas:
                                self.catalog.data.y[halo],
                                self.catalog.data.z[halo]),
                               R_times * transform.arcmin2rad(
-                                  self.catalog.data.R_th_200c[halo]),
+                                  self.catalog.data.R_ang_200c[halo]),
                               inclusive=self.inclusive,
                               )
                 )
@@ -1189,7 +1189,7 @@ class Canvas:
                                self.catalog.data.y[halo],
                                self.catalog.data.z[halo]),
                               self.R_times * transform.arcmin2rad(
-                                  self.catalog.data.R_th_200c[halo]),
+                                  self.catalog.data.R_ang_200c[halo]),
                               inclusive=self.inclusive,
                               )
 
