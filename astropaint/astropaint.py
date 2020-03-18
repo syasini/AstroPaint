@@ -1566,7 +1566,7 @@ class Canvas:
                 xpix=200,
                 ypix=None,
                 apply_func=None,
-                **func_kwargs,
+                func_kwargs=dict(),
                 ):
         """
         Generate cutouts of angular size lon_range x lat_range around halo center with xpix & ypix
@@ -1595,18 +1595,18 @@ class Canvas:
             number of pixels on the y axis
             by default (None) it is set equal to xrange
             same as ypix in healpy
-        apply_func:
+        apply_func: function or list of functions
             function to apply to the patch after cutting it out. THe first argument of the
             function must be the input patch.
 
 
-        Example:
+            Example:
 
             def linear_transform(patch, slope, intercept):
                 return slope * patch + intercept
 
-        func_kwargs:
-            keyword arguments to pass to apply_func
+        func_kwargs: dictionary or list of dictionaries
+            dictionary of keyword arguments to pass to apply_func
 
             Example usage:
 
@@ -1627,22 +1627,40 @@ class Canvas:
         if halo_list is "all":
             halo_list = range(self.catalog.size)
         #pdb.set_trace()
+
+        if not isinstance(apply_func, list):
+
+            apply_func = [apply_func]
+            # make sure func_kwargs is not a list
+            assert not isinstance(func_kwargs, list)
+            # and then turn it into a list
+            func_kwargs = [func_kwargs]
+
+        else:
+            # if apply_func is a list, func_kwargs must be a list too
+            assert isinstance(func_kwargs, list)
+
         # match the size of the args and kwargs dataframes
         # if func_kwargs are scalars, extend then to the size of the catalog
         # TODO: rewrite using _check_template_args()?
-        for key, value in func_kwargs.items():
-            if not hasattr(value, "__len__"):
-                func_kwargs[key] = [value]
+
+        func_kwargs_df_list = []
+        for f_kw in func_kwargs:
+            for key, value in f_kw.items():
+                if not hasattr(value, "__len__"):
+                    f_kw[key] = [value]
 
 
-        func_kwargs_df = pd.DataFrame(func_kwargs)
-        if len(func_kwargs_df) == 1:
-            func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
+            func_kwargs_df = pd.DataFrame(f_kw)
+            if len(func_kwargs_df) == 1:
+                func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
                                            ignore_index=True)
 
-        # make sure the df index matches the halo_list
-        if len(func_kwargs_df.index) == len(halo_list):
-            func_kwargs_df.index = halo_list
+            # make sure the df index matches the halo_list
+            if len(func_kwargs_df.index) == len(halo_list):
+                func_kwargs_df.index = halo_list
+
+            func_kwargs_df_list.append(func_kwargs_df)
 
         cart_projector = hp.projector.CartesianProj(lonra=lon_range, latra=lat_range,
                                                     xsize=xpix, ysize=ypix,
@@ -1655,11 +1673,10 @@ class Canvas:
                                             rot=(lon, lat),
                                             vec2pix_func=partial(hp.vec2pix, self.nside))
             if apply_func:
-                if func_kwargs:
+                for func, func_kwargs_df in zip(apply_func, func_kwargs_df_list):
                     func_dict = {**func_kwargs_df.loc[halo]}
-                else:
-                    func_dict = {}
-                cut_out = apply_func(cut_out, **func_dict)
+
+                    cut_out = func(cut_out, **func_dict)
             yield cut_out
 
     def stack_cutouts(self,
