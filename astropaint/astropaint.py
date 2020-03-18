@@ -1628,8 +1628,8 @@ class Canvas:
             halo_list = range(self.catalog.size)
         #pdb.set_trace()
 
+        # make sure that apply func and func_kwargs are lists for consistency
         if not isinstance(apply_func, list):
-
             apply_func = [apply_func]
             # make sure func_kwargs is not a list
             assert not isinstance(func_kwargs, list)
@@ -1667,14 +1667,30 @@ class Canvas:
                                                     #*args, **kwargs,
                                                     )
 
-        for halo in halo_list:
+        for i, halo in enumerate(halo_list):
             lon, lat = self.catalog.data[["lon", "lat"]].loc[halo]
             cut_out = cart_projector.projmap(self.pixels,
                                             rot=(lon, lat),
                                             vec2pix_func=partial(hp.vec2pix, self.nside))
+            # if apply_func:
+            #     for func, func_kwargs_df in zip(apply_func, func_kwargs_df_list):
+            #         func_dict = {**func_kwargs_df.loc[halo]}
+            #
+            #         cut_out = func(cut_out, **func_dict)
+            # yield cut_out
+            #pdb.set_trace()
             if apply_func:
-                for func, func_kwargs_df in zip(apply_func, func_kwargs_df_list):
-                    func_dict = {**func_kwargs_df.loc[halo]}
+                for func, f_kw in zip(apply_func, func_kwargs):
+                    # check if the func_kwargs values are scalar
+                    func_dict = dict()
+                    for key, value in f_kw.items():
+                        if len(value) > 1:
+                            # only slice the value that corresponds to the halo
+                            func_dict[key] = value[i]
+                        else:
+                            func_dict[key] = value[0]
+
+                    #func_dict = {**f_kw}
 
                     cut_out = func(cut_out, **func_dict)
             yield cut_out
