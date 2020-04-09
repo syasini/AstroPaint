@@ -1629,16 +1629,17 @@ class Canvas:
         #pdb.set_trace()
 
         # make sure that apply func and func_kwargs are lists for consistency
-        if not isinstance(apply_func, list):
-            apply_func = [apply_func]
-            # make sure func_kwargs is not a list
-            assert not isinstance(func_kwargs, list)
-            # and then turn it into a list
-            func_kwargs = [func_kwargs]
+        if apply_func is not None:
+            if not isinstance(apply_func, list):
+                apply_func = [apply_func]
+                # make sure func_kwargs is not a list
+                assert not isinstance(func_kwargs, list)
+                # and then turn it into a list
+                func_kwargs = [func_kwargs]
 
-        else:
-            # if apply_func is a list, func_kwargs must be a list too
-            assert isinstance(func_kwargs, list)
+            else:
+                # if apply_func is a list, func_kwargs must be a list too
+                assert isinstance(func_kwargs, list)
 
         # match the size of the args and kwargs dataframes
         # if func_kwargs are scalars, extend then to the size of the catalog
@@ -1679,7 +1680,7 @@ class Canvas:
             #         cut_out = func(cut_out, **func_dict)
             # yield cut_out
             #pdb.set_trace()
-            if apply_func:
+            if apply_func is not None:
                 for func, f_kw in zip(apply_func, func_kwargs):
                     # check if the func_kwargs values are scalar
                     func_dict = dict()
