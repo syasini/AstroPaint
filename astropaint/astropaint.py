@@ -594,6 +594,30 @@ class Catalog:
         else:
             return data
 
+    def cut_R_ang_200c(self, R_ang_min=0., R_ang_max=np.inf, inplace=True):
+        """
+        Cut the catalog according the the given angular radius range
+
+        Parameters
+        ----------
+        R_ang_min [arcmin]
+            minimum halo angular radius to keep
+        R_ang_max [arcmin]
+            maximum halo angular radius to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with angular radius R_ang_200c in the range
+        R_ang_min < R_ang_200c < R_ang_max
+        """
+
+        data = self.data[(self.data.R_ang_200c > R_ang_min) & (self.data.R_ang_200c < R_ang_max)]
+
+        if inplace:
+            self.data = data
+        else:
+            return data
+
     def cut_D_c(self, D_min=0., D_max=np.inf, inplace=True):
         """
         Cut the catalog according the the given comoving distance range
