@@ -2267,7 +2267,7 @@ class Painter:
 
         elif with_ray:
             print("Spraying in parallel with ray...")
-            print("progress bar is not available in parallel mode.")
+            print("\nProgress bar is not available in jupyter notebook yet.")
 
             # count the number of available cpus
             #import psutil
@@ -2290,6 +2290,16 @@ class Painter:
             gen_pixel_index = canvas.discs.gen_pixel_index
             template = self.template
 
+
+            # function for adding progress bar to ray
+            # solution from https://github.com/ray-project/ray/issues/5554
+            def to_iterator(obj_ids):
+                while obj_ids:
+                    done, obj_ids = ray.wait(obj_ids)
+                    yield ray.get(done[0])
+
+            obj_ids = []
+
             for halo_batch in halo_batches:
                 # _paint the shared pixels array in batches with ray
                 result = self._paint_batch.remote(shared_pixels,
@@ -2299,7 +2309,11 @@ class Painter:
                                                   gen_pixel_index,
                                                   template,
                                                   spray_df)
+                obj_ids.append(result)
 
+            # add progress bar to ray
+            for _ in tqdm(to_iterator(obj_ids), total=len(halo_batches)):
+                pass
 
             # put the batches together and shut down ray
             canvas.pixels = np.copy(ray.get(result))
@@ -2323,13 +2337,15 @@ class Painter:
         #                                 gen_pixel_index(halo_list=halo_batch)):
         #     np.add.at(shared_pixels, pixel_index, template(R, **spray_df.loc[halo]))
         #
-        for halo, R, pixel_index in zip(halo_batch,
-                                        R_pix2cent(halo_list=halo_batch),
-                                        gen_pixel_index(halo_list=halo_batch)):
-            spray_dict = {R_mode: R, **spray_df.loc[halo]}
-            np.add.at(shared_pixels,
-                      pixel_index,
-                      template(**spray_dict))
+        with tqdm(total=len(halo_batch), desc="painting") as progress:
+            for halo, R, pixel_index in zip(halo_batch,
+                                            R_pix2cent(halo_list=halo_batch),
+                                            gen_pixel_index(halo_list=halo_batch)):
+                spray_dict = {R_mode: R, **spray_df.loc[halo]}
+                np.add.at(shared_pixels,
+                          pixel_index,
+                          template(**spray_dict))
+                progress.update(1)
 
         return shared_pixels
 
