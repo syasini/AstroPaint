@@ -2207,6 +2207,7 @@ class Painter:
               canvas,
               distance_units="Mpc",
               with_ray=False,
+              cache=True,
               **template_kwargs):
 
         """
@@ -2216,6 +2217,8 @@ class Painter:
         ----------
         canvas
         distance_units
+        with_ray
+        cache
         template_kwargs
 
         Returns
@@ -2251,6 +2254,18 @@ class Painter:
             R_pix2cent = canvas.discs.gen_cent2pix_mpc
         if R_mode is "R_vec":
             R_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
+
+
+        if cache:
+            assert R_mode is "R", "cache method is not available for profiles that " \
+                                  "use 'R_vec'"
+
+            from joblib import Memory
+            cachedir = 'cache'
+            mem = Memory(cachedir, verbose=False)
+            print("here")
+            template = mem.cache(self.template)
+
 
         if not with_ray:
 
