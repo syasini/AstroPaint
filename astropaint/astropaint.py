@@ -6,6 +6,7 @@ __author__ = "Siavash Yasini"
 __email__ = "yasini@usc.edu"
 
 import os
+import warnings
 from sys import getsizeof
 
 import numpy as np
@@ -2220,6 +2221,8 @@ class Painter:
               distance_units="Mpc",
               with_ray=False,
               cache=True,
+              lazy=False,
+              lazy_grid=None,
               **template_kwargs):
 
         """
@@ -2231,6 +2234,7 @@ class Painter:
         distance_units
         with_ray
         cache
+        lazy
         template_kwargs
 
         Returns
@@ -2275,17 +2279,33 @@ class Painter:
             from joblib import Memory
             cachedir = 'cache'
             mem = Memory(cachedir, verbose=False)
-            print("here")
             template = mem.cache(self.template)
+
+        def snap2grid(array, grid):
+            """snap array elements to grid"""
+            idx = np.searchsorted(grid, array)
+
+            return grid[idx]
+
+        if (lazy is True) and (lazy_grid is None):
+            #TODO: make the grid denser where the R distribution is dense
+            R_grid = np.linspace(0, canvas.R_max, 1000)
+
+            for column, data in spray_df.iteritems():
+                column_grid = np.linspace(data.min(), data.max(), 500)
+
+                spray_df.loc[:, column] = snap2grid(data, column_grid)
 
 
         if not with_ray:
+
 
             for halo, R, pixel_index in tqdm(zip(range(canvas.catalog.size),
                                                   R_pix2cent(),
                                                   canvas.discs.gen_pixel_index()),
                                              total=canvas.catalog.size):
-
+                if lazy:
+                    snap2grid(R, R_grid)
                 spray_dict = {R_mode: R, **spray_df.loc[halo]}
                 np.add.at(canvas.pixels,
                           pixel_index,
