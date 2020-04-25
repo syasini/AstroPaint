@@ -2293,6 +2293,9 @@ class Painter:
 
 
         elif with_ray:
+            if cache:
+                warnings.warn("using cache and with_ray is not recommended at the moment")
+
             print("Spraying in parallel with ray...")
             print("\nProgress bar is not available in jupyter notebook yet.")
 
