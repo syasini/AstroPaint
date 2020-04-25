@@ -1169,7 +1169,8 @@ class Canvas:
         # ------------------------
         #TODO: Add doctring to the generator methods
 
-        def gen_center_index(self, halo_list="All"):
+        def gen_center_ipix(self, halo_list="All"):
+            """generate ipix of the halo centers"""
             if halo_list is "All":
                 halo_list = range(self.catalog.size)
 
@@ -1180,16 +1181,23 @@ class Canvas:
                                  self.catalog.data.theta[halo],
                                  self.catalog.data.phi[halo])
 
-        def gen_center_ang(self, halo_list="All"):
+        def gen_center_ang(self, halo_list="All", snap2pixel=False):
+            """generate the angle (theta, phi) of the halo centers
+            if snap2pixel is True, the angular coordinate of the halo center pixel will be
+            returned"""
             if halo_list is "All":
                 halo_list = range(self.catalog.size)
 
             assert hasattr(halo_list, '__iter__')
 
             #TODO: check if this is faster with pandas .iterrows or .itertuples
-            for halo in halo_list:
-                yield (self.catalog.data.theta[halo],
-                       self.catalog.data.phi[halo])
+            if snap2pixel:
+                for index in self.gen_center_ipix(halo_list):
+                    yield hp.pix2ang(self.nside, index)
+            else:
+                for halo in halo_list:
+                    yield (self.catalog.data.theta[halo],
+                           self.catalog.data.phi[halo])
 
         def gen_center_vec(self, halo_list="All"):
             if halo_list is "All":
