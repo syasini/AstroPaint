@@ -6,6 +6,7 @@ __author__ = "Siavash Yasini"
 __email__ = "yasini@usc.edu"
 
 import os
+import warnings
 from sys import getsizeof
 
 import numpy as np
@@ -849,6 +850,10 @@ class Canvas:
         return self._lmax
 
     @property
+    def R_max(self):
+        return self.R_times * self.catalog.data["R_200c"].max()
+
+    @property
     def ell(self):
         return self._ell
 
@@ -1169,7 +1174,8 @@ class Canvas:
         # ------------------------
         #TODO: Add doctring to the generator methods
 
-        def gen_center_index(self, halo_list="All"):
+        def gen_center_ipix(self, halo_list="All"):
+            """generate ipix of the halo centers"""
             if halo_list is "All":
                 halo_list = range(self.catalog.size)
 
@@ -1180,16 +1186,23 @@ class Canvas:
                                  self.catalog.data.theta[halo],
                                  self.catalog.data.phi[halo])
 
-        def gen_center_ang(self, halo_list="All"):
+        def gen_center_ang(self, halo_list="All", snap2pixel=False):
+            """generate the angle (theta, phi) of the halo centers
+            if snap2pixel is True, the angular coordinate of the halo center pixel will be
+            returned"""
             if halo_list is "All":
                 halo_list = range(self.catalog.size)
 
             assert hasattr(halo_list, '__iter__')
 
             #TODO: check if this is faster with pandas .iterrows or .itertuples
-            for halo in halo_list:
-                yield (self.catalog.data.theta[halo],
-                       self.catalog.data.phi[halo])
+            if snap2pixel:
+                for index in self.gen_center_ipix(halo_list):
+                    yield hp.pix2ang(self.nside, index)
+            else:
+                for halo in halo_list:
+                    yield (self.catalog.data.theta[halo],
+                           self.catalog.data.phi[halo])
 
         def gen_center_vec(self, halo_list="All"):
             if halo_list is "All":
@@ -2207,6 +2220,9 @@ class Painter:
               canvas,
               distance_units="Mpc",
               with_ray=False,
+              cache=True,
+              lazy=False,
+              lazy_grid=None,
               **template_kwargs):
 
         """
@@ -2216,6 +2232,9 @@ class Painter:
         ----------
         canvas
         distance_units
+        with_ray
+        cache
+        lazy
         template_kwargs
 
         Returns
@@ -2252,13 +2271,41 @@ class Painter:
         if R_mode is "R_vec":
             R_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
 
+
+        if cache:
+            assert R_mode is "R", "cache method is not available for profiles that " \
+                                  "use 'R_vec'"
+
+            from joblib import Memory
+            cachedir = 'cache'
+            memory = Memory(cachedir, verbose=False)
+            template = memory.cache(self.template)
+
+        def snap2grid(array, grid):
+            """snap array elements to grid"""
+            idx = np.searchsorted(grid, array)
+
+            return grid[idx]
+
+        if (lazy is True) and (lazy_grid is None):
+            #TODO: make the grid denser where the R distribution is dense
+            R_grid = np.linspace(0, canvas.R_max, 1000)
+
+            for column, data in spray_df.iteritems():
+                column_grid = np.linspace(data.min(), data.max(), 500)
+
+                spray_df.loc[:, column] = snap2grid(data, column_grid)
+
+
         if not with_ray:
+
 
             for halo, R, pixel_index in tqdm(zip(range(canvas.catalog.size),
                                                   R_pix2cent(),
                                                   canvas.discs.gen_pixel_index()),
                                              total=canvas.catalog.size):
-
+                if lazy:
+                    snap2grid(R, R_grid)
                 spray_dict = {R_mode: R, **spray_df.loc[halo]}
                 np.add.at(canvas.pixels,
                           pixel_index,
@@ -2266,6 +2313,9 @@ class Painter:
 
 
         elif with_ray:
+            if cache:
+                warnings.warn("using cache and with_ray is not recommended at the moment")
+
             print("Spraying in parallel with ray...")
             print("\nProgress bar is not available in jupyter notebook yet.")
 
