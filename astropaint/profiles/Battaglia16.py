@@ -17,6 +17,14 @@ from astropy.cosmology import Planck18_arXiv_v2 as cosmo
 
 from astropaint.lib.utilities import interpolate, LOS_integrate
 
+# ---------------Caching----------------
+# To cache templates use
+#  the @memory.cache decorator
+from joblib import Memory
+cachedir = 'cache'
+memory = Memory(cachedir, verbose=False)
+# --------------------------------------
+
 # ---------
 # constants
 # ---------

@@ -6,6 +6,7 @@ __author__ = "Siavash Yasini"
 __email__ = "yasini@usc.edu"
 
 import os
+import warnings
 from sys import getsizeof
 
 import numpy as np
@@ -342,7 +343,7 @@ class Catalog:
         self.data['D_a'] = transform.D_c_to_D_a(self.data['D_c'], self.data['redshift'])
         self.data['R_200c'] = transform.M_200c_to_R_200c(self.data['M_200c'], self.data['redshift'])
         self.data['c_200c'] = transform.M_200c_to_c_200c(self.data['M_200c'], self.data['redshift'])
-        self.data['R_th_200c'] = transform.radius_to_angsize(self.data['R_200c'],
+        self.data['R_ang_200c'] = transform.radius_to_angsize(self.data['R_200c'],
                                                              self.data['D_a'], arcmin=True)
         #TODO: change redshift to nonuniversal value
         self.data['rho_s'] = transform.M_200c_to_rho_s(self.data['M_200c'],
@@ -594,6 +595,30 @@ class Catalog:
         else:
             return data
 
+    def cut_R_ang_200c(self, R_ang_min=0., R_ang_max=np.inf, inplace=True):
+        """
+        Cut the catalog according the the given angular radius range
+
+        Parameters
+        ----------
+        R_ang_min [arcmin]
+            minimum halo angular radius to keep
+        R_ang_max [arcmin]
+            maximum halo angular radius to keep
+        Returns
+        -------
+        None
+        catalog.data will only contain halos with angular radius R_ang_200c in the range
+        R_ang_min < R_ang_200c < R_ang_max
+        """
+
+        data = self.data[(self.data.R_ang_200c > R_ang_min) & (self.data.R_ang_200c < R_ang_max)]
+
+        if inplace:
+            self.data = data
+        else:
+            return data
+
     def cut_D_c(self, D_min=0., D_max=np.inf, inplace=True):
         """
         Cut the catalog according the the given comoving distance range
@@ -825,6 +850,10 @@ class Canvas:
         return self._lmax
 
     @property
+    def R_max(self):
+        return self.R_times * self.catalog.data["R_200c"].max()
+
+    @property
     def ell(self):
         return self._ell
 
@@ -1032,7 +1061,7 @@ class Canvas:
                                self.catalog.data.y[halo],
                                self.catalog.data.z[halo]),
                               R_times * transform.arcmin2rad(
-                                  self.catalog.data.R_th_200c[halo]),
+                                  self.catalog.data.R_ang_200c[halo]),
                               inclusive=self.inclusive,
                               )
                 )
@@ -1145,7 +1174,8 @@ class Canvas:
         # ------------------------
         #TODO: Add doctring to the generator methods
 
-        def gen_center_index(self, halo_list="All"):
+        def gen_center_ipix(self, halo_list="All"):
+            """generate ipix of the halo centers"""
             if halo_list is "All":
                 halo_list = range(self.catalog.size)
 
@@ -1156,16 +1186,23 @@ class Canvas:
                                  self.catalog.data.theta[halo],
                                  self.catalog.data.phi[halo])
 
-        def gen_center_ang(self, halo_list="All"):
+        def gen_center_ang(self, halo_list="All", snap2pixel=False):
+            """generate the angle (theta, phi) of the halo centers
+            if snap2pixel is True, the angular coordinate of the halo center pixel will be
+            returned"""
             if halo_list is "All":
                 halo_list = range(self.catalog.size)
 
             assert hasattr(halo_list, '__iter__')
 
             #TODO: check if this is faster with pandas .iterrows or .itertuples
-            for halo in halo_list:
-                yield (self.catalog.data.theta[halo],
-                       self.catalog.data.phi[halo])
+            if snap2pixel:
+                for index in self.gen_center_ipix(halo_list):
+                    yield hp.pix2ang(self.nside, index)
+            else:
+                for halo in halo_list:
+                    yield (self.catalog.data.theta[halo],
+                           self.catalog.data.phi[halo])
 
         def gen_center_vec(self, halo_list="All"):
             if halo_list is "All":
@@ -1189,7 +1226,7 @@ class Canvas:
                                self.catalog.data.y[halo],
                                self.catalog.data.z[halo]),
                               self.R_times * transform.arcmin2rad(
-                                  self.catalog.data.R_th_200c[halo]),
+                                  self.catalog.data.R_ang_200c[halo]),
                               inclusive=self.inclusive,
                               )
 
@@ -1566,7 +1603,7 @@ class Canvas:
                 xpix=200,
                 ypix=None,
                 apply_func=None,
-                **func_kwargs,
+                func_kwargs=dict(),
                 ):
         """
         Generate cutouts of angular size lon_range x lat_range around halo center with xpix & ypix
@@ -1595,18 +1632,18 @@ class Canvas:
             number of pixels on the y axis
             by default (None) it is set equal to xrange
             same as ypix in healpy
-        apply_func:
+        apply_func: function or list of functions
             function to apply to the patch after cutting it out. THe first argument of the
             function must be the input patch.
 
 
-        Example:
+            Example:
 
             def linear_transform(patch, slope, intercept):
                 return slope * patch + intercept
 
-        func_kwargs:
-            keyword arguments to pass to apply_func
+        func_kwargs: dictionary or list of dictionaries
+            dictionary of keyword arguments to pass to apply_func
 
             Example usage:
 
@@ -1627,39 +1664,73 @@ class Canvas:
         if halo_list is "all":
             halo_list = range(self.catalog.size)
         #pdb.set_trace()
+
+        # make sure that apply func and func_kwargs are lists for consistency
+        if apply_func is not None:
+            if not isinstance(apply_func, list):
+                apply_func = [apply_func]
+                # make sure func_kwargs is not a list
+                assert not isinstance(func_kwargs, list)
+                # and then turn it into a list
+                func_kwargs = [func_kwargs]
+
+            else:
+                # if apply_func is a list, func_kwargs must be a list too
+                assert isinstance(func_kwargs, list)
+
         # match the size of the args and kwargs dataframes
         # if func_kwargs are scalars, extend then to the size of the catalog
         # TODO: rewrite using _check_template_args()?
-        for key, value in func_kwargs.items():
-            if not hasattr(value, "__len__"):
-                func_kwargs[key] = [value]
+
+        func_kwargs_df_list = []
+        for f_kw in func_kwargs:
+            for key, value in f_kw.items():
+                if not hasattr(value, "__len__"):
+                    f_kw[key] = [value]
 
 
-        func_kwargs_df = pd.DataFrame(func_kwargs)
-        if len(func_kwargs_df) == 1:
-            func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
+            func_kwargs_df = pd.DataFrame(f_kw)
+            if len(func_kwargs_df) == 1:
+                func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
                                            ignore_index=True)
 
-        # make sure the df index matches the halo_list
-        if len(func_kwargs_df.index) == len(halo_list):
-            func_kwargs_df.index = halo_list
+            # make sure the df index matches the halo_list
+            if len(func_kwargs_df.index) == len(halo_list):
+                func_kwargs_df.index = halo_list
+
+            func_kwargs_df_list.append(func_kwargs_df)
 
         cart_projector = hp.projector.CartesianProj(lonra=lon_range, latra=lat_range,
                                                     xsize=xpix, ysize=ypix,
                                                     #*args, **kwargs,
                                                     )
 
-        for halo in halo_list:
+        for i, halo in enumerate(halo_list):
             lon, lat = self.catalog.data[["lon", "lat"]].loc[halo]
             cut_out = cart_projector.projmap(self.pixels,
                                             rot=(lon, lat),
                                             vec2pix_func=partial(hp.vec2pix, self.nside))
-            if apply_func:
-                if func_kwargs:
-                    func_dict = {**func_kwargs_df.loc[halo]}
-                else:
-                    func_dict = {}
-                cut_out = apply_func(cut_out, **func_dict)
+            # if apply_func:
+            #     for func, func_kwargs_df in zip(apply_func, func_kwargs_df_list):
+            #         func_dict = {**func_kwargs_df.loc[halo]}
+            #
+            #         cut_out = func(cut_out, **func_dict)
+            # yield cut_out
+            #pdb.set_trace()
+            if apply_func is not None:
+                for func, f_kw in zip(apply_func, func_kwargs):
+                    # check if the func_kwargs values are scalar
+                    func_dict = dict()
+                    for key, value in f_kw.items():
+                        if len(value) > 1:
+                            # only slice the value that corresponds to the halo
+                            func_dict[key] = value[i]
+                        else:
+                            func_dict[key] = value[0]
+
+                    #func_dict = {**f_kw}
+
+                    cut_out = func(cut_out, **func_dict)
             yield cut_out
 
     def stack_cutouts(self,
@@ -2149,6 +2220,9 @@ class Painter:
               canvas,
               distance_units="Mpc",
               with_ray=False,
+              cache=True,
+              lazy=False,
+              lazy_grid=None,
               **template_kwargs):
 
         """
@@ -2158,6 +2232,9 @@ class Painter:
         ----------
         canvas
         distance_units
+        with_ray
+        cache
+        lazy
         template_kwargs
 
         Returns
@@ -2194,13 +2271,41 @@ class Painter:
         if R_mode is "R_vec":
             R_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
 
+
+        if cache:
+            assert R_mode is "R", "cache method is not available for profiles that " \
+                                  "use 'R_vec'"
+
+            from joblib import Memory
+            cachedir = 'cache'
+            memory = Memory(cachedir, verbose=False)
+            template = memory.cache(self.template)
+
+        def snap2grid(array, grid):
+            """snap array elements to grid"""
+            idx = np.searchsorted(grid, array)
+
+            return grid[idx]
+
+        if (lazy is True) and (lazy_grid is None):
+            #TODO: make the grid denser where the R distribution is dense
+            R_grid = np.linspace(0, canvas.R_max, 1000)
+
+            for column, data in spray_df.iteritems():
+                column_grid = np.linspace(data.min(), data.max(), 500)
+
+                spray_df.loc[:, column] = snap2grid(data, column_grid)
+
+
         if not with_ray:
+
 
             for halo, R, pixel_index in tqdm(zip(range(canvas.catalog.size),
                                                   R_pix2cent(),
                                                   canvas.discs.gen_pixel_index()),
                                              total=canvas.catalog.size):
-
+                if lazy:
+                    snap2grid(R, R_grid)
                 spray_dict = {R_mode: R, **spray_df.loc[halo]}
                 np.add.at(canvas.pixels,
                           pixel_index,
@@ -2208,8 +2313,11 @@ class Painter:
 
 
         elif with_ray:
+            if cache:
+                warnings.warn("using cache and with_ray is not recommended at the moment")
+
             print("Spraying in parallel with ray...")
-            print("progress bar is not available in parallel mode.")
+            print("\nProgress bar is not available in jupyter notebook yet.")
 
             # count the number of available cpus
             #import psutil
@@ -2232,6 +2340,16 @@ class Painter:
             gen_pixel_index = canvas.discs.gen_pixel_index
             template = self.template
 
+
+            # function for adding progress bar to ray
+            # solution from https://github.com/ray-project/ray/issues/5554
+            def to_iterator(obj_ids):
+                while obj_ids:
+                    done, obj_ids = ray.wait(obj_ids)
+                    yield ray.get(done[0])
+
+            obj_ids = []
+
             for halo_batch in halo_batches:
                 # _paint the shared pixels array in batches with ray
                 result = self._paint_batch.remote(shared_pixels,
@@ -2241,7 +2359,11 @@ class Painter:
                                                   gen_pixel_index,
                                                   template,
                                                   spray_df)
+                obj_ids.append(result)
 
+            # add progress bar to ray
+            for _ in tqdm(to_iterator(obj_ids), total=len(halo_batches)):
+                pass
 
             # put the batches together and shut down ray
             canvas.pixels = np.copy(ray.get(result))
@@ -2265,13 +2387,15 @@ class Painter:
         #                                 gen_pixel_index(halo_list=halo_batch)):
         #     np.add.at(shared_pixels, pixel_index, template(R, **spray_df.loc[halo]))
         #
-        for halo, R, pixel_index in zip(halo_batch,
-                                        R_pix2cent(halo_list=halo_batch),
-                                        gen_pixel_index(halo_list=halo_batch)):
-            spray_dict = {R_mode: R, **spray_df.loc[halo]}
-            np.add.at(shared_pixels,
-                      pixel_index,
-                      template(**spray_dict))
+        with tqdm(total=len(halo_batch), desc="painting") as progress:
+            for halo, R, pixel_index in zip(halo_batch,
+                                            R_pix2cent(halo_list=halo_batch),
+                                            gen_pixel_index(halo_list=halo_batch)):
+                spray_dict = {R_mode: R, **spray_df.loc[halo]}
+                np.add.at(shared_pixels,
+                          pixel_index,
+                          template(**spray_dict))
+                progress.update(1)
 
         return shared_pixels
 

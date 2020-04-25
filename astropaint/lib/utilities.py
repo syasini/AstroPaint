@@ -417,7 +417,7 @@ def sample_array(array, n_samples, method="linspace", eps=0.001):
         #TODO: fix the min max range issue
         if array_min < eps:
             array_min = eps
-            print(array_min)
+            print(f"sample array min set to {array_min}")
         samples = np.logspace(np.log10(array_min), np.log10(array_max), n_samples)
     elif method == "random":
         samples = np.random.uniform(array_min, array_max, size=n_samples)

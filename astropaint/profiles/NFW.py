@@ -14,6 +14,14 @@ from astropy.cosmology import Planck18_arXiv_v2 as cosmo
 from astropaint.lib.utilities import interpolate, LOS_integrate
 from astropaint.lib import transform
 
+# ---------------Caching----------------
+# To cache templates use
+#  the @memory.cache decorator
+from joblib import Memory
+cachedir = 'cache'
+memory = Memory(cachedir, verbose=False)
+# --------------------------------------
+
 sigma_T = sigma_T.to(u.Mpc**2).value # [Mpc^2]
 m_p = m_p.to(u.M_sun).value # [M_sun]
 f_b = cosmo.Ob0/cosmo.Om0
