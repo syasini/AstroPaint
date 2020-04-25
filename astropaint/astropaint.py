@@ -849,6 +849,10 @@ class Canvas:
         return self._lmax
 
     @property
+    def R_max(self):
+        return self.R_times * self.catalog.data["R_200c"].max()
+
+    @property
     def ell(self):
         return self._ell
 
