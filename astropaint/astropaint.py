@@ -2278,8 +2278,8 @@ class Painter:
 
             from joblib import Memory
             cachedir = 'cache'
-            mem = Memory(cachedir, verbose=False)
-            template = mem.cache(self.template)
+            memory = Memory(cachedir, verbose=False)
+            template = memory.cache(self.template)
 
         def snap2grid(array, grid):
             """snap array elements to grid"""
