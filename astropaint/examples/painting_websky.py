@@ -33,10 +33,11 @@ with timeit("painting the websky catalog"):
 					nside=nside,
 					R_times=5)
 
-	painter = Painter(template=NFW.kSZ_T)
-
 	## to use the Battaglia16 model use:
-	#painter = Painter(template=Battaglia16.kSZ_T)
+	painter = Painter(template=Battaglia16.kSZ_T)
+
+	## to use the NFW model use:
+	#painter = Painter(template=NFW.kSZ_T)
 
 	painter.spray(canvas,
 				  #cache=True, ## uncomment to cache the profiles to disc; makes the painting slower
