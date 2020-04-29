@@ -2322,8 +2322,7 @@ class Painter:
             #                   shape=canvas.pixels.shape, mode='w+')
             # output[:] = canvas.pixels[:]
 
-            print("Spraying in parallel with ray...")
-            print("\nProgress bar is not available in jupyter notebook yet.")
+            print("Spraying in parallel...")
 
             # count the number of available cpus
             # import psutil
@@ -2336,7 +2335,7 @@ class Painter:
             shared_pixels = canvas.pixels
 
             # split the halo list into batches
-            print(f"Spraying {n_cpus} batches")
+            print(f"Spraying in {n_cpus} batches")
             halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
 
             # set local pointers to the pixel generator and template
