@@ -325,7 +325,8 @@ class Catalog:
                                                                     self.data['y'].values,
                                                                     self.data['z'].values)
         if calculate_redshifts:
-            self.data['redshift'] = self.data['D_c'].apply(transform.D_c_to_redshift)
+            tqdm.pandas(desc="calculating redshifts")
+            self.data['redshift'] = self.data['D_c'].progress_apply(transform.D_c_to_redshift)
         else:
             try:
                 self.data['redshift']
