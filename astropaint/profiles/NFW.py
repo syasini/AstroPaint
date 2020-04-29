@@ -164,7 +164,7 @@ def tau_2D(R, rho_s, R_s):
     f_s = 0.02
     mu = 4 / (2 * X_H + 1 + X_H * x_e)
 
-    Sigma = rho_2D(R, rho_s, R_s)
+    Sigma = rho_2D_bartlemann(R, rho_s, R_s)
     tau = sigma_T * x_e * X_H * (1 - f_s) * f_b * Sigma / mu / m_p
     return tau
 
