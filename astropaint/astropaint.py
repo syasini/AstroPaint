@@ -2222,7 +2222,7 @@ class Painter:
               distance_units="Mpc",
               #with_ray=False,
               parallel=True,
-              cache=True,
+              cache=False,
               lazy=False,
               lazy_grid=None,
               **template_kwargs):
