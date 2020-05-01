@@ -87,6 +87,13 @@ canvas.show_map("cartview", lonra=[0,10], latra=[0,10])
 <img src="images/a_random_map.png" alt="map" height="400"/>
 
 _Voila!_
+
+If you have more than 1 cpu (why wouldn't you?) use `parallel=True` in the
+ spray function to paint in parallel and speed things up!
+ 
+<img src="images/parallel.gif" alt="parallel" width="300"/>
+ 
+   
 ## Stacking
 You can easily stack cutouts of the map using the following:
 
@@ -101,7 +108,7 @@ plt.imshow(canvas.stack)
 ```
 <img src="images/a_random_stack.png" alt="stack" height="300"/>
 
- If this is taking too long, use `with_ray=True` for *parallel stacking*. 
+ If this is taking too long, use `parallel=True` for *parallel stacking*. 
 
 ## Line-Of-Sight integration of 3D profiles
 
