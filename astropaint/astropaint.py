@@ -1725,7 +1725,7 @@ class Canvas:
                     for key, value in f_kw.items():
                         if len(value) > 1:
                             # only slice the value that corresponds to the halo
-                            func_dict[key] = value[i]
+                            func_dict[key] = value[halo]
                         else:
                             func_dict[key] = value[0]
 
