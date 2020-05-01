@@ -70,9 +70,9 @@ painter = Painter(template=a_nonsense_template)
 R = np.linspace(0,5,100)
 painter.plot_template(R, catalog, halo_list=[0,10,100])
 ```
-
+<p align="center">
 <img src="images/a_random_template.png" alt="template" height="300"/>
-
+</p>
 The painter automatically extracts the parameters `R_200c` and `x,y,z
 ` coordinates of the halo from the catalog that the canvas was initialized
  with. Let's spray ths canvas now:
@@ -84,15 +84,16 @@ painter.spray(canvas)
 # show the results
 canvas.show_map("cartview", lonra=[0,10], latra=[0,10])
 ```
+<p align="center">
 <img src="images/a_random_map.png" alt="map" height="400"/>
-
+</p>
 _Voila!_
 
 If you have more than 1 cpu (why wouldn't you?) use `parallel=True` in the
  spray function to paint in parallel and speed things up!
- 
-<img src="images/parallel.gif" alt="parallel" width="300"/>
- 
+<p align="center">
+<img src="images/parallel.gif" alt="parallel" width="450"/>
+</p>
    
 ## Stacking
 You can easily stack cutouts of the map using the following:
@@ -106,8 +107,9 @@ stack = canvas.stack_cutouts(halo_list=halo_list, lon_range=deg_range, lat_range
 
 plt.imshow(canvas.stack)
 ```
+<p align="center">
 <img src="images/a_random_stack.png" alt="stack" height="300"/>
-
+</p>
  If this is taking too long, use `parallel=True` for *parallel stacking*. 
 
 ## Line-Of-Sight integration of 3D profiles
@@ -166,9 +168,10 @@ def tophat_2D_interp(R, R_200c):
 ```   
 This is much faster, but the speed comes at a small price. If your 3D profile
  is not smooth, the interpolated 2D projection will slightly deviate from the
-  exact integration.  
+  exact integration. 
+ <p align="center">
  <img src="images/tophat_interp.png" alt="interp" height="300"/>
- 
+ </p>
 You can minimize this deviation by increasing the `n_samples` argument of the
  `@interpolate` decorator, but that will obviously decrease the painting speed.
  
@@ -188,9 +191,9 @@ from astropaint.profiles import Battaglia16
  
  Since the shape of the profile is smooth, we won't lose accuracy by using the
   interpolator. 
-  
+<p align="center">
 <img src="images/battaglia16_tau.png" alt="tau" height="300"/>
- 
+</p> 
 
 Let's paint this on a 5x5 sqr deg patch of the WebSky catalog with a mass
  cut of 8E13 M_sun. 
@@ -204,8 +207,9 @@ canvas = Canvas(catalog, nside=8192, R_times=3)
 
 tau_painter.spray(canvas)
 ``` 
+<p align="center">
 <img src="images/tau_map_battaglia.png" alt="tau_map" height="300"/>
-
+</p>
 The `Battaglia16.kSZ_T` function uses this tau and multiplies it by the
  dimensionless velocity of the halos to get the kSZ signal. 
  
@@ -214,9 +218,9 @@ kSZ_painter = Painter(Battaglia16.kSZ_T)
 kSZ_painter.spray(canvas)
 ```
 And here is what it looks like:
-
+<p align="center">
 <img src="images/ksz_map_battaglia.png" alt="ksz_map" height="300"/>
-
+</p>
 
 # How to contribute
 
