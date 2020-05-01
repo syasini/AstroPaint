@@ -1741,9 +1741,9 @@ class Canvas:
                       xpix=200,
                       ypix=None,
                       inplace=True,
-                      with_ray=False,
+                      parallel=False,
                       apply_func=None,
-                      **func_kwargs,
+                      func_kwargs=dict(),
                       ):
         """Stack cutouts of angular size lon_range x lat_range around halo center with xpix & ypix
         pixels on each side. apply_func is applied to each cutout before stacking
@@ -1818,33 +1818,30 @@ class Canvas:
         # setup the stack to accumulate cutouts
         stack = np.zeros((xpix,ypix))
         #stack.setflags(write=True)
-
-        if with_ray:
-            print("Stacking in parallel with ray...")
-            print("progress bar is not available in parallel mode.")
+        if parallel:
+            print("Stacking in parallel...")
             # count the number of available cpus
             #import psutil
             n_cpus = (os.cpu_count())
             print(f"n_cpus = {n_cpus}")
-            ray.init(num_cpus=n_cpus)
 
             # put the stack in the object store
-            shared_stack = ray.put(stack.reshape(-1))
+            shared_stack = stack.reshape(-1)
 
             # split the halo list into batches
             print(f"Stacking {n_cpus} batches")
 
-            halo_batches = np.array_split(range(self.catalog.size), n_cpus)
+            halo_batches = np.array_split(halo_list, n_cpus)
 
-            # TODO: refactor this with the previous method
-            for key, value in func_kwargs.items():
-                if not hasattr(value, "__len__"):
-                    func_kwargs[key] = [value]
-
-            func_kwargs_df = pd.DataFrame(func_kwargs)
-            if len(func_kwargs_df) == 1:
-                func_kwargs_df = pd.concat([func_kwargs_df] * len(halo_list),
-                                           ignore_index=True)
+            # # TODO: refactor this with the previous method
+            # for key, value in func_kwargs.items():
+            #     if not hasattr(value, "__len__"):
+            #         func_kwargs[key] = [value]
+            #
+            # func_kwargs_df = pd.DataFrame(func_kwargs)
+            # if len(func_kwargs_df) == 1:
+            #     func_kwargs_df = pd.concat([func_kwargs_df] * len(halo_list),
+            #                                ignore_index=True)
 
             # setup the stack generator
             #cutout_gen_batches = [self.cutouts(halo_batch, lon_range, lat_range, xpix, ypix,
@@ -1857,22 +1854,75 @@ class Canvas:
                                        lat_range=lat_range,
                                        xpix=xpix,
                                        ypix=ypix,
-                                       apply_func=apply_func)
+                                       apply_func=apply_func,
+                                       func_kwargs=func_kwargs,
+                                       )
 
-            print(cutout_generator)
 
-            for halo_batch in halo_batches:
-                result = self._stack_batch.remote(shared_stack,
-                                                  halo_batch,
-                                                  cutout_generator,
-                                                  func_kwargs_df)
+            from joblib import Parallel, delayed
+            Parallel(n_jobs=n_cpus, require='sharedmem')(
+                delayed(self._stack_batch)(shared_stack,
+                                           halo_batch,
+                                           cutout_generator,
+                                           )
+                for halo_batch in halo_batches)
 
-            stack = np.copy(ray.get(result)).reshape(xpix, ypix)
-            ray.shutdown()
+            stack = shared_stack.reshape(xpix, ypix)
+
+        # if with_ray:
+        #     print("Stacking in parallel with ray...")
+        #     print("progress bar is not available in parallel mode.")
+        #     # count the number of available cpus
+        #     #import psutil
+        #     n_cpus = (os.cpu_count())
+        #     print(f"n_cpus = {n_cpus}")
+        #     ray.init(num_cpus=n_cpus)
+        #
+        #     # put the stack in the object store
+        #     shared_stack = ray.put(stack.reshape(-1))
+        #
+        #     # split the halo list into batches
+        #     print(f"Stacking {n_cpus} batches")
+        #
+        #     halo_batches = np.array_split(range(self.catalog.size), n_cpus)
+        #
+        #     # TODO: refactor this with the previous method
+        #     for key, value in func_kwargs.items():
+        #         if not hasattr(value, "__len__"):
+        #             func_kwargs[key] = [value]
+        #
+        #     func_kwargs_df = pd.DataFrame(func_kwargs)
+        #     if len(func_kwargs_df) == 1:
+        #         func_kwargs_df = pd.concat([func_kwargs_df] * len(halo_list),
+        #                                    ignore_index=True)
+        #
+        #     # setup the stack generator
+        #     #cutout_gen_batches = [self.cutouts(halo_batch, lon_range, lat_range, xpix, ypix,
+        #     #                                apply_func, **func_kwargs_df.loc[halo_batch])
+        #     #                    for halo_batch in halo_batches]
+        #
+        #     from functools import partial
+        #     cutout_generator = partial(self.cutouts,
+        #                                lon_range=lon_range,
+        #                                lat_range=lat_range,
+        #                                xpix=xpix,
+        #                                ypix=ypix,
+        #                                apply_func=apply_func)
+        #
+        #     print(cutout_generator)
+        #
+        #     for halo_batch in halo_batches:
+        #         result = self._stack_batch.remote(shared_stack,
+        #                                           halo_batch,
+        #                                           cutout_generator,
+        #                                           func_kwargs_df)
+        #
+        #     stack = np.copy(ray.get(result)).reshape(xpix, ypix)
+        #     ray.shutdown()
         else:
             # setup the stack generator
             cutout_generator = self.cutouts(halo_list, lon_range, lat_range, xpix, ypix,
-                                            apply_func, **func_kwargs)
+                                            apply_func, func_kwargs)
             for cut_out in tqdm(cutout_generator, total=len(halo_list)):
                 stack += cut_out
 
@@ -1882,14 +1932,29 @@ class Canvas:
         else:
             return stack
 
-    @ray.remote
-    def _stack_batch(shared_stack, halo_batch, cutout_generator, func_kwargs_df):
+    # @ray.remote
+    # def _stack_batch(shared_stack, halo_batch, cutout_generator, func_kwargs_df):
+    #
+    #     for cutout in cutout_generator(halo_list=halo_batch, **func_kwargs_df.loc[halo_batch]):
+    #
+    #         cutout = cutout.reshape(-1)
+    #         np.add.at(shared_stack, np.arange(len(cutout)), cutout)
+    #
+    #     return shared_stack
 
-        for cutout in cutout_generator(halo_list=halo_batch, **func_kwargs_df.loc[halo_batch]):
 
-            cutout = cutout.reshape(-1)
-            np.add.at(shared_stack, np.arange(len(cutout)), cutout)
+    def _stack_batch(self, shared_stack, halo_batch, cutout_generator):
 
+        with tqdm(total=len(halo_batch), desc="stacking") as progress:
+            for cutout in cutout_generator(halo_list=halo_batch):
+                #plt.imshow(cutout)
+                #plt.show()
+                #pdb.set_trace()
+                cutout = cutout.reshape(-1)
+
+
+                np.add.at(shared_stack, np.arange(len(cutout)), cutout)
+                progress.update(1)
         return shared_stack
 
     # -----------------
