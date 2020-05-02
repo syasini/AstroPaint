@@ -325,7 +325,8 @@ class Catalog:
                                                                     self.data['y'].values,
                                                                     self.data['z'].values)
         if calculate_redshifts:
-            self.data['redshift'] = self.data['D_c'].apply(transform.D_c_to_redshift)
+            tqdm.pandas(desc="calculating redshifts")
+            self.data['redshift'] = self.data['D_c'].progress_apply(transform.D_c_to_redshift)
         else:
             try:
                 self.data['redshift']
@@ -1724,7 +1725,7 @@ class Canvas:
                     for key, value in f_kw.items():
                         if len(value) > 1:
                             # only slice the value that corresponds to the halo
-                            func_dict[key] = value[i]
+                            func_dict[key] = value[halo]
                         else:
                             func_dict[key] = value[0]
 
@@ -1740,9 +1741,9 @@ class Canvas:
                       xpix=200,
                       ypix=None,
                       inplace=True,
-                      with_ray=False,
+                      parallel=False,
                       apply_func=None,
-                      **func_kwargs,
+                      func_kwargs=dict(),
                       ):
         """Stack cutouts of angular size lon_range x lat_range around halo center with xpix & ypix
         pixels on each side. apply_func is applied to each cutout before stacking
@@ -1817,33 +1818,30 @@ class Canvas:
         # setup the stack to accumulate cutouts
         stack = np.zeros((xpix,ypix))
         #stack.setflags(write=True)
-
-        if with_ray:
-            print("Stacking in parallel with ray...")
-            print("progress bar is not available in parallel mode.")
+        if parallel:
+            print("Stacking in parallel...")
             # count the number of available cpus
             #import psutil
             n_cpus = (os.cpu_count())
             print(f"n_cpus = {n_cpus}")
-            ray.init(num_cpus=n_cpus)
 
             # put the stack in the object store
-            shared_stack = ray.put(stack.reshape(-1))
+            shared_stack = stack.reshape(-1)
 
             # split the halo list into batches
             print(f"Stacking {n_cpus} batches")
 
-            halo_batches = np.array_split(range(self.catalog.size), n_cpus)
+            halo_batches = np.array_split(halo_list, n_cpus)
 
-            # TODO: refactor this with the previous method
-            for key, value in func_kwargs.items():
-                if not hasattr(value, "__len__"):
-                    func_kwargs[key] = [value]
-
-            func_kwargs_df = pd.DataFrame(func_kwargs)
-            if len(func_kwargs_df) == 1:
-                func_kwargs_df = pd.concat([func_kwargs_df] * len(halo_list),
-                                           ignore_index=True)
+            # # TODO: refactor this with the previous method
+            # for key, value in func_kwargs.items():
+            #     if not hasattr(value, "__len__"):
+            #         func_kwargs[key] = [value]
+            #
+            # func_kwargs_df = pd.DataFrame(func_kwargs)
+            # if len(func_kwargs_df) == 1:
+            #     func_kwargs_df = pd.concat([func_kwargs_df] * len(halo_list),
+            #                                ignore_index=True)
 
             # setup the stack generator
             #cutout_gen_batches = [self.cutouts(halo_batch, lon_range, lat_range, xpix, ypix,
@@ -1856,22 +1854,75 @@ class Canvas:
                                        lat_range=lat_range,
                                        xpix=xpix,
                                        ypix=ypix,
-                                       apply_func=apply_func)
+                                       apply_func=apply_func,
+                                       func_kwargs=func_kwargs,
+                                       )
 
-            print(cutout_generator)
 
-            for halo_batch in halo_batches:
-                result = self._stack_batch.remote(shared_stack,
-                                                  halo_batch,
-                                                  cutout_generator,
-                                                  func_kwargs_df)
+            from joblib import Parallel, delayed
+            Parallel(n_jobs=n_cpus, require='sharedmem')(
+                delayed(self._stack_batch)(shared_stack,
+                                           halo_batch,
+                                           cutout_generator,
+                                           )
+                for halo_batch in halo_batches)
 
-            stack = np.copy(ray.get(result)).reshape(xpix, ypix)
-            ray.shutdown()
+            stack = shared_stack.reshape(xpix, ypix)
+
+        # if with_ray:
+        #     print("Stacking in parallel with ray...")
+        #     print("progress bar is not available in parallel mode.")
+        #     # count the number of available cpus
+        #     #import psutil
+        #     n_cpus = (os.cpu_count())
+        #     print(f"n_cpus = {n_cpus}")
+        #     ray.init(num_cpus=n_cpus)
+        #
+        #     # put the stack in the object store
+        #     shared_stack = ray.put(stack.reshape(-1))
+        #
+        #     # split the halo list into batches
+        #     print(f"Stacking {n_cpus} batches")
+        #
+        #     halo_batches = np.array_split(range(self.catalog.size), n_cpus)
+        #
+        #     # TODO: refactor this with the previous method
+        #     for key, value in func_kwargs.items():
+        #         if not hasattr(value, "__len__"):
+        #             func_kwargs[key] = [value]
+        #
+        #     func_kwargs_df = pd.DataFrame(func_kwargs)
+        #     if len(func_kwargs_df) == 1:
+        #         func_kwargs_df = pd.concat([func_kwargs_df] * len(halo_list),
+        #                                    ignore_index=True)
+        #
+        #     # setup the stack generator
+        #     #cutout_gen_batches = [self.cutouts(halo_batch, lon_range, lat_range, xpix, ypix,
+        #     #                                apply_func, **func_kwargs_df.loc[halo_batch])
+        #     #                    for halo_batch in halo_batches]
+        #
+        #     from functools import partial
+        #     cutout_generator = partial(self.cutouts,
+        #                                lon_range=lon_range,
+        #                                lat_range=lat_range,
+        #                                xpix=xpix,
+        #                                ypix=ypix,
+        #                                apply_func=apply_func)
+        #
+        #     print(cutout_generator)
+        #
+        #     for halo_batch in halo_batches:
+        #         result = self._stack_batch.remote(shared_stack,
+        #                                           halo_batch,
+        #                                           cutout_generator,
+        #                                           func_kwargs_df)
+        #
+        #     stack = np.copy(ray.get(result)).reshape(xpix, ypix)
+        #     ray.shutdown()
         else:
             # setup the stack generator
             cutout_generator = self.cutouts(halo_list, lon_range, lat_range, xpix, ypix,
-                                            apply_func, **func_kwargs)
+                                            apply_func, func_kwargs)
             for cut_out in tqdm(cutout_generator, total=len(halo_list)):
                 stack += cut_out
 
@@ -1881,14 +1932,29 @@ class Canvas:
         else:
             return stack
 
-    @ray.remote
-    def _stack_batch(shared_stack, halo_batch, cutout_generator, func_kwargs_df):
+    # @ray.remote
+    # def _stack_batch(shared_stack, halo_batch, cutout_generator, func_kwargs_df):
+    #
+    #     for cutout in cutout_generator(halo_list=halo_batch, **func_kwargs_df.loc[halo_batch]):
+    #
+    #         cutout = cutout.reshape(-1)
+    #         np.add.at(shared_stack, np.arange(len(cutout)), cutout)
+    #
+    #     return shared_stack
 
-        for cutout in cutout_generator(halo_list=halo_batch, **func_kwargs_df.loc[halo_batch]):
 
-            cutout = cutout.reshape(-1)
-            np.add.at(shared_stack, np.arange(len(cutout)), cutout)
+    def _stack_batch(self, shared_stack, halo_batch, cutout_generator):
 
+        with tqdm(total=len(halo_batch), desc="stacking") as progress:
+            for cutout in cutout_generator(halo_list=halo_batch):
+                #plt.imshow(cutout)
+                #plt.show()
+                #pdb.set_trace()
+                cutout = cutout.reshape(-1)
+
+
+                np.add.at(shared_stack, np.arange(len(cutout)), cutout)
+                progress.update(1)
         return shared_stack
 
     # -----------------
@@ -2219,8 +2285,9 @@ class Painter:
     def spray(self,
               canvas,
               distance_units="Mpc",
-              with_ray=False,
-              cache=True,
+              #with_ray=False,
+              parallel=True,
+              cache=False,
               lazy=False,
               lazy_grid=None,
               **template_kwargs):
@@ -2297,7 +2364,7 @@ class Painter:
                 spray_df.loc[:, column] = snap2grid(data, column_grid)
 
 
-        if not with_ray:
+        if not parallel:
 
 
             for halo, R, pixel_index in tqdm(zip(range(canvas.catalog.size),
@@ -2312,81 +2379,144 @@ class Painter:
                           template(**spray_dict))
 
 
-        elif with_ray:
-            if cache:
-                warnings.warn("using cache and with_ray is not recommended at the moment")
+        elif parallel:
 
-            print("Spraying in parallel with ray...")
-            print("\nProgress bar is not available in jupyter notebook yet.")
+            # FIXME: Add memmap support for the pixels
+            # pixel_memmap_filename = os.path.join(path_dir, 'output_memmap')
+            # output = np.memmap(pixel_memmap_filename, dtype=canvas.pixels.dtype,
+            #                   shape=canvas.pixels.shape, mode='w+')
+            # output[:] = canvas.pixels[:]
+
+            print("Spraying in parallel...")
 
             # count the number of available cpus
-            #import psutil
+            # import psutil
             n_cpus = (os.cpu_count())
             canvas_memory_size = getsizeof(canvas.pixels)
-            print(f"\ncanvas memory size [GB]: {canvas_memory_size/1024**3}\n")
+            print(f"\ncanvas memory size [GB]: {canvas_memory_size / 1024 ** 3}\n")
             print(f"n_cpus = {n_cpus}")
-            ray.init(num_cpus=n_cpus,
-                     #object_store_memory=2 * canvas_memory_size,
-                     )
 
             # put the canvas pixels in the object store
-            shared_pixels = ray.put(canvas.pixels)
+            shared_pixels = canvas.pixels
 
             # split the halo list into batches
-            print(f"Spraying {n_cpus} batches")
+            print(f"Spraying in {n_cpus} batches")
             halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
 
             # set local pointers to the pixel generator and template
             gen_pixel_index = canvas.discs.gen_pixel_index
             template = self.template
+            from joblib import Parallel, delayed
 
+            Parallel(n_jobs=n_cpus, require='sharedmem')(
+                delayed(self._paint_batch)(shared_pixels,
+                                           halo_batch,
+                                           R_mode,
+                                           R_pix2cent,
+                                           gen_pixel_index,
+                                           template,
+                                           spray_df)
+                               for halo_batch in halo_batches)
 
-            # function for adding progress bar to ray
-            # solution from https://github.com/ray-project/ray/issues/5554
-            def to_iterator(obj_ids):
-                while obj_ids:
-                    done, obj_ids = ray.wait(obj_ids)
-                    yield ray.get(done[0])
-
-            obj_ids = []
-
-            for halo_batch in halo_batches:
-                # _paint the shared pixels array in batches with ray
-                result = self._paint_batch.remote(shared_pixels,
-                                                  halo_batch,
-                                                  R_mode,
-                                                  R_pix2cent,
-                                                  gen_pixel_index,
-                                                  template,
-                                                  spray_df)
-                obj_ids.append(result)
-
-            # add progress bar to ray
-            for _ in tqdm(to_iterator(obj_ids), total=len(halo_batches)):
-                pass
 
             # put the batches together and shut down ray
-            canvas.pixels = np.copy(ray.get(result))
-            ray.shutdown()
+            canvas.pixels = shared_pixels
+
+        # TODO: Remove this
+        # elif with_ray:
+        #
+        #     raise DeprecationWarning("with_ray is deprecated. Use parallel=True instead.")
+        #
+        #     if cache:
+        #         warnings.warn("using cache and with_ray is not recommended at the moment")
+        #
+        #     print("Spraying in parallel with ray...")
+        #     print("\nProgress bar is not available in jupyter notebook yet.")
+        #
+        #     # count the number of available cpus
+        #     #import psutil
+        #     n_cpus = (os.cpu_count())
+        #     canvas_memory_size = getsizeof(canvas.pixels)
+        #     print(f"\ncanvas memory size [GB]: {canvas_memory_size/1024**3}\n")
+        #     print(f"n_cpus = {n_cpus}")
+        #     ray.init(num_cpus=n_cpus,
+        #              #object_store_memory=2 * canvas_memory_size,
+        #              )
+        #
+        #     # put the canvas pixels in the object store
+        #     shared_pixels = ray.put(canvas.pixels)
+        #
+        #     # split the halo list into batches
+        #     print(f"Spraying {n_cpus} batches")
+        #     halo_batches = np.array_split(range(canvas.catalog.size), n_cpus)
+        #
+        #     # set local pointers to the pixel generator and template
+        #     gen_pixel_index = canvas.discs.gen_pixel_index
+        #     template = self.template
+        #
+        #
+        #     # function for adding progress bar to ray
+        #     # solution from https://github.com/ray-project/ray/issues/5554
+        #     def to_iterator(obj_ids):
+        #         while obj_ids:
+        #             done, obj_ids = ray.wait(obj_ids)
+        #             yield ray.get(done[0])
+        #
+        #     obj_ids = []
+        #
+        #     for halo_batch in halo_batches:
+        #         # _paint the shared pixels array in batches with ray
+        #         result = self._paint_batch.remote(shared_pixels,
+        #                                           halo_batch,
+        #                                           R_mode,
+        #                                           R_pix2cent,
+        #                                           gen_pixel_index,
+        #                                           template,
+        #                                           spray_df)
+        #         obj_ids.append(result)
+        #
+        #     # add progress bar to ray
+        #     for _ in tqdm(to_iterator(obj_ids), total=len(halo_batches)):
+        #         pass
+        #
+        #     # put the batches together and shut down ray
+        #     canvas.pixels = np.copy(ray.get(result))
+        #     ray.shutdown()
         print("Your artwork is finished. Check it out with Canvas.show_map()")
 
         # activate the canvas.pixels setter
         #canvas.pixels = canvas.pixels
 
-    # TODO: Remove this
-    @ray.remote
-    def _paint(shared_pixels, pixel_index, template):
-        np.add.at(shared_pixels, pixel_index, template)
-        return shared_pixels
 
-    @ray.remote
-    def _paint_batch(shared_pixels, halo_batch, R_mode, R_pix2cent, gen_pixel_index, template,
-                     spray_df):
-        # for halo, R, pixel_index in zip(halo_batch,
-        #                                 r_pix2cent(halo_list=halo_batch),
-        #                                 gen_pixel_index(halo_list=halo_batch)):
-        #     np.add.at(shared_pixels, pixel_index, template(R, **spray_df.loc[halo]))
-        #
+    # @ray.remote
+    # def _paint(shared_pixels, pixel_index, template):
+    #     np.add.at(shared_pixels, pixel_index, template)
+    #     return shared_pixels
+    #
+    # @ray.remote
+    # def _paint_batch(shared_pixels, halo_batch, R_mode, R_pix2cent, gen_pixel_index, template,
+    #                  spray_df):
+    #     # for halo, R, pixel_index in zip(halo_batch,
+    #     #                                 r_pix2cent(halo_list=halo_batch),
+    #     #                                 gen_pixel_index(halo_list=halo_batch)):
+    #     #     np.add.at(shared_pixels, pixel_index, template(R, **spray_df.loc[halo]))
+    #     #
+    #     with tqdm(total=len(halo_batch), desc="painting") as progress:
+    #         for halo, R, pixel_index in zip(halo_batch,
+    #                                         R_pix2cent(halo_list=halo_batch),
+    #                                         gen_pixel_index(halo_list=halo_batch)):
+    #             spray_dict = {R_mode: R, **spray_df.loc[halo]}
+    #             np.add.at(shared_pixels,
+    #                       pixel_index,
+    #                       template(**spray_dict))
+    #             progress.update(1)
+    #
+    #     return shared_pixels
+
+    def _paint_batch(self, shared_pixels, halo_batch,
+                        R_mode, R_pix2cent, gen_pixel_index,
+                        template, spray_df):
+
         with tqdm(total=len(halo_batch), desc="painting") as progress:
             for halo, R, pixel_index in zip(halo_batch,
                                             R_pix2cent(halo_list=halo_batch),
