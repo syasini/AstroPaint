@@ -87,7 +87,9 @@ canvas.show_map("cartview", lonra=[0,10], latra=[0,10])
 <p align="center">
 <img src="images/a_random_map.png" alt="map" height="400"/>
 </p>
+
 _Voila!_
+
 
 If you have more than 1 cpu (why wouldn't you?) use `parallel=True` in the
  spray function to paint in parallel and speed things up!
