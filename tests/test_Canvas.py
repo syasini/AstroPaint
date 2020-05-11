@@ -54,3 +54,9 @@ def test_alm_Cl_outdated_upon_ud_grade(test_canvas, nside, resolution):
     assert test_canvas._Cl_is_outdated
     assert test_canvas.lmax == 3 * new_nside - 1
 
+def test_pixels_are_zero_after_clean(test_canvas):
+    """Passes if all pixels are zero after canvas.clean()"""
+    # suggested by dsspiegel:
+    test_canvas.clean()
+    assert (test_canvas.pixels == 0).all(), f"Pixels not all zero: {test_canvas.pixels}"
+
