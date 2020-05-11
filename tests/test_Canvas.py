@@ -6,7 +6,7 @@ __email__ = "yasini@usc.edu"
 import pytest
 
 
-def test_clean_canvas(test_canvas):
+def test_alm_Cl_outdated_upon_clean_canvas(test_canvas):
     """Passes if after clean.canvas()
     the status of pixels, alms, and Cls are correctly updated """
     test_canvas.clean()
@@ -15,7 +15,7 @@ def test_clean_canvas(test_canvas):
     assert test_canvas._Cl_is_outdated
 
 
-def test_pixel_change(test_canvas):
+def test_alm_Cl_outdated_upon_pixel_change(test_canvas):
     """Passes if after setting canvas.pixels
     the status of pixels, alms, and Cls are correctly updated """
     test_canvas.pixels = 1
@@ -24,7 +24,7 @@ def test_pixel_change(test_canvas):
     assert test_canvas._Cl_is_outdated
 
 
-def test_alm_change(test_canvas):
+def test_pixel_Cl_outdated_upon_alm_change(test_canvas):
     """Passes if after setting canvas.alms
     the status of pixels, alms, and Cls are correctly updated """
     test_canvas.alm = 1
@@ -33,7 +33,7 @@ def test_alm_change(test_canvas):
     assert test_canvas._Cl_is_outdated
 
 
-def test_Cl_change(test_canvas):
+def test_error_upon_Cl_change(test_canvas):
     """Passes if upon setting Cl TypeError is raised"""
     try:
         test_canvas.Cl = 1
@@ -41,7 +41,7 @@ def test_Cl_change(test_canvas):
         assert True
 
 @pytest.mark.parametrize("resolution", [2, 1/2])
-def test_ud_grade(test_canvas, nside, resolution):
+def test_alm_Cl_outdated_upon_ud_grade(test_canvas, nside, resolution):
     """Passes if after upgrading and downgrading resolution
     the status of pixels, alms, and Cls and lmax are correctly updated """
     print(test_canvas.alm)
@@ -53,3 +53,4 @@ def test_ud_grade(test_canvas, nside, resolution):
     assert test_canvas._alm_is_outdated
     assert test_canvas._Cl_is_outdated
     assert test_canvas.lmax == 3 * new_nside - 1
+
