@@ -542,3 +542,10 @@ def timeit(process_name="Process"):
     print("{} was done in {:.1f} min.\n{:=>50}\n".format(process_name, t/60,""))
 
 
+# ---------------Caching----------------
+# To cache templates use
+#  the @memory.cache decorator
+from joblib import Memory
+cachedir = 'cache'
+memory = Memory(cachedir, verbose=False)
+# --------------------------------------
