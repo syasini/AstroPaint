@@ -17,22 +17,16 @@ from warnings import warn
 import inspect
 from itertools import product
 import operator
-import ray
 import re
 from functools import partial
 from tqdm.auto import tqdm
-import pdb
-#from memory_profiler import profile
 from astropaint.lib.log import CMBAlreadyAdded, NoiseAlreadyAdded
-from astropaint.lib import plot_configs
 
 try:
     import healpy as hp
 except ModuleNotFoundError:
     warn("Healpy is not installed. You cannot use the full sky canvas without it.")
 
-#import sys
-#print(sys.path)
 from astropy.coordinates import cartesian_to_spherical
 from .lib import transform, utilities
 
