@@ -1,4 +1,4 @@
-Planck:
+Planck: #http://arxiv.org/abs/1807.06209
   # frequencies
   100:
     fwhm: 10. # arcmin
