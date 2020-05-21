@@ -810,7 +810,10 @@ class Canvas:
         self._Cl = np.zeros(self.lmax+1)
         self._Cl_is_outdated = True
 
-        self._catalog = catalog
+        if catalog is None:
+            self._catalog = Catalog()
+        else:
+            self._catalog = catalog
         self.centers_D_a = self._catalog.data.D_a
 
         self.instantiate_discs()
