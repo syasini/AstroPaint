@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.constants import sigma_T, m_p
 from astropy.cosmology import Planck18_arXiv_v2 as cosmo
 
-from astropaint.lib.utilities import interpolate, LOS_integrate
+from astropaint.lib.utils import interpolate, LOS_integrate
 from astropaint.lib import transform
 
 # ---------------Caching----------------
