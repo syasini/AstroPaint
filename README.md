@@ -13,6 +13,13 @@ You can install **AstroPaint** by running the following in the command line:
 
 the `-e` argument will install the package in editable mode which is suitable for developement. If you want to modify the code use this option.
 
+If you are a conda user, please consider creating a new environment before
+ installation:
+ 
+ `conda create -n astropaint python=3.7`
+ 
+ `conda activate astropaint`
+
 
 # Workflow
 
@@ -35,6 +42,14 @@ That's it! Now you can check out your masterpiece using
 `canvas.show_map()`
 
 ![BG](images/BG_websky_cover.png)
+
+
+# Package Structure 
+
+While there is no external documentation for the code yet, you can use [this
+ link](https://www.mindmeister.com/1417665103/astropaint-astropaint-py?fullscreen=1)
+ to see the package structure and what methods are available so
+  far. 
 
 
 # Examples
