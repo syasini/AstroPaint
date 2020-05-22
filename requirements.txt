@@ -10,3 +10,4 @@ pyyaml==5.1.2
 decorator==4.4.1
 seaborn==0.9.0
 joblib==0.14.0
+jupyter
