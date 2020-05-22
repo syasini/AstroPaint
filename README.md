@@ -13,6 +13,19 @@ You can install **AstroPaint** by running the following in the command line:
 
 the `-e` argument will install the package in editable mode which is suitable for developement. If you want to modify the code use this option.
 
+**Important Note**:
+If you want the sample catalogs to be cloned automatically
+ along with the
+ rest of the repository, make sure you have [Git Large File Storage (`git lfs
+ `)](https://git-lfs.github.com/) installed. 
+
+If you are a conda user, please consider creating a new environment before
+ installation:
+ 
+ `conda create -n astropaint python=3.7`
+ 
+ `conda activate astropaint`
+
 
 # Workflow
 
@@ -35,6 +48,14 @@ That's it! Now you can check out your masterpiece using
 `canvas.show_map()`
 
 ![BG](images/BG_websky_cover.png)
+
+
+# Package Structure 
+
+While there is no external documentation for the code yet, you can use [this
+ link](https://www.mindmeister.com/1417665103/astropaint-astropaint-py?fullscreen=1)
+ to understand the package structure and see what methods are available so
+  far. 
 
 
 # Examples
