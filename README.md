@@ -16,8 +16,7 @@ the `-e` argument will install the package in editable mode which is suitable fo
 **Important Note**:
 If you want the sample catalogs to be cloned automatically
  along with the
- rest of the repository, make sure you have [Git Large File Storage (`git lfs
- `)](https://git-lfs.github.com/) installed. 
+ rest of the repository, make sure you have [Git Large File Storage (`git lfs`)](https://git-lfs.github.com/) installed. 
 
 If you are a conda user, please consider creating a new environment before
  installation:
