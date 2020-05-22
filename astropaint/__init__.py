@@ -1,5 +1,5 @@
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from .paint_bucket import Catalog, Canvas, Painter
-from .lib import transform, utilities
-from .lib.utilities import LOS_integrate, interpolate
+from .lib import transform, utils
+from .lib.utils import LOS_integrate, interpolate

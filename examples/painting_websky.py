@@ -1,17 +1,17 @@
 from astropaint import Catalog, Canvas, Painter
 from astropaint.profiles import NFW, Battaglia16
-from astropaint.lib.utilities import timeit
+from astropaint.lib.utils import timeit
 from astropy.cosmology import Planck18_arXiv_v2 as cosmo
 import matplotlib.pyplot as plt
 
 h = cosmo.h
-nside = 4096
+nside = 8192
 n_halos = None  # Set to an integer to sample the catalog (e.g. 5000)
 
-lon_range = [0, 1]  # degrees
-lat_range = [0, 1]  # degrees
+lon_range = [0, 2]  # degrees
+lat_range = [0, 2]  # degrees
 
-mass_cut = 1E13  # M_sun
+mass_cut = 5E12  # M_sun
 
 with timeit("painting the websky catalog"):
 
@@ -33,18 +33,17 @@ with timeit("painting the websky catalog"):
 					nside=nside,
 					R_times=5)
 
-	## to use the Battaglia16 model use:
-	painter = Painter(template=Battaglia16.kSZ_T)
-
 	## to use the NFW model use:
-	#painter = Painter(template=NFW.kSZ_T)
+	painter = Painter(template=NFW.kSZ_T)
+
+	## to use the Battaglia16 model use:
+	# painter = Painter(template=Battaglia16.kSZ_T)
 
 	painter.spray(canvas,
 				  #cache=True, ## uncomment to cache the profiles to disc; makes the painting slower
-				  #with_ray=True, ##uncomment to paint in parallel; do not use with cache=True
-					)
+				   )
 
-	canvas.save_map_to_file(prefix="websky_Battaglia16", suffix="1x1")
+	canvas.save_map_to_file(prefix="websky_NFW", suffix="2x2")
 
 	canvas.show_map("cartesian",
 					lonra=lon_range, latra=lat_range,

@@ -28,7 +28,7 @@ except ModuleNotFoundError:
     warn("Healpy is not installed. You cannot use the full sky canvas without it.")
 
 from astropy.coordinates import cartesian_to_spherical
-from .lib import transform, utilities
+from .lib import transform, utils
 
 # find the package path; same as __path__
 path_dir = os.path.dirname(os.path.abspath(__file__))
@@ -2008,7 +2008,7 @@ class Canvas:
             lmax = 3 * self.nside -1
         if Cl is "LCDM":
             # TODO: add lmax implementation
-            Cl_file = utilities.get_CMB_Cl(lmax=lmax, mode=mode)
+            Cl_file = utils.get_CMB_Cl(lmax=lmax, mode=mode)
             Cl = Cl_file
 
         # TODO: add to __init__ and make readonly?
@@ -2111,7 +2111,7 @@ class Canvas:
 
         assert mode == "TT", "Currently only temperature is supported."
 
-        noise_yml = utilities.load_noise_yaml()
+        noise_yml = utils.load_noise_yaml()
         noise_experiments = noise_yml.keys()
 
         if lmax is None:
@@ -2123,14 +2123,14 @@ class Canvas:
         elif Nl in noise_experiments:
             # check to see if the name is in the noise.yml file
             print(f"Loading noise configuration for {Nl} from astropaint/lib/noise.yml\n")
-            Nl_exp = utilities.get_experiment_Nl(lmax=lmax, name=Nl, frequency=frequency,
-                                                 apply_beam=apply_beam)
+            Nl_exp = utils.get_experiment_Nl(lmax=lmax, name=Nl, frequency=frequency,
+                                             apply_beam=apply_beam)
             Nl = Nl_exp
         elif Nl.lower() == "white":
             # build a custom white noise model
             print(f"Building custom white noise configuration\n")
-            Nl_exp = utilities.get_custom_Nl(lmax=lmax, sigma_n=sigma_n, fwhm=fwhm_b,
-                                             frequency=frequency, apply_beam=apply_beam)
+            Nl_exp = utils.get_custom_Nl(lmax=lmax, sigma_n=sigma_n, fwhm=fwhm_b,
+                                         frequency=frequency, apply_beam=apply_beam)
             Nl = Nl_exp
 
         # TODO: add to __init__ and make readonly?
