@@ -52,7 +52,7 @@ That's it! Now you can check out your masterpiece using
 # Package Structure 
 
 While there is no external documentation for the code yet, you can use [this
- link](https://www.mindmeister.com/1417665103/astropaint-astropaint-py?fullscreen=1)
+ chart](https://www.mindmeister.com/1417665103/astropaint-astropaint-py?fullscreen=1)
  to understand the package structure and see what methods are available so
   far. 
 
