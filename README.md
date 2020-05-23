@@ -3,6 +3,8 @@
 # AstroPaint
 _A python package for painting the sky_ 
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/syasini/AstroPaint/master?filepath=tutorial.ipynb)
+
 You can install **AstroPaint** by running the following in the command line:
 
 `git clone https://github.com/syasini/AstroPaint.git`
