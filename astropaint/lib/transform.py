@@ -270,3 +270,15 @@ def rotate_patch(patch, angle):
     return rotated_patch
 
 
+def taper_patch(patch):
+    """taper the patch to smooth out the edges"""
+
+    # construct the hanning window
+    nx = patch.shape[0]
+    han = np.hanning(nx)
+    han2d = np.outer(han, han)
+
+    patch *= han2d
+
+    return patch
+
