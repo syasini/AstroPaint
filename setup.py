@@ -27,6 +27,6 @@ setup(
     url='https://github.com/syasini/AstroPaint',
     license='MIT',
     author=['Siavash Yasini', 'Marcelo Alvarez', 'Emmanuel Schaan'],
-    author_email=['yasini@usc.edu', 'malvarez@lbl.gov', 'eschaan@lbl.gov'],
+    author_email=['yasini@usc.edu', 'marcelo.alvarez@berkeley.edu', 'eschaan@lbl.gov'],
     description='a python package for creating mock maps of astrophysical signals from halo catalog'
     )
