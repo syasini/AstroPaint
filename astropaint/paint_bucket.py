@@ -3,7 +3,7 @@ library for simulating semi-analytic mock maps of CMB secondary anisotropies
 """
 
 __author__ = ["Siavash Yasini", "Marcelo Alvarez"]
-__email__ = ["yasini@usc.edu", "malvarez@lbl.gov"]
+__email__ = ["yasini@usc.edu", "marcelo.alvarez@berkeley.edu"]
 
 import os
 import warnings
