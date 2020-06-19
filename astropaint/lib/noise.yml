@@ -28,6 +28,21 @@ SO: #LAT http://arxiv.org/abs/1907.04473
     sigma_T: 22. # uK-arcmin
     sigma_P: 31.1 # uK-arcmin
 
+SO_Goal: #LAT http://arxiv.org/abs/1907.04473
+  # frequencies
+  93:
+    fwhm: 2.2 # arcmin
+    sigma_T: 5.8 # uK
+    sigma_P: 8.2 # uK
+  145:
+    fwhm: 1.4 # arcmin
+    sigma_T: 6.3 # uK-arcmin
+    sigma_P: 8.9 # uK-arcmin
+  225:
+    fwhm: 1. # arcmin
+    sigma_T: 15. # uK-arcmin
+    sigma_P: 21.2 # uK-arcmin
+
 S4: #LAT https://cmb-s4.org/wiki/index.php/Survey_Performance_Expectations
   # frequencies
   93:
