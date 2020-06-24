@@ -2210,6 +2210,7 @@ class Canvas:
 
         if inplace:
             self._alm = alm
+            self._pixel_is_outdated = True
             self._Cl_is_outdated = True
 
         else:
