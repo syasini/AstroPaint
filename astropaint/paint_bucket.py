@@ -1964,6 +1964,7 @@ class Canvas:
                 lmax=None,
                 inplace=True,
                 weight=1,
+                overwrite=False,
                 *args,
                 **kwargs):
         """
@@ -2014,7 +2015,8 @@ class Canvas:
         # TODO: add to __init__ and make readonly?
         try:
             self.cmb # see if self.cmb exists and raise an error if it does
-            raise CMBAlreadyAdded("CMB has been already added. You can remove it using "
+            if not overwrite:
+                raise CMBAlreadyAdded("CMB has been already added. You can remove it using "
                                   "canvas.remove_cmb()")
         except AttributeError:
             # add self.cmb if it does not already exist
