@@ -1362,7 +1362,7 @@ class Canvas:
     def _viewer(self,
                 map_,
                 projection="mollview",
-                #graticule=True,
+                apply_func=None,
                 min=None,
                 max=None,
                 *args,
@@ -1377,6 +1377,9 @@ class Canvas:
 
         # select healpy projection type (e.g. mollview, cartview)
         hp_viewer = self._proj_dict[projection]
+
+        if apply_func:
+            map_ = apply_func(map_)
 
         #if graticule: hp.graticule()
 
@@ -1455,13 +1458,13 @@ class Canvas:
 
     def show_map(self,
                  projection="mollweide",
-                 graticule=True,
+                 apply_func=None,
                  *args,
                  **kwargs):
 
         self._viewer(self.pixels,
                      projection=projection,
-                     #graticule=graticule,
+                     apply_func=apply_func,
                      *args,
                      **kwargs,
                      )
