@@ -1326,7 +1326,7 @@ class Canvas:
     def get_pixels_from_alm(self):
         """get the map from the alm coefficients"""
 
-        self._pixels = hp.map2alm(self._alm, lmax=self.lmax)
+        self._pixels = hp.alm2map(self._alm, nside=self.nside, lmax=self.lmax)
         print("pixels saved in canvas.pixels")
         self._pixel_is_outdated = False
 
