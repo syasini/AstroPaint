@@ -1326,7 +1326,7 @@ class Canvas:
     def get_pixels_from_alm(self):
         """get the map from the alm coefficients"""
 
-        self._pixels = hp.map2alm(self._alm, lmax=self.lmax)
+        self._pixels = hp.alm2map(self._alm, nside=self.nside, lmax=self.lmax)
         print("pixels saved in canvas.pixels")
         self._pixel_is_outdated = False
 
@@ -1362,7 +1362,7 @@ class Canvas:
     def _viewer(self,
                 map_,
                 projection="mollview",
-                #graticule=True,
+                apply_func=None,
                 min=None,
                 max=None,
                 *args,
@@ -1377,6 +1377,9 @@ class Canvas:
 
         # select healpy projection type (e.g. mollview, cartview)
         hp_viewer = self._proj_dict[projection]
+
+        if apply_func:
+            map_ = apply_func(map_)
 
         #if graticule: hp.graticule()
 
@@ -1455,13 +1458,13 @@ class Canvas:
 
     def show_map(self,
                  projection="mollweide",
-                 graticule=True,
+                 apply_func=None,
                  *args,
                  **kwargs):
 
         self._viewer(self.pixels,
                      projection=projection,
-                     #graticule=graticule,
+                     apply_func=apply_func,
                      *args,
                      **kwargs,
                      )
@@ -1964,6 +1967,7 @@ class Canvas:
                 lmax=None,
                 inplace=True,
                 weight=1,
+                overwrite=False,
                 *args,
                 **kwargs):
         """
@@ -2014,7 +2018,8 @@ class Canvas:
         # TODO: add to __init__ and make readonly?
         try:
             self.cmb # see if self.cmb exists and raise an error if it does
-            raise CMBAlreadyAdded("CMB has been already added. You can remove it using "
+            if not overwrite:
+                raise CMBAlreadyAdded("CMB has been already added. You can remove it using "
                                   "canvas.remove_cmb()")
         except AttributeError:
             # add self.cmb if it does not already exist
@@ -2210,6 +2215,7 @@ class Canvas:
 
         if inplace:
             self._alm = alm
+            self._pixel_is_outdated = True
             self._Cl_is_outdated = True
 
         else:
