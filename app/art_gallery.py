@@ -13,12 +13,13 @@ import healpy as hp
 from astropaint.profiles import art_gallery
 from astropaint import Catalog, Canvas, Painter
 
-nside = 512  # map resolution
+nside = 256  # map resolution
 fig_dpi = 150
 template_dict = {"drops": art_gallery.drops,
                  "bacteria": art_gallery.bacteria,
                  "twilight": art_gallery.twilight}
 
+st.markdown(
 """
 # AstroPaint Art Gallery 
 Created by [Siavash Yasini](https://github.com/syasini) & [Shobeir K. S. Mazinani](
@@ -28,6 +29,7 @@ https://github.com/S-KSM)
 Check out [AstroPaint](https://github.com/syasini/AstroPaint) on GitHub and 
 press that star button to show you support! ️🤩👉⭐ 
 """
+    )
 
 st.sidebar.markdown(
     """
@@ -52,7 +54,7 @@ st.sidebar.markdown(
 n_tot = st.sidebar.number_input("number of halos",
                       value=500,
                       min_value=0,
-                      max_value=5000)
+                      max_value=10000)
 
 # select the shell radius (distance from center)
 shell_radius = st.sidebar.number_input("shell radius [mega parsecs]",
@@ -195,19 +197,19 @@ st.sidebar.markdown(
     ### Examples to try
     
     
-    **Drops**
+    **drops**
     - *number of halos*: 300
     - *shell radius*: 20
     - *R x* : 6 
     - *colormap*: Blues
     
-    **Twilight**
+    **twilight**
     - *number of halos*: 5000
     - *shell radius*: 350
     - *R x* : 10
     - *colormap*: guess!
     
-    **Bacteria**
+    **bacteria**
     - *number of halos*: 1000
     - *shell radius*: 40
     - *R x* : 3 
