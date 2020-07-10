@@ -29,14 +29,14 @@ def drops(R, R_200c, x, y, z):
     return droplet
 
 
-def sponge(R, R_200c, M_200c, x):
-    """profile to emulate pores in a sponge...
+def bacteria(R, R_200c, M_200c, x):
+    """Are these microbes?
     use with cm.Greys_r colormap
     """
 
-    pore = np.log(M_200c) * np.exp(-(2 * (R - 1) / R_200c) ** 2) * x
-    pore -= np.log(M_200c) ** 2 * np.exp(-(4 * R / R_200c) ** 2)
-    return pore
+    microbe = np.log(M_200c) * np.exp(-(2 * (R - 1) / R_200c) ** 2) * x
+    microbe -= np.log(M_200c) ** 2 * np.exp(-(4 * R / R_200c) ** 2)
+    return microbe
 
 
 def twilight(R, R_200c, x, y, z):
