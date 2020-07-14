@@ -246,6 +246,18 @@ And here is what it looks like:
 <img src="images/ksz_map_battaglia.png" alt="ksz_map" height="300"/>
 </p>
 
+
+# Art Gallery 
+
+Just because AstroPaint is developed for probing new science and doing
+ serious stuff, it doesn't mean you can't have fun with it! Check out our
+  [cool web app](https://astropaint-art-gallery.herokuapp.com/) to get your hands dirty with some paint. 
+
+**Made with AstroPaint**
+
+<img src="images/blue_drops.png" height="250">  <img src="images/spongy_terror.png" height="250">  <img src="images/burning_twilight.png" height="250">
+
+
 # How to contribute
 
 If you would like to contribute to AstroPaint, take the following steps:
