@@ -5,16 +5,14 @@ tags:
   - astrophysics
   - simulation
   - extragalactic foregrounds
-  
 authors:
   - name: Siavash Yasini^[corresponding author]
-    orcid: 
+    orcid: 0000-0003-1978-6325
     affiliation: 1 
   - name: Marcelo Alvarez 
     affiliation: "2, 3"
   - name: Emmanuel Schaan 
     affiliation: "2, 3"
-    
 affiliations:
  - name: University of Southern California 
    index: 1
