@@ -12,14 +12,19 @@ authors:
   - name: Marcelo Alvarez 
     affiliation: "2, 3"
   - name: Emmanuel Schaan 
+    orcid: 0000-0002-4619-8927
     affiliation: "2, 3"
+  - name: Shobeir K. S. Mazinani
+    affiliation: "4"
 affiliations:
  - name: University of Southern California 
    index: 1
  - name: University of California, Berkeley 
    index: 2
- - name: Lawrence Berkeley National Labratory
+ - name: Lawrence Berkeley National Laboratory
    index: 3
+ - name: Aetna Inc.
+   index: 4
 date:  31 July 2020
 bibliography: paper.bib
 
@@ -29,33 +34,32 @@ bibliography: paper.bib
 # aas-journal: Astrophysical Journal <- The name of the AAS journal.
 ---
 
-# Definitions 
-
-halo catalog:
-profile: 
-
-
 # Summary
 
 `AstroPaint` is a python package for simulating and visualizing
  mock maps of astrophysical signals. The
   code takes in a halo catalog and the radial profile of an astrophysical
-   signal from user and then combines the two to paint a whole-sky mock map of
+   signal from the user and then combines the two to paint a whole-sky mock
+    map of
     the observable at
-    high resolution \autoref{sec:workflow}. `AstroPaint` also contains a
+    high resolution (see the workflow \autoref{sec:workflow} for details
+    ). `AstroPaint` also contains a
      variety of methods that
      facilitate analysis routines such as data filtering, map manipulation
      , and cutout stacking. The package has an Object-Oriented structure and
-      runs in parallel, making it scalable for use with large catalogs and
-       high resolutions.  
+      runs in parallel, making it scalable for production of high resolution
+       maps with large underlying catalogs.  
           
      
 
-![BG](../images/BG_websky_cover.png)
+![Map of the Birkinshaw-Gull effect painter with astropaint on top of the
+ WebSky catalog](../images/BG_websky_cover.png)
 
 # Statement of need 
+
 whole-sky high resolution maps of astrophysical signals at various frequencies
- extragalactc foregrounds
+
+extragalactc foregrounds
  
 correlations 
 enables wrapping low-level languages (e.g., C) for speed without losing
