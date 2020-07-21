@@ -29,11 +29,29 @@ bibliography: paper.bib
 # aas-journal: Astrophysical Journal <- The name of the AAS journal.
 ---
 
+# Definitions 
+
+halo catalog:
+profile: 
+
+
 # Summary
 
 `AstroPaint` is a python package for simulating and visualizing
- maps of astrophysical signals with arbitrary spatial (radial) profiles.   
+ mock maps of astrophysical signals. The
+  code takes in a halo catalog and the radial profile of an astrophysical
+   signal from user and then combines the two to paint a whole-sky mock map of
+    the observable at
+    high resolution \autoref{sec:workflow}. `AstroPaint` also contains a
+     variety of methods that
+     facilitate analysis routines such as data filtering, map manipulation
+     , and cutout stacking. The package has an Object-Oriented structure and
+      runs in parallel, making it scalable for use with large catalogs and
+       high resolutions.  
+          
+     
 
+![BG](../images/BG_websky_cover.png)
 
 # Statement of need 
 whole-sky high resolution maps of astrophysical signals at various frequencies
@@ -59,7 +77,7 @@ design, and support for Astropy functionality in `Gala` will enable exciting
 scientific explorations of forthcoming data releases from the *Gaia* mission
 [@gaia] by students and experts alike.
 
-# Package Structure and Workflow
+# Package Structure and Workflow \label{sec:workflow}
 
 `AstroPaint` consists of three main objects that interact with each other
 : `Catalog`, `Canvas`, and `Painter`. 
