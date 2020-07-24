@@ -38,7 +38,7 @@ bibliography: paper.bib
 # aas-journal: Astrophysical Journal <- The name of the AAS journal.
 ---
 
-# Summary
+# Overview 
 
 `AstroPaint` is a python package for simulating and visualizing
  mock maps of astrophysical signals. The
@@ -90,6 +90,8 @@ Creating realistic maps of astrophysical effects through
 
 `AstroPaint` consists of three main objects that interact with each other
 : `Catalog`, `Canvas`, and `Painter`. 
+
+
 `Catalog` contains the locations, velocities, and masses of the objects. 
 `Canvas` contains the map of the astrophysical signal in healpix format. 
 `Painter` contains the template for the radial profile of the signal to be
@@ -110,30 +112,16 @@ painter.spray(canvas)
 
 Here `input_data` is the dataframe that holds the locations, velocities, and
  masses of the halos. `nside` is a parameter in `healpy` that determines the
-  resolution of the map (`npix = 12 * nside ** 2)`. And finally
+  total number of pixels (`npix = 12 * nside ** 2)` and
+   consequently the resolution of the map . Finally
   , `radial_profile` is a one-dimensional function that determines the shape
-   of the profile.   
-
-
-
-# Citations
-
-Citations to entries in paper.bib should be in
-[rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
-format. [@Sehgal:2010]
-
-If you want to cite a software repository URL (e.g. something on GitHub without a preferred
-citation) then you can do it with the example BibTeX entry below for @fidgit.
-
-For a quick reference, the following citation commands can be used:
-- `@author:2001`  ->  "Author et al. (2001)"
-- `[@author:2001]` -> "(Author et al., 2001)"
-- `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)"
+   of the profile. A mind map visualization of the package structure can be
+    found in [here](https://www.mindmeister.com/1417665103/astropaint
+    -astropaint-py?fullscreen=1).   
 
 
 # Acknowledgements
 
-We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
-Oh, and support from Kathryn Johnston during the genesis of this project.
+We acknowledge contributions from ... during the genesis of this project.
 
 # References
