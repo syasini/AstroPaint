@@ -2288,8 +2288,6 @@ class Painter:
     def spray(self,
               canvas,
               distance_units="Mpc",
-              #with_ray=False,
-              #parallel=True,
               n_cpus=-1,
               cache=False,
               lazy=False,
@@ -2393,7 +2391,6 @@ class Painter:
             print("Spraying in parallel...")
 
             # count the number of available cpus
-            # import psutil
             if n_cpus is -1 or n_cpus>(os.cpu_count()):
                 n_cpus = (os.cpu_count())
 
