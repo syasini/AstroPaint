@@ -2368,7 +2368,7 @@ class Painter:
                 spray_df.loc[:, column] = snap2grid(data, column_grid)
 
         if n_cpus is 0:
-            print(f"ERROR! n_cpus = {n_cpus} is not valid. Please enter a value > 0 for n_cpus or -1 to run on all cores.")
+            raise ValueError(f"n_cpus = {n_cpus} is not valid. Please enter a value > 0 for n_cpus or -1 to run on all cores.")
             return
         if n_cpus is 1:
 
