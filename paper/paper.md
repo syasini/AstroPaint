@@ -17,7 +17,9 @@ authors:
   - name: Karime Maamari
     affiliation: 1
   - name: Shobeir K. S. Mazinani
-    affiliation: "4"
+    affiliation: 4
+  - name: Elena Pierpaoli
+    affiliation: 1
 affiliations:
  - name: University of Southern California 
    index: 1
@@ -41,21 +43,20 @@ bibliography: paper.bib
 `AstroPaint` is a python package for simulating and visualizing
  mock maps of astrophysical signals. The
   code takes in a halo catalog and the radial profile of an astrophysical
-   signal from the user and then combines the two to paint a whole-sky mock
-    map of
-    the observable at
+   signal from the user, then combines the two to paint a whole-sky mock
+    map of the observable at
     high resolution (see the workflow \autoref{sec:workflow} for details
     ). `AstroPaint` also contains a
      variety of methods that
      facilitate analysis routines such as data filtering, map manipulation
-     , and cutout stacking. The package has an Object-Oriented structure and
-      runs in parallel, making it scalable for production of high resolution
+     , and cutout stacking. The package has an Object-Oriented design and
+      runs in parallel, making it both easy to use and scale for
+       production of high resolution
        maps with large underlying catalogs.  
           
-     
 
 ![Map of the Birkinshaw-Gull effect painted with astropaint on top of the
- WebSky catalog](../images/BG_websky_cover.png)
+ WebSky catalog \label{fig:BG}](../images/BG_websky_cover.png)
 
 # Statement of need 
 
@@ -70,28 +71,27 @@ Studying the large scale structure of the universe heavily relies on
       noise (foregrounds) components. For example, in a study that aims
        to evaluate the detection significance of the Birkinshaw-Gull (BG)
        effect to measure transverse velocities of halos using the Simons
-        Observatory or CMB-S4, one needs a mock map of BG 
-        as well as maps of potential contaminants such as kSZ or tSZ for the
-         same set of objects.  
+        Observatory or CMB-S4, one needs a mock map of the BG effect \autoref{fig:BG} 
+        as well as maps of potential contaminants such as kinetic and
+         thermal Sunyaev-Zeldovich effects (kSZ and tSZ) for the
+         same set of objects. 
      
 Creating realistic maps of astrophysical effects through
  hydrodynamical simulations can be prohibitive for large numbers of objects
  . An alternative strategy to creating mock observations of extended objects
   such as galaxies and galaxy cluster halos would be to simulate the
-   positions of
-   these objects (either semi-analytically or through N-body
-    simulations)
-  and then synthetically paint the desired signal at the location of the
-   halos. `AstroPaint` is developed to accomplish this latter step.  
- 
-
+   positions of these objects (either semi-analytically or through N-body
+    simulations) and then synthetically paint the desired signal at the
+     location of the halos. `AstroPaint` is developed to accomplish this
+      latter step.  
  
 
 # Package Structure and Workflow \label{sec:workflow}
 
+
 `AstroPaint` consists of three main objects that interact with each other
 : `Catalog`, `Canvas`, and `Painter`. 
-*`Catalog`* contains the locations, velocities, and masses of the objects. 
+`Catalog` contains the locations, velocities, and masses of the objects. 
 `Canvas` contains the map of the astrophysical signal in healpix format. 
 `Painter` contains the template for the radial profile of the signal to be
  painetd on the `Canvas` in circular discs centered at the location of the
@@ -100,7 +100,6 @@ Creating realistic maps of astrophysical effects through
 
  These objects are sequentially passed into each other according to the
   following workflow: 
-
 
 ```python
 from astropaint import Catalog, Canvas, Painter
@@ -122,7 +121,7 @@ Here `input_data` is the dataframe that holds the locations, velocities, and
 
 Citations to entries in paper.bib should be in
 [rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
-format.
+format. [@Sehgal:2010]
 
 If you want to cite a software repository URL (e.g. something on GitHub without a preferred
 citation) then you can do it with the example BibTeX entry below for @fidgit.
@@ -132,17 +131,6 @@ For a quick reference, the following citation commands can be used:
 - `[@author:2001]` -> "(Author et al., 2001)"
 - `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)"
 
-# Figures
-
-Figures can be included like this:
-![Caption for example figure.\label{fig:example}](figure.png)
-and referenced from text using \autoref{fig:example}.
-
-Fenced code blocks are rendered with syntax highlighting:
-```python
-for n in range(10):
-    yield f(n)
-```	
 
 # Acknowledgements
 
