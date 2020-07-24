@@ -14,6 +14,8 @@ authors:
   - name: Emmanuel Schaan 
     orcid: 0000-0002-4619-8927
     affiliation: "2, 3"
+  - name: Karime Maamari
+    affiliation: 1
   - name: Shobeir K. S. Mazinani
     affiliation: "4"
 affiliations:
@@ -52,34 +54,38 @@ bibliography: paper.bib
           
      
 
-![Map of the Birkinshaw-Gull effect painter with astropaint on top of the
+![Map of the Birkinshaw-Gull effect painted with astropaint on top of the
  WebSky catalog](../images/BG_websky_cover.png)
 
 # Statement of need 
 
-whole-sky high resolution maps of astrophysical signals at various frequencies
-
-extragalactc foregrounds
+Studying the large scale structure of the universe heavily relies on
+ observations of astrophysical signals at various frequencies. Examples of such
+  studies include detection or characterization of objects such as galaxies
+  , clusters, or voids
+   through either gravitaional lensing, electromagnetic scattering
+   , absorption or emission events in the optical, radio, or x-ray
+    frequency bands. Such studies typically require simulated high resolution
+     maps of various astrophysical effects to emulate both the signal and
+      noise (foregrounds) components. For example, in a study that aims
+       to evaluate the detection significance of the Birkinshaw-Gull (BG)
+       effect to measure transverse velocities of halos using the Simons
+        Observatory or CMB-S4, one needs a mock map of BG 
+        as well as maps of potential contaminants such as kSZ or tSZ for the
+         same set of objects.  
+     
+Creating realistic maps of astrophysical effects through
+ hydrodynamical simulations can be prohibitive for large numbers of objects
+ . An alternative strategy to creating mock observations of extended objects
+  such as galaxies and galaxy cluster halos would be to simulate the
+   positions of
+   these objects (either semi-analytically or through N-body
+    simulations)
+  and then synthetically paint the desired signal at the location of the
+   halos. `AstroPaint` is developed to accomplish this latter step.  
  
-correlations 
-enables wrapping low-level languages (e.g., C) for speed without losing
-flexibility or ease-of-use in the user-interface. The API for `Gala` was
-designed to provide a class-based and user-friendly interface to fast (C or
-Cython-optimized) implementations of common operations such as gravitational
-potential and force evaluation, orbit integration, dynamical transformations,
-and chaos indicators for nonlinear dynamics. `Gala` also relies heavily on and
-interfaces well with the implementations of physical units and astronomical
-coordinate systems in the `Astropy` package [@astropy] (`astropy.units` and
-`astropy.coordinates`).
 
-`Gala` was designed to be used by both astronomical researchers and by
-students in courses on gravitational dynamics or astronomy. It has already been
-used in a number of scientific publications [@Pearson:2017] and has also been
-used in graduate courses on Galactic dynamics to, e.g., provide interactive
-visualizations of textbook material [@Binney:2008]. The combination of speed,
-design, and support for Astropy functionality in `Gala` will enable exciting
-scientific explorations of forthcoming data releases from the *Gaia* mission
-[@gaia] by students and experts alike.
+ 
 
 # Package Structure and Workflow \label{sec:workflow}
 
@@ -98,13 +104,9 @@ scientific explorations of forthcoming data releases from the *Gaia* mission
 
 ```python
 from astropaint import Catalog, Canvas, Painter
-
 catalog = Catalog(data=input_data)
-
 canvas = Canvas(catalog, nside)
-
 painter = Painter(template=radial_profile)
-
 painter.spray(canvas)
 ```
 
