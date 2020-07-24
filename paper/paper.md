@@ -45,7 +45,7 @@ bibliography: paper.bib
   code takes in a halo catalog and the radial profile of an astrophysical
    signal from the user, then combines the two to paint a whole-sky mock
     map of the observable at
-    high resolution (see the workflow \autoref{sec:workflow} for details
+    high resolution (see the workflow section for details
     ). `AstroPaint` also contains a
      variety of methods that
      facilitate analysis routines such as data filtering, map manipulation
@@ -85,7 +85,6 @@ Creating realistic maps of astrophysical effects through
      location of the halos. `AstroPaint` is developed to accomplish this
       latter step.  
  
-\label{sec:workflow}
 # Package Structure and Workflow 
 
 
