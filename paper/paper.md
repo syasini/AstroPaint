@@ -85,8 +85,8 @@ Creating realistic maps of astrophysical effects through
      location of the halos. `AstroPaint` is developed to accomplish this
       latter step.  
  
-
-# Package Structure and Workflow \label{sec:workflow}
+\label{sec:workflow}
+# Package Structure and Workflow 
 
 
 `AstroPaint` consists of three main objects that interact with each other
