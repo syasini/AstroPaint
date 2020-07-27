@@ -59,7 +59,7 @@ bibliography: paper.bib
        maps with large underlying catalogs.  
           
 
-![Map of the Birkinshaw-Gull effect painted with astropaint on top of the
+![Map of the Birkinshaw-Gull effect painted with AstroPaint on top of the
  WebSky catalog \label{fig:BG}](../images/BG_websky_cover.png)
 
 # Statement of need 
@@ -90,7 +90,8 @@ Creating realistic maps of astrophysical effects through
  . An alternative strategy to creating mock observations of extended objects
   such as galaxies and galaxy cluster halos would be to simulate the
    positions of these objects (either semi-analytically or through N-body
-    simulations [@Stein:2020; @Sehgal:2010]) and then synthetically paint the
+    simulations [@Stein:2020; @Stein:2018; @Sehgal:2010]) and then synthetically
+     paint the
      desired signal at the
      location of the halos. `AstroPaint` is developed to accomplish this
       latter step.  
@@ -115,9 +116,11 @@ Creating realistic maps of astrophysical effects through
 
 ```python
 from astropaint import Catalog, Canvas, Painter
+
 catalog = Catalog(data=input_data)
 canvas = Canvas(catalog, nside)
 painter = Painter(template=radial_profile)
+
 painter.spray(canvas)
 ```
 
