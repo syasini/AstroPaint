@@ -4,6 +4,7 @@ tags:
   - python
   - astrophysics
   - simulation
+  - visualization
   - extragalactic foregrounds
 authors:
   - name: Siavash Yasini^[corresponding author]
@@ -124,7 +125,9 @@ painter = Painter(template=radial_profile)
 painter.spray(canvas)
 ```
 
-Here `input_data` is the dataframe that holds the locations, velocities, and
+The output map array can be accessed via `canvas.pixels` or directly
+ visualized using `canvas.show_map()`. Here `input_data` is the dataframe that
+  hold the locations, velocities, and
  masses of the halos. `nside` is a parameter in `healpy` that determines the
   total number of pixels (`npix = 12 * nside ** 2)` and
    consequently the resolution of the map . Finally
@@ -136,6 +139,7 @@ Here `input_data` is the dataframe that holds the locations, velocities, and
 
 # Acknowledgements
 
-We acknowledge contributions from ... during the genesis of this project.
+SY is grateful to the BCCP group at UC Berkeley for their hospitality during
+ Summer 2019 where this project was inaugurated.
 
 # References
