@@ -16,6 +16,11 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.ERROR)
 
+# Mass transformation
+from colossus.halo import mass_defs
+from colossus.cosmology import cosmology
+from colossus.halo import mass_so
+cosmology.setCosmology('planck15')  # this probably needs to be synced with the rest
 
 # ------------------------
 #        constants
@@ -103,6 +108,68 @@ def M_to_tau(M):
     tau = sigma_T * x_e * X_H * (1-f_s) * f_b * M / mu / m_p
 
     return tau
+
+
+
+def Mh2Mvir(M, M_orignal, M_convert, z, c = None):
+
+    """
+    Converts a given mass based on a new defenition.
+    M float:
+          Mass of a given cluster, e.g. 1.5e14 M_{odot}/h
+          
+    M_orignal str:
+          The original mass definiton, e.g. '200c'
+
+    M_convert str:
+          The mass definiton that we want the original mass converted to, e.g. '666m'
+
+    z float:
+          Redshift
+
+    c float, Optional:
+          Concentration parameter
+    """
+    if c == None:
+
+        c = 5
+
+    M_new = mass_defs.changeMassDefinition(M, c, z, M_orignal, M_convert)[0]
+
+    return M_new
+
+
+def rh2rvir(r, r_orignal, r_convert, z, c = None):
+
+    """
+    Converts a given radius based on a new defenition.
+    r float:
+          radius of a given cluster, e.g. 1234.0 kpc
+          
+    r_orignal str:
+          The original radius definiton, e.g. '200c'
+
+    r_convert str:
+          The radius definiton that we want the original radius converted to, e.g. '666m'
+
+    z float:
+          Redshift
+
+    c float, Optional:
+          Concentration parameter
+    """
+    if c == None:
+
+        c = 5
+
+    r_new = mass_defs.changeMassDefinition(r, c, z, r_orignal, r_convert)[1]
+
+    return r_new
+
+
+
+
+
 # ------------------------
 # Distance Transformations
 # ------------------------
