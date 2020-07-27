@@ -15,9 +15,11 @@ authors:
     orcid: 0000-0002-4619-8927
     affiliation: "2, 3"
   - name: Karime Maamari
-    affiliation: 1
+    affiliation: "1, 5"
   - name: Shobeir K. S. Mazinani
     affiliation: 4
+  - name: Nareg Mirzatuny
+    affiliation: 1
   - name: Elena Pierpaoli
     affiliation: 1
 affiliations:
@@ -29,6 +31,8 @@ affiliations:
    index: 3
  - name: Aetna Inc.
    index: 4
+ - name: Argonne National Lab 
+   index: 5
 date:  31 July 2020
 bibliography: paper.bib
 
@@ -70,18 +74,24 @@ Studying the large scale structure of the universe heavily relies on
      maps of various astrophysical effects to emulate both the signal and
       noise (foregrounds) components. For example, in a study that aims
        to evaluate the detection significance of the Birkinshaw-Gull (BG)
-       effect to measure transverse velocities of halos using the Simons
-        Observatory or CMB-S4, one needs a mock map of the BG effect \autoref{fig:BG} 
+       effect [@Birkinshaw:1983; @Yasini:2018] to measure transverse
+        velocities of halos
+        using the Simons
+        Observatory [@SO:2019] or CMB-S4 [@CMB-S4:2019], one needs a mock
+         map of the BG effect
+         \autoref{fig:BG} 
         as well as maps of potential contaminants such as kinetic and
-         thermal Sunyaev-Zeldovich effects (kSZ and tSZ) for the
+         thermal Sunyaev-Zeldovich effects (kSZ and tSZ) [@Sunyaev:1970] for the
          same set of objects. 
      
 Creating realistic maps of astrophysical effects through
- hydrodynamical simulations can be prohibitive for large numbers of objects
+ hydrodynamical simulations [@Dolag:2015] can be prohibitive for large
+  numbers of objects
  . An alternative strategy to creating mock observations of extended objects
   such as galaxies and galaxy cluster halos would be to simulate the
    positions of these objects (either semi-analytically or through N-body
-    simulations) and then synthetically paint the desired signal at the
+    simulations [@Stein:2020; @Sehgal:2010]) and then synthetically paint the
+     desired signal at the
      location of the halos. `AstroPaint` is developed to accomplish this
       latter step.  
  
@@ -89,11 +99,12 @@ Creating realistic maps of astrophysical effects through
 
 
 `AstroPaint` consists of three main objects that interact with each other
-: `Catalog`, `Canvas`, and `Painter`. 
+\: `Catalog`, `Canvas`, and `Painter`. 
 
 
 `Catalog` contains the locations, velocities, and masses of the objects. 
-`Canvas` contains the map of the astrophysical signal in healpix format. 
+`Canvas` contains the map of the astrophysical signal in HEALPix format
+ [@Healpy:2019]. 
 `Painter` contains the template for the radial profile of the signal to be
  painetd on the `Canvas` in circular discs centered at the location of the
   halos in the
