@@ -50,16 +50,12 @@ bibliography: paper.bib
   combine an input halo catalog and the radial profile of an astrophysical
    effect to paint a whole-sky mock
     map of the signal/observable at
-    arbitrary resolution (see the workflow section for details
-    ). `AstroPaint` also contains a
+    arbitrary resolution (see the workflow section for details). `AstroPaint` also contains a
      variety of tools that
-     facilitate analysis routines such as catalog filtering, map manipulation
-     , and cutout stacking. The package has an Object-Oriented design and
+     facilitate analysis routines such as catalog filtering, map manipulation, and cutout stacking. The package has an Object-Oriented design and
       runs in parallel, making it both easy to use and ready to scale for
-       production of high resolution
-       maps with large underlying catalogs. Although the package has been
-        primarily developed to simulate signals pertinent to galaxy clusters
-        , its application extends to halos of arbitrary size or even point
+       production of high resolution maps with large underlying catalogs. Although the package has been
+        primarily developed to simulate signals pertinent to galaxy clusters, its application extends to halos of arbitrary size or even point
          sources. 
              
           
@@ -71,10 +67,8 @@ bibliography: paper.bib
 
 Studying the large scale structure of the universe heavily relies on
  observations of astrophysical signals at various frequencies. Examples of such
-  studies include detection or characterization of objects such as galaxies
-  , clusters, or voids
-   through either gravitaional lensing, electromagnetic scattering
-   , absorption or emission events in the optical, radio, or x-ray
+  studies include detection or characterization of objects such as galaxies, clusters, or voids
+   through either gravitaional lensing, electromagnetic scattering, absorption or emission events in the optical, radio, or x-ray
     frequency bands. Such studies typically require simulated high resolution
      maps of various astrophysical effects to emulate both the signal and
       noise (foregrounds) components. For example, in a study that aims
@@ -83,8 +77,7 @@ Studying the large scale structure of the universe heavily relies on
         velocities of halos
         using the Simons
         Observatory [@SO:2019] or CMB-S4 [@CMB-S4:2019], one needs a mock
-         map of the BG effect
-         \autoref{fig:BG} 
+         map of the BG effect \autoref{fig:BG} 
         as well as maps of potential contaminants such as kinetic and
          thermal Sunyaev-Zeldovich effects (kSZ and tSZ) [@Sunyaev:1970] for the
          same set of objects. 
