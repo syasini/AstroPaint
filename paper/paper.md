@@ -1,5 +1,5 @@
 ---
-title: 'AstroPaint: A Python Package for Painting the Sky'
+title: 'AstroPaint: A Python Package for Painting Halo Catalogs'
 tags:
   - python
   - astrophysics
@@ -46,18 +46,22 @@ bibliography: paper.bib
 # Overview 
 
 `AstroPaint` is a python package for simulating and visualizing
- mock maps of astrophysical signals. The
-  code takes in a halo catalog and the radial profile of an astrophysical
-   signal from the user, then combines the two to paint a whole-sky mock
-    map of the observable at
-    high resolution (see the workflow section for details
+ mock maps of astrophysical signals. The primary use case of the code is to
+  combine an input halo catalog and the radial profile of an astrophysical
+   effect to paint a whole-sky mock
+    map of the signal/observable at
+    arbitrary resolution (see the workflow section for details
     ). `AstroPaint` also contains a
-     variety of methods that
-     facilitate analysis routines such as data filtering, map manipulation
+     variety of tools that
+     facilitate analysis routines such as catalog filtering, map manipulation
      , and cutout stacking. The package has an Object-Oriented design and
-      runs in parallel, making it both easy to use and scale for
+      runs in parallel, making it both easy to use and ready to scale for
        production of high resolution
-       maps with large underlying catalogs.  
+       maps with large underlying catalogs. Although the package has been
+        primarily developed to simulate signals pertinent to galaxy clusters
+        , its application extends to halos of arbitrary size or even point
+         sources. 
+             
           
 
 ![Map of the Birkinshaw-Gull effect painted with AstroPaint on top of the
@@ -85,16 +89,16 @@ Studying the large scale structure of the universe heavily relies on
          thermal Sunyaev-Zeldovich effects (kSZ and tSZ) [@Sunyaev:1970] for the
          same set of objects. 
      
-Creating realistic maps of astrophysical effects through
- hydrodynamical simulations [@Dolag:2015] can be prohibitive for large
-  numbers of objects
- . An alternative strategy to creating mock observations of extended objects
+While it is possible to create realistic maps of astrophysical effects through
+ hydrodynamical simulations [@Dolag:2015], these methods are numerically
+  expensive for large numbers of objects and reproducing them under different
+   cosmologies and initial conditions can be prohibitive. An alternative
+    strategy to creating mock observations of extended objects
   such as galaxies and galaxy cluster halos would be to simulate the
    positions of these objects (either semi-analytically or through N-body
     simulations [@Stein:2020; @Stein:2018; @Sehgal:2010]) and then synthetically
-     paint the
-     desired signal at the
-     location of the halos. `AstroPaint` is developed to accomplish this
+     paint the desired signal at the location of the halos. `AstroPaint` is
+      developed to accomplish this
       latter step.  
  
 # Package Structure and Workflow 
