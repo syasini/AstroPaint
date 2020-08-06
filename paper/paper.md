@@ -46,14 +46,9 @@ bibliography: paper.bib
 # Overview 
 
 `AstroPaint` is a python package for simulating and visualizing
- mock maps of astrophysical signals. The primary use case of the code is to
-  combine an input halo catalog and the radial profile of an astrophysical
-   effect to paint a whole-sky mock
-    map of the signal/observable at
-    arbitrary resolution (see the workflow section for details). `AstroPaint` also contains a
-     variety of tools that
-     facilitate analysis routines such as catalog filtering, map manipulation, and cutout stacking. The package has an Object-Oriented design and
-      runs in parallel, making it both easy to use and ready to scale for
+ mock maps of astrophysical signals. `AstroPaint` paints a whole-sky mock map of the signal/observables, at a desired resolution, by combining an input halo catalog and the radial profile of an astrophysical effect (see the workflow section for details). It also provides a suite of tools that
+     can facilitate analysis routines such as catalog filtering, map manipulation, and cutout stacking. The package has an Object-Oriented design and
+      runs in parallel, making it both easy to use and readily scalable for
        production of high resolution maps with large underlying catalogs. Although the package has been
         primarily developed to simulate signals pertinent to galaxy clusters, its application extends to halos of arbitrary size or even point
          sources. 
@@ -71,28 +66,26 @@ Studying the large scale structure of the universe heavily relies on
    through either gravitaional lensing, electromagnetic scattering, absorption or emission events in the optical, radio, or x-ray
     frequency bands. Such studies typically require simulated high resolution
      maps of various astrophysical effects to emulate both the signal and
-      noise (foregrounds) components. For example, in a study that aims
-       to evaluate the detection significance of the Birkinshaw-Gull (BG)
-       effect [@Birkinshaw:1983; @Yasini:2018] to measure transverse
-        velocities of halos
-        using the Simons
-        Observatory [@SO:2019] or CMB-S4 [@CMB-S4:2019], one needs a mock
+      noise (foregrounds) components. For example, one needs a mock
          map of the BG effect \autoref{fig:BG} 
         as well as maps of potential contaminants such as kinetic and
          thermal Sunyaev-Zeldovich effects (kSZ and tSZ) [@Sunyaev:1970] for the
-         same set of objects. 
+         same set of objects to evaluate the detection significance of the Birkinshaw-Gull (BG)
+       effect [@Birkinshaw:1983; @Yasini:2018] and consequently measure transverse
+        velocities of halos
+        using the Simons
+        Observatory [@SO:2019] or CMB-S4 [@CMB-S4:2019]. 
      
 While it is possible to create realistic maps of astrophysical effects through
  hydrodynamical simulations [@Dolag:2015], these methods are numerically
   expensive for large numbers of objects and reproducing them under different
    cosmologies and initial conditions can be prohibitive. An alternative
-    strategy to creating mock observations of extended objects
-  such as galaxies and galaxy cluster halos would be to simulate the
+    strategy for creating mock observations of extended objects
+  such as galaxies and galaxy cluster halos is to simulate the
    positions of these objects (either semi-analytically or through N-body
     simulations [@Stein:2020; @Stein:2018; @Sehgal:2010]) and then synthetically
      paint the desired signal at the location of the halos. `AstroPaint` is
-      developed to accomplish this
-      latter step.  
+      developed to help researchers creating mock maps using the latter strategy.  
  
 # Package Structure and Workflow 
 
