@@ -2288,8 +2288,7 @@ class Painter:
     def spray(self,
               canvas,
               distance_units="Mpc",
-              #with_ray=False,
-              parallel=True,
+              n_cpus=-1,
               cache=False,
               lazy=False,
               lazy_grid=None,
@@ -2366,9 +2365,9 @@ class Painter:
 
                 spray_df.loc[:, column] = snap2grid(data, column_grid)
 
-
-        if not parallel:
-
+        if n_cpus is 0:
+            raise ValueError(f"n_cpus = {n_cpus} is not valid. Please enter a value > 0 for n_cpus or -1 to run on all cores.")
+        if n_cpus is 1:
 
             for halo, R, pixel_index in tqdm(zip(range(canvas.catalog.size),
                                                   R_pix2cent(),
@@ -2382,8 +2381,7 @@ class Painter:
                           template(**spray_dict))
 
 
-        elif parallel:
-
+        else:
             # FIXME: Add memmap support for the pixels
             # pixel_memmap_filename = os.path.join(path_dir, 'output_memmap')
             # output = np.memmap(pixel_memmap_filename, dtype=canvas.pixels.dtype,
@@ -2393,8 +2391,9 @@ class Painter:
             print("Spraying in parallel...")
 
             # count the number of available cpus
-            # import psutil
-            n_cpus = (os.cpu_count())
+            if n_cpus is -1 or n_cpus>(os.cpu_count()):
+                n_cpus = (os.cpu_count())
+
             canvas_memory_size = getsizeof(canvas.pixels)
             print(f"\ncanvas memory size [GB]: {canvas_memory_size / 1024 ** 3}\n")
             print(f"n_cpus = {n_cpus}")
