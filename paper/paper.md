@@ -47,7 +47,7 @@ bibliography: paper.bib
 # Overview 
 
 `AstroPaint` is a python package for generating and visualizing
- sky maps of a wide range of astrophysical signals, in particular from dark
+ sky maps of a wide range of astrophysical signals originating from dark
   matter halos or the gas that they host. `AstroPaint` creates a whole-sky mock map of 
  the target signal/observable, at a desired resolution, by combining an input
   halo catalog and the radial/angular profile of the astrophysical effect
@@ -72,8 +72,7 @@ bibliography: paper.bib
 Studying the large scale structure of the universe heavily relies on
  observations of astrophysical signals at various frequencies. Examples of such
   studies include detection or characterization of objects such as galaxies, clusters, or voids
-   through either gravitational lensing, electromagnetic scattering
-   , absorption or emission events in the optical, radio, or x-ray
+   through either gravitational lensing, electromagnetic scattering, absorption or emission events in the optical, radio, or x-ray
     frequency bands. Such studies typically require simulated high resolution
      maps of various astrophysical effects to emulate both the signal and
       noise (foregrounds) components. For example, in a study that aims	
