@@ -112,9 +112,9 @@ canvas.show_map("cartview", lonra=[0,10], latra=[0,10])
 
 _Voila!_
 
+You can use the `n_cpus` argument in the spray function to paint in parallel and speed things up! 
+The default value `n_cpus=-1` uses all the available cpus.   
 
-If you have more than 1 cpu (why wouldn't you?) use `parallel=True` in the
- spray function to paint in parallel and speed things up!
 <p align="center">
 <img src="images/parallel.gif" alt="parallel" width="450"/>
 </p>
