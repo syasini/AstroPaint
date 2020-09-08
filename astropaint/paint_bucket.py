@@ -1667,12 +1667,15 @@ class Canvas:
         #pdb.set_trace()
 
         # make sure that apply func and func_kwargs are lists for consistency
+        # each element indicates a function (to be applied to the cutout) and its corresponding kwargs
         if apply_func is not None:
+            # maybe a single function was passed instead of a list
             if not isinstance(apply_func, list):
+                # in that case turn it into a list
                 apply_func = [apply_func]
-                # make sure func_kwargs is not a list
+                # and make sure func_kwargs is not a list already
                 assert not isinstance(func_kwargs, list)
-                # and then turn it into a list
+                # and then turn that into a list as well
                 func_kwargs = [func_kwargs]
 
             else:
@@ -1683,6 +1686,7 @@ class Canvas:
         # if func_kwargs are scalars, extend then to the size of the catalog
         # TODO: rewrite using _check_template_args()?
 
+        # make a list of
         func_kwargs_df_list = []
         for f_kw in func_kwargs:
             for key, value in f_kw.items():
@@ -1690,16 +1694,16 @@ class Canvas:
                     f_kw[key] = [value]
 
 
-            func_kwargs_df = pd.DataFrame(f_kw)
-            if len(func_kwargs_df) == 1:
-                func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
-                                           ignore_index=True)
-
-            # make sure the df index matches the halo_list
-            if len(func_kwargs_df.index) == len(halo_list):
-                func_kwargs_df.index = halo_list
-
-            func_kwargs_df_list.append(func_kwargs_df)
+            # func_kwargs_df = pd.DataFrame(f_kw)
+            # if len(func_kwargs_df) == 1:
+            #     func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
+            #                                ignore_index=True)
+            #
+            # # make sure the df index matches the halo_list
+            # if len(func_kwargs_df.index) == len(halo_list):
+            #     func_kwargs_df.index = halo_list
+            #
+            # func_kwargs_df_list.append(func_kwargs_df)
 
         cart_projector = hp.projector.CartesianProj(lonra=lon_range, latra=lat_range,
                                                     xsize=xpix, ysize=ypix,
