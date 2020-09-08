@@ -43,7 +43,7 @@ SO_Goal: #LAT http://arxiv.org/abs/1907.04473
     sigma_T: 15. # uK-arcmin
     sigma_P: 21.2 # uK-arcmin
 
-S4: #LAT https://cmb-s4.org/wiki/index.php/Survey_Performance_Expectations
+S4: &S4 #LAT https://cmb-s4.org/wiki/index.php/Survey_Performance_Expectations
   # frequencies
   93:
     fwhm: 2.2 # arcmin
@@ -58,3 +58,19 @@ S4: #LAT https://cmb-s4.org/wiki/index.php/Survey_Performance_Expectations
     sigma_T: 4.8 # uK-arcmin
     sigma_P: 6.8 # uK-arcmin
 
+CMB-S4: *S4 #alias for S4
+
+CMB-HD: #LAT https://cmb-s4.org/wiki/index.php/Survey_Performance_Expectations
+  # frequencies
+  90:
+    fwhm: 0.42 # arcmin
+    sigma_T: 0.7 # uK
+    sigma_P: 1.0 # uK
+  150:
+    fwhm: 0.25 # arcmin
+    sigma_T: 0.8 # uK-arcmin
+    sigma_P: 1.1 # uK-arcmin
+  220:
+    fwhm: 0.17 # arcmin
+    sigma_T: 2.0 # uK-arcmin
+    sigma_P: 2.8 # uK-arcmin
