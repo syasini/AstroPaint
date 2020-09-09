@@ -1,0 +1,476 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>astropaint.profiles package &#8212; AstroPaint  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="astropaint-profiles-package">
+<h1>astropaint.profiles package<a class="headerlink" href="#astropaint-profiles-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-astropaint.profiles.Battaglia16">
+<span id="astropaint-profiles-battaglia16-module"></span><h2>astropaint.profiles.Battaglia16 module<a class="headerlink" href="#module-astropaint.profiles.Battaglia16" title="Permalink to this headline">¶</a></h2>
+<p>library containing [projected] gas profiles</p>
+<p>E. Schaan:
+Tau profile, from Battaglia 2016
+watch typos in paper. This code is correct.</p>
+<dl class="py function">
+<dt id="astropaint.profiles.Battaglia16.kSZ_T">
+<code class="sig-prename descclassname">astropaint.profiles.Battaglia16.</code><code class="sig-name descname">kSZ_T</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">v_r</span></em>, <em class="sig-param"><span class="n">redshift</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">T_cmb</span><span class="o">=</span><span class="default_value">2.7251</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.Battaglia16.kSZ_T" title="Permalink to this definition">¶</a></dt>
+<dd><p>kinetic Sunyaev Zeldovich effect
+#TODO: add reference</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.Battaglia16.ne_2D">
+<code class="sig-prename descclassname">astropaint.profiles.Battaglia16.</code><code class="sig-name descname">ne_2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">redshift</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.Battaglia16.ne_2D" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>2D physical electron number density profile in 1/(Mpc/h)^3</dt><dd><p>assuming fully ionized gas and primordial He abundance</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>arraylike</em><em>, </em><em>float</em>) – 2D projected distance from the center of the halo</p></li>
+<li><p><strong>R_200c</strong> (<em>float</em><em> [</em><em>Mpc/h</em><em>]</em>) – comoving radius of the halo</p></li>
+<li><p><strong>M_200c</strong> (<em>float</em><em> [</em><em>Msun/h</em><em>]</em>) – mass of the halo</p></li>
+<li><p><strong>redshift</strong> – redshift of the halo</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.Battaglia16.ne_3D">
+<code class="sig-prename descclassname">astropaint.profiles.Battaglia16.</code><code class="sig-name descname">ne_3D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">redshift</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.Battaglia16.ne_3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>3D physical electron number density profile in 1/(Mpc/h)^3
+assuming fully ionized gas and primordial He abundance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>arraylike</em><em>, </em><em>float</em>) – 3D distance from the center of the halo</p></li>
+<li><p><strong>R_200c</strong> (<em>float</em><em> [</em><em>Mpc/h</em><em>]</em>) – comoving radius of the halo</p></li>
+<li><p><strong>M_200c</strong> (<em>float</em><em> [</em><em>Msun/h</em><em>]</em>) – mass of the halo</p></li>
+<li><p><strong>redshift</strong> – redshift of the halo</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.Battaglia16.rho_gas_2D">
+<code class="sig-prename descclassname">astropaint.profiles.Battaglia16.</code><code class="sig-name descname">rho_gas_2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">redshift</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.Battaglia16.rho_gas_2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>2D physical gas density profile in (Msun/h) / (Mpc/h)^3</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>arraylike</em><em>, </em><em>float</em>) – 2D projected distance from the center of the halo</p></li>
+<li><p><strong>R_200c</strong> (<em>float</em><em> [</em><em>Mpc/h</em><em>]</em>) – comoving radius of the halo</p></li>
+<li><p><strong>M_200c</strong> (<em>float</em><em> [</em><em>Msun/h</em><em>]</em>) – mass of the halo</p></li>
+<li><p><strong>redshift</strong> – redshift of the halo</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.Battaglia16.rho_gas_2D_interp">
+<code class="sig-prename descclassname">astropaint.profiles.Battaglia16.</code><code class="sig-name descname">rho_gas_2D_interp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">redshift</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.Battaglia16.rho_gas_2D_interp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolated version of rho_gas_2D
+2D physical gas density profile in (Msun/h) / (Mpc/h)^3</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>arraylike</em><em>, </em><em>float</em>) – 2D projected distance from the center of the halo</p></li>
+<li><p><strong>R_200c</strong> (<em>float</em><em> [</em><em>Mpc/h</em><em>]</em>) – comoving radius of the halo</p></li>
+<li><p><strong>M_200c</strong> (<em>float</em><em> [</em><em>Msun/h</em><em>]</em>) – mass of the halo</p></li>
+<li><p><strong>redshift</strong> – redshift of the halo</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.Battaglia16.rho_gas_3D">
+<code class="sig-prename descclassname">astropaint.profiles.Battaglia16.</code><code class="sig-name descname">rho_gas_3D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">redshift</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.Battaglia16.rho_gas_3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>3D physical gas density profile in (Msun/h) / (Mpc/h)^3</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>arraylike</em><em>, </em><em>float</em>) – 3D distance from the center of the halo</p></li>
+<li><p><strong>R_200c</strong> (<em>float</em><em> [</em><em>Mpc/h</em><em>]</em>) – comoving radius of the halo</p></li>
+<li><p><strong>M_200c</strong> (<em>float</em><em> [</em><em>Msun/h</em><em>]</em>) – mass of the halo</p></li>
+<li><p><strong>redshift</strong> – redshift of the halo</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.Battaglia16.tau_2D">
+<code class="sig-prename descclassname">astropaint.profiles.Battaglia16.</code><code class="sig-name descname">tau_2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">redshift</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.Battaglia16.tau_2D" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Thompson scattering optical depth 2D projected profile in 1/(Mpc/h) comoving</dt><dd><p>ie you get the 2D tau profile by projecting this profile
+along the physical (not comoving) radial coordinate
+assuming fully ionized gas and primordial He abundance</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>arraylike</em><em>, </em><em>float</em>) – 2D projected distance from the center of the halo</p></li>
+<li><p><strong>R_200c</strong> (<em>float</em><em> [</em><em>Mpc/h</em><em>]</em>) – comoving radius of the halo</p></li>
+<li><p><strong>M_200c</strong> (<em>float</em><em> [</em><em>Msun/h</em><em>]</em>) – mass of the halo</p></li>
+<li><p><strong>redshift</strong> – redshift of the halo</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.Battaglia16.tau_2D_interp">
+<code class="sig-prename descclassname">astropaint.profiles.Battaglia16.</code><code class="sig-name descname">tau_2D_interp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">redshift</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.Battaglia16.tau_2D_interp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolated version of tau_2D:
+Thompson scattering optical depth 2D projected profile in 1/(Mpc/h) comoving
+ie you get the 2D tau profile by projecting this profile
+along the physical (not comoving) radial coordinate
+assuming fully ionized gas and primordial He abundance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> (<em>arraylike</em><em>, </em><em>float</em>) – 2D projected distance from the center of the halo</p></li>
+<li><p><strong>R_200c</strong> (<em>float</em><em> [</em><em>Mpc/h</em><em>]</em>) – comoving radius of the halo</p></li>
+<li><p><strong>M_200c</strong> (<em>float</em><em> [</em><em>Msun/h</em><em>]</em>) – mass of the halo</p></li>
+<li><p><strong>redshift</strong> – redshift of the halo</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.Battaglia16.tau_3D">
+<code class="sig-prename descclassname">astropaint.profiles.Battaglia16.</code><code class="sig-name descname">tau_3D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">redshift</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.Battaglia16.tau_3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thompson scattering optical depth 3D profile in 1/(Mpc/h) comoving
+ie you get the 2D tau profile by projecting this profile
+along the physical (not comoving) radial coordinate
+assuming fully ionized gas and primordial He abundance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>arraylike</em><em>, </em><em>float</em>) – 3D distance from the center of the halo</p></li>
+<li><p><strong>R_200c</strong> (<em>float</em><em> [</em><em>Mpc/h</em><em>]</em>) – comoving radius of the halo</p></li>
+<li><p><strong>M_200c</strong> (<em>float</em><em> [</em><em>Msun/h</em><em>]</em>) – mass of the halo</p></li>
+<li><p><strong>redshift</strong> – redshift of the halo</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-astropaint.profiles.NFW">
+<span id="astropaint-profiles-nfw-module"></span><h2>astropaint.profiles.NFW module<a class="headerlink" href="#module-astropaint.profiles.NFW" title="Permalink to this headline">¶</a></h2>
+<p>library containing [projected] halo profiles</p>
+<dl class="py function">
+<dt id="astropaint.profiles.NFW.BG">
+<code class="sig-prename descclassname">astropaint.profiles.NFW.</code><code class="sig-name descname">BG</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R_vec</span></em>, <em class="sig-param"><span class="n">c_200c</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">theta</span></em>, <em class="sig-param"><span class="n">phi</span></em>, <em class="sig-param"><span class="n">v_th</span></em>, <em class="sig-param"><span class="n">v_ph</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">T_cmb</span><span class="o">=</span><span class="default_value">2.7251</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.NFW.BG" title="Permalink to this definition">¶</a></dt>
+<dd><p>Birkinshaw-Gull effect
+aka moving lens
+aka Rees-Sciama (moving gravitational potential)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.NFW.deflection_angle">
+<code class="sig-prename descclassname">astropaint.profiles.NFW.</code><code class="sig-name descname">deflection_angle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">c_200c</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">suppress</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">suppression_R</span><span class="o">=</span><span class="default_value">8</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.NFW.deflection_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the deflection angle of a halo with NFW profile
+Using Eq 6 in Baxter et al 2015 (1412.7521)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R</strong> – distance from the center of halo [Mpc]</p></li>
+<li><p><strong>c_200c</strong> – halo concentration parameter</p></li>
+<li><p><strong>R_200c</strong> – halo 200c radius in [Mpc]</p></li>
+<li><p><strong>M_200c</strong> – halo 200c mass of halo in M_sun</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>the deflection angle at distance R from the center of halo</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.NFW.kSZ_T">
+<code class="sig-prename descclassname">astropaint.profiles.NFW.</code><code class="sig-name descname">kSZ_T</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">rho_s</span></em>, <em class="sig-param"><span class="n">R_s</span></em>, <em class="sig-param"><span class="n">v_r</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">T_cmb</span><span class="o">=</span><span class="default_value">2.7251</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.NFW.kSZ_T" title="Permalink to this definition">¶</a></dt>
+<dd><p>kinetic Sunyaev Zeldovich effect
+#TODO: add reference</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.NFW.rho_2D">
+<code class="sig-prename descclassname">astropaint.profiles.NFW.</code><code class="sig-name descname">rho_2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">rho_s</span></em>, <em class="sig-param"><span class="n">R_s</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.NFW.rho_2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>3D NFW profile intgrated along the line of sight</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>surface mass density</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>[M_sun/Mpc^2]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.NFW.rho_2D_bartlemann">
+<code class="sig-prename descclassname">astropaint.profiles.NFW.</code><code class="sig-name descname">rho_2D_bartlemann</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">rho_s</span></em>, <em class="sig-param"><span class="n">R_s</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.NFW.rho_2D_bartlemann" title="Permalink to this definition">¶</a></dt>
+<dd><p>projected NFW mass profile
+Eq. 7 in Bartlemann 1996: <a class="reference external" href="https://arxiv.org/abs/astro-ph/9602053">https://arxiv.org/abs/astro-ph/9602053</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>surface mass density</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>[M_sun/Mpc^2]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.NFW.rho_2D_interp">
+<code class="sig-prename descclassname">astropaint.profiles.NFW.</code><code class="sig-name descname">rho_2D_interp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">rho_s</span></em>, <em class="sig-param"><span class="n">R_s</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.NFW.rho_2D_interp" title="Permalink to this definition">¶</a></dt>
+<dd><p>3D NFW profile intgrated along a sampled number of line of sights
+and then interpolated</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>surface mass density</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>[M_sun/Mpc^2]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.NFW.rho_3D">
+<code class="sig-prename descclassname">astropaint.profiles.NFW.</code><code class="sig-name descname">rho_3D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">rho_s</span></em>, <em class="sig-param"><span class="n">r_s</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.NFW.rho_3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the 3D NFW density profile #TODO: add reference Eq.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> – distance from the center</p></li>
+<li><p><strong>rho_s</strong> – density at radius r_s</p></li>
+<li><p><strong>r_s</strong> – characterisic radius R_200c/c_200c</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>rho = 4 * rho_s * r_s ** 3 / r / (r + r_s) ** 2</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.NFW.tau_2D">
+<code class="sig-prename descclassname">astropaint.profiles.NFW.</code><code class="sig-name descname">tau_2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">rho_s</span></em>, <em class="sig-param"><span class="n">R_s</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.NFW.tau_2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>projected NFW tau profile
+Eq. 7 in Battaglia 2016 :</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>tau</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>[NA]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-astropaint.profiles.art_gallery">
+<span id="astropaint-profiles-art-gallery-module"></span><h2>astropaint.profiles.art_gallery module<a class="headerlink" href="#module-astropaint.profiles.art_gallery" title="Permalink to this headline">¶</a></h2>
+<p>library containing fun profiles!</p>
+<dl class="py function">
+<dt id="astropaint.profiles.art_gallery.bacteria">
+<code class="sig-prename descclassname">astropaint.profiles.art_gallery.</code><code class="sig-name descname">bacteria</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.art_gallery.bacteria" title="Permalink to this definition">¶</a></dt>
+<dd><p>Are these microbes?
+use with cm.Greys_r colormap</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.art_gallery.drops">
+<code class="sig-prename descclassname">astropaint.profiles.art_gallery.</code><code class="sig-name descname">drops</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">z</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.art_gallery.drops" title="Permalink to this definition">¶</a></dt>
+<dd><p>profile to emulate water droplets…
+use with cm.Blues colormap</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.art_gallery.twilight">
+<code class="sig-prename descclassname">astropaint.profiles.art_gallery.</code><code class="sig-name descname">twilight</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">R_200c</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">z</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.art_gallery.twilight" title="Permalink to this definition">¶</a></dt>
+<dd><p>nobody knows where this profile came from…
+use with cm.twilight profile</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-astropaint.profiles.spherical">
+<span id="astropaint-profiles-spherical-module"></span><h2>astropaint.profiles.spherical module<a class="headerlink" href="#module-astropaint.profiles.spherical" title="Permalink to this headline">¶</a></h2>
+<p>library containing simple [projected] spherical halo profiles</p>
+<dl class="py function">
+<dt id="astropaint.profiles.spherical.constant_density_2D">
+<code class="sig-prename descclassname">astropaint.profiles.spherical.</code><code class="sig-name descname">constant_density_2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">constant</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.spherical.constant_density_2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>return a constant value at every input r
+:param R: distance from the center
+:type R: [Mpc]
+:param constant: multiplicative constant</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>constant</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.spherical.linear_density_2D">
+<code class="sig-prename descclassname">astropaint.profiles.spherical.</code><code class="sig-name descname">linear_density_2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">intercept</span></em>, <em class="sig-param"><span class="n">slope</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.spherical.linear_density_2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>return a R*constant at every input R
+:param R: distance from the center
+:type R: [Mpc]
+:param intercept: intercept of the line
+:param slope: slope of the line</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>intercept</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.profiles.spherical.solid_sphere_2D">
+<code class="sig-prename descclassname">astropaint.profiles.spherical.</code><code class="sig-name descname">solid_sphere_2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">R_200c</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.profiles.spherical.solid_sphere_2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>projected mass density of uniform sphere
+:param r: distance from the center
+:type r: [Mpc]
+:param M_200c: total mass of the sphere
+:type M_200c: [M_sun]
+:param R_200c: total radius (edge) of the sphere
+:type R_200c: [Mpc]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Sigma = M_200c /2/pi * sqrt(R_tot**2 - r**2)/R_tot**3</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-astropaint.profiles">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-astropaint.profiles" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">AstroPaint</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">AstroPaint</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Siavash Yasini.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/source/astropaint.profiles.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
