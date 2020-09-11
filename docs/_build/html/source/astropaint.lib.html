@@ -1,0 +1,475 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>astropaint.lib package &#8212; AstroPaint  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="astropaint-lib-package">
+<h1>astropaint.lib package<a class="headerlink" href="#astropaint-lib-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-astropaint.lib.log">
+<span id="astropaint-lib-log-module"></span><h2>astropaint.lib.log module<a class="headerlink" href="#module-astropaint.lib.log" title="Permalink to this headline">¶</a></h2>
+<p>library for logging functions and classes</p>
+<dl class="py exception">
+<dt id="astropaint.lib.log.CMBAlreadyAdded">
+<em class="property">exception </em><code class="sig-prename descclassname">astropaint.lib.log.</code><code class="sig-name descname">CMBAlreadyAdded</code><a class="headerlink" href="#astropaint.lib.log.CMBAlreadyAdded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="astropaint.lib.log.NoiseAlreadyAdded">
+<em class="property">exception </em><code class="sig-prename descclassname">astropaint.lib.log.</code><code class="sig-name descname">NoiseAlreadyAdded</code><a class="headerlink" href="#astropaint.lib.log.NoiseAlreadyAdded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="astropaint.lib.log.ParameterNotFound">
+<em class="property">exception </em><code class="sig-prename descclassname">astropaint.lib.log.</code><code class="sig-name descname">ParameterNotFound</code><a class="headerlink" href="#astropaint.lib.log.ParameterNotFound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-astropaint.lib.plot_configs">
+<span id="astropaint-lib-plot-configs-module"></span><h2>astropaint.lib.plot_configs module<a class="headerlink" href="#module-astropaint.lib.plot_configs" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-astropaint.lib.transform">
+<span id="astropaint-lib-transform-module"></span><h2>astropaint.lib.transform module<a class="headerlink" href="#module-astropaint.lib.transform" title="Permalink to this headline">¶</a></h2>
+<p>library for transforming halo properties and coordinates</p>
+<dl class="py function">
+<dt id="astropaint.lib.transform.D_c_to_D_a">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">D_c_to_D_a</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">D_c</span></em>, <em class="sig-param"><span class="n">redshift</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.D_c_to_D_a" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the angular diameter distance (D_a) from comoving distance (D_c) and redshift (
+redshift)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.D_c_to_redshift">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">D_c_to_redshift</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">D_c</span></em>, <em class="sig-param"><span class="n">units</span><span class="o">=</span><span class="default_value">Unit('Mpc')</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.D_c_to_redshift" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the redshift from comoving distance (D_c)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.M_200c_to_R_200c">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">M_200c_to_R_200c</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">redshift</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.M_200c_to_R_200c" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate R_200c from M_200c at the given redshift
+see Eq. 1 in Huang et al 1701.04001</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.M_200c_to_c_200c">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">M_200c_to_c_200c</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">redshift</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.M_200c_to_c_200c" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the concentration parameter from M_200c at the given redshift
+use fitting formula in Eq 19 of Child et al 2018 (1804.10199)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.M_200c_to_rho_s">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">M_200c_to_rho_s</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">M_200c</span></em>, <em class="sig-param"><span class="n">redshift</span></em>, <em class="sig-param"><span class="n">R_200c</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">c_200c</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.M_200c_to_rho_s" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the NFW rho_s parameter from M_200c at the given redshift
+if R_200c and c_200c are not given, calculate them</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.M_to_tau">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">M_to_tau</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">M</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.M_to_tau" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.arcmin2rad">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">arcmin2rad</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">angle</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.arcmin2rad" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert arcmins to radians</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.convert_velocity_cart2sph">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">convert_velocity_cart2sph</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">th</span></em>, <em class="sig-param"><span class="n">ph</span></em>, <em class="sig-param"><span class="n">v_x</span></em>, <em class="sig-param"><span class="n">v_y</span></em>, <em class="sig-param"><span class="n">v_z</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.convert_velocity_cart2sph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.convert_velocity_sph2cart">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">convert_velocity_sph2cart</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">th</span></em>, <em class="sig-param"><span class="n">ph</span></em>, <em class="sig-param"><span class="n">v_r</span></em>, <em class="sig-param"><span class="n">v_th</span></em>, <em class="sig-param"><span class="n">v_ph</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.convert_velocity_sph2cart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the cartesian velocity components from the spherical ones</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.fwhm2sigma">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">fwhm2sigma</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fwhm</span></em>, <em class="sig-param"><span class="n">arcmin</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.fwhm2sigma" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert fwhm to sigma</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fwhm</strong> (<em>float</em>) – Full Width Half Maximum (fwhm)</p></li>
+<li><p><strong>arcmin</strong> (<em>bool</em>) – if True, fwhm will be converted from arcmin to rad</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>sigma</strong> – fwhm ** 2 / 8 / np.log(2)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float [rad]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.get_cart2sph_jacobian">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">get_cart2sph_jacobian</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">th</span></em>, <em class="sig-param"><span class="n">ph</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.get_cart2sph_jacobian" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the transformation matrix (jacobian) for spherical to cartesian coordinates at
+line of sight (th, ph) [radians]</p>
+<blockquote>
+<div><p>see <a class="reference external" href="https://en.wikipedia.org/wiki/Vector_fields_in_cylindrical_and_spherical_coordinates">https://en.wikipedia.org/wiki/Vector_fields_in_cylindrical_and_spherical_coordinates</a></p>
+<p>th is the polar angle with respect to z and ph is the azimuthal angle with respect to x</p>
+</div></blockquote>
+<p>example:</p>
+<p>th_rad = np.deg2rad(df[‘th’].values)
+ph_rad = np.deg2rad(df[‘ph’].values)</p>
+<p>v_cart = np.array([df[‘vx’],df[‘vy’],df[‘vz’]])</p>
+<p>thph_grid = np.array([th_rad,ph_rad])</p>
+<p>J_cart2sph = cart2sph2(th_rad,ph_rad)
+v_cart2sph = np.einsum(‘ij…,i…-&gt;j…’,J_cart2sph,v_cart)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.get_sph2cart_jacobian">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">get_sph2cart_jacobian</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">th</span></em>, <em class="sig-param"><span class="n">ph</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.get_sph2cart_jacobian" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the transformation matrix (jacobian) for spherical to cartesian coordinates at
+line of sight (th, ph) [radians]</p>
+<blockquote>
+<div><p>see <a class="reference external" href="https://en.wikipedia.org/wiki/Vector_fields_in_cylindrical_and_spherical_coordinates">https://en.wikipedia.org/wiki/Vector_fields_in_cylindrical_and_spherical_coordinates</a></p>
+<p>th is the polar angle with respect to z and ph is the azimuthal angle with respect to x</p>
+</div></blockquote>
+<p>example: see cart2sph2</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.rad2arcmin">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">rad2arcmin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">angle</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.rad2arcmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert radians to arcmins</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.radius_to_angsize">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">radius_to_angsize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">radius</span></em>, <em class="sig-param"><span class="n">D_a</span></em>, <em class="sig-param"><span class="n">arcmin</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.radius_to_angsize" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate  the angular radius (theta) of the halo from its radius and angular diameter
+distance (D_a).</p>
+<p>if arcmin == True: return the value in arcmin</p>
+<p><a href="#id1"><span class="problematic" id="id2">*</span></a>NOTE: radius and D_a must have the same units</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.rotate_patch">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">rotate_patch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patch</span></em>, <em class="sig-param"><span class="n">angle</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.rotate_patch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate input patch by angle [deg]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.transform.taper_patch">
+<code class="sig-prename descclassname">astropaint.lib.transform.</code><code class="sig-name descname">taper_patch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patch</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.transform.taper_patch" title="Permalink to this definition">¶</a></dt>
+<dd><p>taper the patch to smooth out the edges</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-astropaint.lib.utils">
+<span id="astropaint-lib-utils-module"></span><h2>astropaint.lib.utils module<a class="headerlink" href="#module-astropaint.lib.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="astropaint.lib.utils.LOS_integrate">
+<code class="sig-prename descclassname">astropaint.lib.utils.</code><code class="sig-name descname">LOS_integrate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">profile_3D</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.utils.LOS_integrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>integrate along the line of sight for all 3D r’s that correspond to the 2D R</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.utils.combine_Nl">
+<code class="sig-prename descclassname">astropaint.lib.utils.</code><code class="sig-name descname">combine_Nl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Nls</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.utils.combine_Nl" title="Permalink to this definition">¶</a></dt>
+<dd><p>combine the input noise power spectra</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Nls</strong> (<em>list</em>) – list of noise power spectra</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>combined noise power spectrum</em></p></li>
+<li><p><em>1/N_tot = 1/N1 + 1/N2 + …</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.utils.get_CMB_Cl">
+<code class="sig-prename descclassname">astropaint.lib.utils.</code><code class="sig-name descname">get_CMB_Cl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lmax</span></em>, <em class="sig-param"><span class="n">lmin</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'TT'</span></em>, <em class="sig-param"><span class="n">return_ell</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">uK</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.utils.get_CMB_Cl" title="Permalink to this definition">¶</a></dt>
+<dd><p>load Cl from camb generated Dl file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lmax</strong> (<em>int</em>) – max ell number</p></li>
+<li><p><strong>lmin</strong> (<em>int</em>) – min ell number</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – CMB mode to return (e.g. “TT”, “EE”, etc)</p></li>
+<li><p><strong>return_ell</strong> (<em>bool</em>) – if True, returns the corresponding ell array as well</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>Cl [K^2]</em></p></li>
+<li><p><em>or</em></p></li>
+<li><p><em>ell, Cl [K^2]</em></p></li>
+<li><p><strong>available keys in Cls</strong> (<em>L, TT, EE, BB, TE</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.utils.get_custom_B2l">
+<code class="sig-prename descclassname">astropaint.lib.utils.</code><code class="sig-name descname">get_custom_B2l</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fwhm</span></em>, <em class="sig-param"><span class="n">lmax</span></em>, <em class="sig-param"><span class="n">lmin</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">arcmin</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">return_ell</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.utils.get_custom_B2l" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the instrumental Beam power spectrum</p>
+<p>After smoothing the map with a beam of size fwhm, the power spectrum would be suppressed by a
+factor</p>
+<p>B2l= np.exp(-ell * (ell + 1) * sigma_b)</p>
+<p>where sigma_b = fwhm ** 2 / 8 / np.log(2)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>[</strong><strong>arcmin</strong><strong>]</strong> (<em>fwhm</em>) – beam fwhm in arcmins (or radians if arcmin=False)</p></li>
+<li><p><strong>lmax</strong> – maximum ell mode in the power spectrum</p></li>
+<li><p><strong>lmin</strong> – minimum ell mode in the power spectrum</p></li>
+<li><p><strong>arcmin</strong> (<em>bool</em>) – set to True if fwhm is in arcmin</p></li>
+<li><p><strong>return_ell</strong> (<em>bool</em>) – if True, returns the corresponding ell array as well</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>Bl^2</em></p></li>
+<li><p><em>or</em></p></li>
+<li><p><em>ell, Bl^2</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.utils.get_custom_Nl">
+<code class="sig-prename descclassname">astropaint.lib.utils.</code><code class="sig-name descname">get_custom_Nl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sigma_n</span></em>, <em class="sig-param"><span class="n">lmax</span></em>, <em class="sig-param"><span class="n">fwhm</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">frequency</span><span class="o">=</span><span class="default_value">[217]</span></em>, <em class="sig-param"><span class="n">lmin</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">apply_beam</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">uK</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">return_ell</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.utils.get_custom_Nl" title="Permalink to this definition">¶</a></dt>
+<dd><p>get temperature and polarization noise power spectra for a custom experiment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>[</strong><strong>uK-arcmin</strong><strong>]</strong> (<em>sigma_n</em>) – noise level in uK-arcmin
+can a scalar or an array for multiple channels
+the length must match that of fwhm</p></li>
+<li><p><strong>lmax</strong> (<em>scalar</em>) – maximum ell mode of the power spectrum</p></li>
+<li><p><strong>[</strong><strong>arcmin</strong><strong>]</strong> (<em>fwhm</em>) – beam fwhm in arcmins
+can be scalar or an array for multiple channels</p></li>
+<li><p><strong>lmin</strong> (<em>scalar</em>) – minimum ell mode of the power spectrum</p></li>
+<li><p><strong>apply_beam</strong> – if True, deconvolves the noise with beam</p></li>
+<li><p><strong>return_ell</strong> (<em>bool</em>) – if True, returns the corresponding ell array as well</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>Nl [K^2]</em></p></li>
+<li><p><em>or</em></p></li>
+<li><p><em>ell, Nl [K^2]</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.utils.get_experiment_Nl">
+<code class="sig-prename descclassname">astropaint.lib.utils.</code><code class="sig-name descname">get_experiment_Nl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lmax</span></em>, <em class="sig-param"><span class="n">lmin</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'Planck'</span></em>, <em class="sig-param"><span class="n">frequency</span><span class="o">=</span><span class="default_value">[217]</span></em>, <em class="sig-param"><span class="n">apply_beam</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">uK</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">return_ell</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.utils.get_experiment_Nl" title="Permalink to this definition">¶</a></dt>
+<dd><p>get temperature and polarization noise power spectra for various experiments</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lmax</strong> (<em>scalar</em>) – maximum ell mode of the power spectrum</p></li>
+<li><p><strong>lmin</strong> (<em>scalar</em>) – minimum ell mode of the power spectrum</p></li>
+<li><p><strong>name</strong> – name of the experiment
+string in [“Planck” , “SO” , “S4”]</p></li>
+<li><p><strong>apply_beam</strong> – if True, deconvolves the noise with beam</p></li>
+<li><p><strong>return_ell</strong> (<em>bool</em>) – if True, returns the corresponding ell array as well</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>Nl_TT [K^2]</em></p></li>
+<li><p><em>or</em></p></li>
+<li><p><em>ell, Nl_TT [K^2]</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.utils.interpolate">
+<code class="sig-prename descclassname">astropaint.lib.utils.</code><code class="sig-name descname">interpolate</code><span class="sig-paren">(</span><em class="sig-param">profile</em>, <em class="sig-param">n_samples=20</em>, <em class="sig-param">min_frac=None</em>, <em class="sig-param">sampling_method='linspace'</em>, <em class="sig-param">k=3</em>, <em class="sig-param">interpolator=&lt;class 'scipy.interpolate.fitpack2.InterpolatedUnivariateSpline'&gt;</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.utils.interpolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>interpolate the profile function instead of calculating it at every given R</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>profile</strong> – wrapped profile to be interpolated (implicit)</p></li>
+<li><p><strong>n_samples</strong> (<em>int</em>) – number of points to sample in R</p></li>
+<li><p><strong>min_frac</strong> (<em>float</em>) – <p>fraction of points in R to sample, unless n_sample is larger
+if min_frac: n_samples = max(n_samples, min_frac * len(R))</p>
+<p>e.g. for n_sample=10, min_frac=0.1 if len(R)=200, 20 (0.1*200) points will be sampled,
+but if len(R)=50 10 points will be sampled</p>
+</p></li>
+<li><p><strong>sampling_method</strong> (<em>str in</em><em> [</em><em>&quot;linspace&quot;</em><em>, </em><em>&quot;logspace&quot;</em><em>, </em><em>&quot;random&quot;</em><em>]</em>) – determines how the points are sampled</p></li>
+<li><p><strong>k</strong> (<em>int</em>) – interpolation order</p></li>
+<li><p><strong>interpolator</strong> (<em>func</em>) – interpolating function</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Interpolated profile</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.utils.load_Cl_Planck2018">
+<code class="sig-prename descclassname">astropaint.lib.utils.</code><code class="sig-name descname">load_Cl_Planck2018</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lmin</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.utils.load_Cl_Planck2018" title="Permalink to this definition">¶</a></dt>
+<dd><p>load Cl from camb generated Dl file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lmax</strong> (<em>max ell number</em>) – </p></li>
+<li><p><strong>lmin</strong> (<em>min ell number</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>Cls</em></p></li>
+<li><p><strong>available keys in Cls</strong> (<em>L, TT, EE, BB, TE</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.utils.load_noise_yaml">
+<code class="sig-prename descclassname">astropaint.lib.utils.</code><code class="sig-name descname">load_noise_yaml</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.utils.load_noise_yaml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.utils.sample_array">
+<code class="sig-prename descclassname">astropaint.lib.utils.</code><code class="sig-name descname">sample_array</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">array</span></em>, <em class="sig-param"><span class="n">n_samples</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'linspace'</span></em>, <em class="sig-param"><span class="n">eps</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.utils.sample_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>sample an input array</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="astropaint.lib.utils.timeit">
+<code class="sig-prename descclassname">astropaint.lib.utils.</code><code class="sig-name descname">timeit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">process_name</span><span class="o">=</span><span class="default_value">'Process'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.lib.utils.timeit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time the code in mins</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-astropaint.lib">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-astropaint.lib" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">AstroPaint</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">AstroPaint</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Siavash Yasini.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/source/astropaint.lib.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
