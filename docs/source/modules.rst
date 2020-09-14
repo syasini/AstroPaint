@@ -5,5 +5,3 @@ AstroPaint
    :maxdepth: 4
 
    astropaint
-   setup
-   tests
