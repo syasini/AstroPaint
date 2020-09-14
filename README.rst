@@ -2,9 +2,9 @@
    :format: html
 
 
-.. image:: images/logo.PNG
-   :target: images/logo.PNG
-   :height: 250
+.. image:: docs/images/logo.PNG
+   :target: docs/images/logo.PNG
+   :height: 150
 
 AstroPaint
 ==========
@@ -59,8 +59,8 @@ That's it! Now you can check out your masterpiece using
 ``canvas.show_map()``
 
 
-.. image:: images/BG_websky_cover.png
-   :target: images/BG_websky_cover.png
+.. image:: docs/images/BG_websky_cover.png
+   :target: docs/images/BG_websky_cover.png
    :alt: BG
 
 What is AstroPaint?
@@ -117,8 +117,8 @@ patch of the ``Sehgal`` catalog:
 
 
 
-.. image:: images/a_random_template.png
-   :target: images/a_random_template.png
+.. image:: docs/images/a_random_template.png
+   :target: docs/images/a_random_template.png
    :height: 300
    :align: center
 
@@ -135,9 +135,9 @@ with. Let's spray ths canvas now:
    canvas.show_map("cartview", lonra=[0,10], latra=[0,10])
 
 
-.. image:: images/a_random_map.png
-   :target: images/a_random_map.png
-   :height: 400
+.. image:: docs/images/a_random_map.png
+   :target: docs/images/a_random_map.png
+   :height: 300
    :align: center
 
 
@@ -174,7 +174,7 @@ You can easily stack cutouts of the map using the following:
 
 .. image:: docs/images/a_random_stack.png
    :target: docs/images/a_random_stack.png
-   :height: 300
+   :height: 200
    :align: center
 
 
@@ -244,7 +244,7 @@ exact integration.
 
 .. image:: docs/images/tophat_interp.png
    :align: center
-   :height: 300
+   :height: 200
 
 You can minimize this deviation by increasing the `n_samples` argument of the
 `@interpolate` decorator, but that will obviously decrease the painting speed.
@@ -266,8 +266,9 @@ kinetic Sunyaev-Zeldovich (kSZ) on the WebSky catalog halos.
 
 Since the shape of the profile is smooth, we won't lose accuracy by using the interpolator.
 
-.. image:: images/battaglia16_tau.png
-   :height: 300
+.. image:: docs/images/battaglia16_tau.png
+   :target: docs/images/battaglia16_tau.png
+   :height: 200
    :align: center
 
 
@@ -285,8 +286,9 @@ cut of 8E13 M_sun.
    tau_painter.spray(canvas)
 
 
-.. image:: images/tau_map_battaglia.png
-   :height: 300
+.. image:: docs/images/tau_map_battaglia.png
+   :target: docs/images/tau_map_battaglia.png
+   :height: 200
    :align: center
 
 The `Battaglia16.kSZ_T` function uses this tau and multiplies it by the
@@ -299,8 +301,9 @@ dimensionless velocity of the halos to get the kSZ signal.
 
 And here is what it looks like:
 
-.. image:: images/ksz_map_battaglia.png
-   :height: 300
+.. image:: docs/images/ksz_map_battaglia.png
+   :target: docs/images/ksz_map_battaglia.png
+   :height: 200
    :align: center
 
 
@@ -315,7 +318,7 @@ hands dirty with some paint.
 
 **Made with AstroPaint**
 
-:raw-html-m2r:`<img src="images/blue_drops.png" height="250">`  :raw-html-m2r:`<img src="images/spongy_terror.png" height="250">`  :raw-html-m2r:`<img src="images/burning_twilight.png" height="250">`
+:raw-html-m2r:`<img src="docs/images/blue_drops.png" height="250">`  :raw-html-m2r:`<img src="docs/images/spongy_terror.png" height="250">`  :raw-html-m2r:`<img src="docs/images/burning_twilight.png" height="250">`
 
 How to contribute
 =================
