@@ -8,7 +8,7 @@
 
 .. image:: ./images/logo.PNG
    :target: ./images/logo.PNG
-   :height: 150
+   :height: 250
 
 AstroPaint
 ==========
@@ -178,7 +178,7 @@ You can easily stack cutouts of the map using the following:
 
 .. image:: ./images/a_random_stack.png
    :target: ./images/a_random_stack.png
-   :height: 200
+   :height: 300
    :align: center
 
 
@@ -248,7 +248,7 @@ exact integration.
 
 .. image:: ./images/tophat_interp.png
    :align: center
-   :height: 200
+   :height: 300
 
 You can minimize this deviation by increasing the `n_samples` argument of the
 `@interpolate` decorator, but that will obviously decrease the painting speed.
@@ -272,7 +272,7 @@ Since the shape of the profile is smooth, we won't lose accuracy by using the in
 
 .. image:: ./images/battaglia16_tau.png
    :target: ./images/battaglia16_tau.png
-   :height: 200
+   :height: 300
    :align: center
 
 
@@ -292,7 +292,7 @@ cut of 8E13 M_sun.
 
 .. image:: ./images/tau_map_battaglia.png
    :target: ./images/tau_map_battaglia.png
-   :height: 200
+   :height: 300
    :align: center
 
 The `Battaglia16.kSZ_T` function uses this tau and multiplies it by the
@@ -307,7 +307,7 @@ And here is what it looks like:
 
 .. image:: ./images/ksz_map_battaglia.png
    :target: ./images/ksz_map_battaglia.png
-   :height: 200
+   :height: 300
    :align: center
 
 
@@ -322,7 +322,7 @@ hands dirty with some paint.
 
 **Made with AstroPaint**
 
-:raw-html-m2r:`<img src="./images/blue_drops.png" height="250">`  :raw-html-m2r:`<img src="./images/spongy_terror.png" height="250">`  :raw-html-m2r:`<img src="./images/burning_twilight.png" height="250">`
+:raw-html-m2r:`<img src="docs/images/blue_drops.png" height="250">`  :raw-html-m2r:`<img src="docs/images/spongy_terror.png" height="250">`  :raw-html-m2r:`<img src="docs/images/burning_twilight.png" height="250">`
 
 How to contribute
 =================
