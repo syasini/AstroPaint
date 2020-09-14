@@ -322,7 +322,17 @@ hands dirty with some paint.
 
 **Made with AstroPaint**
 
-:raw-html-m2r:`<img src="docs/images/blue_drops.png" height="250">`  :raw-html-m2r:`<img src="docs/images/spongy_terror.png" height="250">`  :raw-html-m2r:`<img src="docs/images/burning_twilight.png" height="250">`
+|img1| |img2| |img3|
+
+.. |img1| image:: ./images/blue_drops.png
+   :width: 30%
+
+.. |img2| image:: ./images/spongy_terror.png
+   :width: 30%
+
+.. |img3| image:: ./images/burning_twilight.png
+   :width: 30%
+
 
 How to contribute
 =================
