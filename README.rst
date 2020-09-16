@@ -4,7 +4,7 @@
 
 .. image:: docs/images/logo.PNG
    :target: docs/images/logo.PNG
-   :height: 150
+   :height: 100
 
 AstroPaint
 ==========
