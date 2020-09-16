@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tests package &#8212; AstroPaint  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="setup module" href="setup.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="tests-package">
+<h1>tests package<a class="headerlink" href="#tests-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-tests.conftest">
+<span id="tests-conftest-module"></span><h2>tests.conftest module<a class="headerlink" href="#module-tests.conftest" title="Permalink to this headline">¶</a></h2>
+<p>This module contains shared test fixtures such as Catalog and Canvas instances</p>
+<dl class="py function">
+<dt id="tests.conftest.nside">
+<code class="sig-prename descclassname">tests.conftest.</code><code class="sig-name descname">nside</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.conftest.nside" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="tests.conftest.test_canvas">
+<code class="sig-prename descclassname">tests.conftest.</code><code class="sig-name descname">test_canvas</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">test_catalog</span></em>, <em class="sig-param"><span class="n">nside</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.conftest.test_canvas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a test canvas to be used in unit tests</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="tests.conftest.test_catalog">
+<code class="sig-prename descclassname">tests.conftest.</code><code class="sig-name descname">test_catalog</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tests.conftest.test_catalog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a test catalog to be used in unit tests</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tests.test_Canvas">
+<span id="tests-test-canvas-module"></span><h2>tests.test_Canvas module<a class="headerlink" href="#module-tests.test_Canvas" title="Permalink to this headline">¶</a></h2>
+<p>This module contains unit tests for the Catalog class</p>
+<dl class="py function">
+<dt id="tests.test_Canvas.test_alm_Cl_outdated_upon_clean_canvas">
+<code class="sig-prename descclassname">tests.test_Canvas.</code><code class="sig-name descname">test_alm_Cl_outdated_upon_clean_canvas</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">test_canvas</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_Canvas.test_alm_Cl_outdated_upon_clean_canvas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes if after clean.canvas()
+the status of pixels, alms, and Cls are correctly updated</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="tests.test_Canvas.test_alm_Cl_outdated_upon_pixel_change">
+<code class="sig-prename descclassname">tests.test_Canvas.</code><code class="sig-name descname">test_alm_Cl_outdated_upon_pixel_change</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">test_canvas</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_Canvas.test_alm_Cl_outdated_upon_pixel_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes if after setting canvas.pixels
+the status of pixels, alms, and Cls are correctly updated</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="tests.test_Canvas.test_alm_Cl_outdated_upon_ud_grade">
+<code class="sig-prename descclassname">tests.test_Canvas.</code><code class="sig-name descname">test_alm_Cl_outdated_upon_ud_grade</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">test_canvas</span></em>, <em class="sig-param"><span class="n">nside</span></em>, <em class="sig-param"><span class="n">resolution</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_Canvas.test_alm_Cl_outdated_upon_ud_grade" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes if after upgrading and downgrading resolution
+the status of pixels, alms, and Cls and lmax are correctly updated</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="tests.test_Canvas.test_error_upon_Cl_change">
+<code class="sig-prename descclassname">tests.test_Canvas.</code><code class="sig-name descname">test_error_upon_Cl_change</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">test_canvas</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_Canvas.test_error_upon_Cl_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes if upon setting Cl TypeError is raised</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="tests.test_Canvas.test_pixel_Cl_outdated_upon_alm_change">
+<code class="sig-prename descclassname">tests.test_Canvas.</code><code class="sig-name descname">test_pixel_Cl_outdated_upon_alm_change</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">test_canvas</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_Canvas.test_pixel_Cl_outdated_upon_alm_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes if after setting canvas.alms
+the status of pixels, alms, and Cls are correctly updated</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="tests.test_Canvas.test_pixels_are_zero_after_clean">
+<code class="sig-prename descclassname">tests.test_Canvas.</code><code class="sig-name descname">test_pixels_are_zero_after_clean</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">test_canvas</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_Canvas.test_pixels_are_zero_after_clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes if all pixels are zero after canvas.clean()</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tests.test_Catalog">
+<span id="tests-test-catalog-module"></span><h2>tests.test_Catalog module<a class="headerlink" href="#module-tests.test_Catalog" title="Permalink to this headline">¶</a></h2>
+<p>This module contains unit tests for the Catalog class</p>
+<dl class="py function">
+<dt id="tests.test_Catalog.test_catalog_size">
+<code class="sig-prename descclassname">tests.test_Catalog.</code><code class="sig-name descname">test_catalog_size</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">test_catalog</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_Catalog.test_catalog_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes if catalog.size matches the length of data</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="tests.test_Catalog.test_correct_input">
+<code class="sig-prename descclassname">tests.test_Catalog.</code><code class="sig-name descname">test_correct_input</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">test_catalog</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_Catalog.test_correct_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes if coordinates, velocities and Mass is in the input catalog</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="tests.test_Catalog.test_has_data">
+<code class="sig-prename descclassname">tests.test_Catalog.</code><code class="sig-name descname">test_has_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">test_catalog</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tests.test_Catalog.test_has_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes if catalog has a data attribute</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tests">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tests" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">AstroPaint</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">AstroPaint</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="setup.html">setup module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">tests package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">AstroPaint</a><ul>
+      <li>Previous: <a href="setup.html" title="previous chapter">setup module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Siavash Yasini.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/source/tests.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

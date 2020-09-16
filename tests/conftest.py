@@ -32,3 +32,8 @@ def test_canvas(test_catalog, nside):
     yield canvas
 
     print(f"\n{'':->10} closing the canvas{'':-<10}\n")
+
+def apply_func_to_cutout(patch, mult_by, add_to):
+    """function to be used in cutout test"""
+    return mult_by * patch + add_to
+

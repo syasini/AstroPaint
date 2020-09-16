@@ -1,0 +1,987 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>astropaint package &#8212; AstroPaint  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="astropaint.lib package" href="astropaint.lib.html" />
+    <link rel="prev" title="AstroPaint" href="modules.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="astropaint-package">
+<h1>astropaint package<a class="headerlink" href="#astropaint-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="astropaint.lib.html">astropaint.lib package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="astropaint.lib.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astropaint.lib.html#module-astropaint.lib.log">astropaint.lib.log module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astropaint.lib.html#module-astropaint.lib.plot_configs">astropaint.lib.plot_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astropaint.lib.html#module-astropaint.lib.transform">astropaint.lib.transform module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astropaint.lib.html#module-astropaint.lib.utils">astropaint.lib.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astropaint.lib.html#module-astropaint.lib">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="astropaint.profiles.html">astropaint.profiles package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="astropaint.profiles.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astropaint.profiles.html#module-astropaint.profiles.Battaglia16">astropaint.profiles.Battaglia16 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astropaint.profiles.html#module-astropaint.profiles.NFW">astropaint.profiles.NFW module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astropaint.profiles.html#module-astropaint.profiles.art_gallery">astropaint.profiles.art_gallery module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astropaint.profiles.html#module-astropaint.profiles.spherical">astropaint.profiles.spherical module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astropaint.profiles.html#module-astropaint.profiles">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-astropaint.paint_bucket">
+<span id="astropaint-paint-bucket-module"></span><h2>astropaint.paint_bucket module<a class="headerlink" href="#module-astropaint.paint_bucket" title="Permalink to this headline">¶</a></h2>
+<p>library for simulating semi-analytic mock maps of CMB secondary anisotropies</p>
+<dl class="py class">
+<dt id="astropaint.paint_bucket.Canvas">
+<em class="property">class </em><code class="sig-prename descclassname">astropaint.paint_bucket.</code><code class="sig-name descname">Canvas</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">catalog</span></em>, <em class="sig-param"><span class="n">nside</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'healpy'</span></em>, <em class="sig-param"><span class="n">R_times</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">inclusive</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>healpy or flat-sky canvas with the location of the halos to paint the signal on</p>
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.Cl">
+<em class="property">property </em><code class="sig-name descname">Cl</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Cl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt id="astropaint.paint_bucket.Canvas.Disc">
+<em class="property">class </em><code class="sig-name descname">Disc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">catalog</span></em>, <em class="sig-param"><span class="n">nside</span></em>, <em class="sig-param"><span class="n">R_times</span></em>, <em class="sig-param"><span class="n">inclusive</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.R_times">
+<code class="sig-name descname">R_times</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.R_times" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.catalog">
+<code class="sig-name descname">catalog</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.catalog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.center_D_a">
+<code class="sig-name descname">center_D_a</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.center_D_a" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.center_ang">
+<code class="sig-name descname">center_ang</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.center_ang" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.center_index">
+<code class="sig-name descname">center_index</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.center_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.center_vec">
+<code class="sig-name descname">center_vec</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.center_vec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.Disc.gen_cent2pix_hat">
+<code class="sig-name descname">gen_cent2pix_hat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">'All'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.gen_cent2pix_hat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.Disc.gen_cent2pix_mpc">
+<code class="sig-name descname">gen_cent2pix_mpc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">'All'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.gen_cent2pix_mpc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.Disc.gen_cent2pix_mpc_vec">
+<code class="sig-name descname">gen_cent2pix_mpc_vec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">'All'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.gen_cent2pix_mpc_vec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.Disc.gen_cent2pix_rad">
+<code class="sig-name descname">gen_cent2pix_rad</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">'All'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.gen_cent2pix_rad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.Disc.gen_center_ang">
+<code class="sig-name descname">gen_center_ang</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">'All'</span></em>, <em class="sig-param"><span class="n">snap2pixel</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.gen_center_ang" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate the angle (theta, phi) of the halo centers
+if snap2pixel is True, the angular coordinate of the halo center pixel will be
+returned</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.Disc.gen_center_ipix">
+<code class="sig-name descname">gen_center_ipix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">'All'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.gen_center_ipix" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate ipix of the halo centers</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.Disc.gen_center_vec">
+<code class="sig-name descname">gen_center_vec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">'All'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.gen_center_vec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.Disc.gen_pixel_ang">
+<code class="sig-name descname">gen_pixel_ang</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">'All'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.gen_pixel_ang" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.Disc.gen_pixel_index">
+<code class="sig-name descname">gen_pixel_index</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">'All'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.gen_pixel_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.Disc.gen_pixel_vec">
+<code class="sig-name descname">gen_pixel_vec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">'All'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.gen_pixel_vec" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate the unit vectors pointing to the disc pixels</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.inclusive">
+<code class="sig-name descname">inclusive</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.inclusive" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.nside">
+<code class="sig-name descname">nside</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.nside" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.pix2cent_mpc">
+<code class="sig-name descname">pix2cent_mpc</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.pix2cent_mpc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.pix2cent_rad">
+<code class="sig-name descname">pix2cent_rad</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.pix2cent_rad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.pix2cent_vec">
+<code class="sig-name descname">pix2cent_vec</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.pix2cent_vec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.pixel_ang">
+<code class="sig-name descname">pixel_ang</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.pixel_ang" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="astropaint.paint_bucket.Canvas.Disc.pixel_index">
+<code class="sig-name descname">pixel_index</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Disc.pixel_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.Dl">
+<em class="property">property </em><code class="sig-name descname">Dl</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.Dl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.R_max">
+<em class="property">property </em><code class="sig-name descname">R_max</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.R_max" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.add_cmb">
+<code class="sig-name descname">add_cmb</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Cl</span><span class="o">=</span><span class="default_value">'LCDM'</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'TT'</span></em>, <em class="sig-param"><span class="n">lmax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">weight</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">overwrite</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.add_cmb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add CMB to the pixels
+If Cl array is not provided, a Lambda-CDM power spectrum is loaded from disc</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Cl</strong> – Input CMB Power Spectrum
+The default keyword ‘LCDM’ loads a CAMB generated power spectrum from disc</p></li>
+<li><p><strong>mode</strong> – ‘TT’ for Temperature
+Note: ‘EE’ and ‘BB’ for polarization are currently unavailable</p></li>
+<li><p><strong>lmax</strong> – Maximum ell mode to include in the CMB power spectrum</p></li>
+<li><p><strong>inplace</strong> – If True, the result will be added to canvas.pixels
+Otherwise the generated CMB map will be returned as output</p></li>
+<li><p><strong>weight</strong> – The multiplicative factor for the generated CMB pixels</p></li>
+<li><p><strong>args</strong> – <a href="#id1"><span class="problematic" id="id2">*</span></a>args to be passed to healpy.synfast(<a href="#id3"><span class="problematic" id="id4">*</span></a>args)</p></li>
+<li><p><strong>kwargs</strong> – <a href="#id5"><span class="problematic" id="id6">*</span></a>kwargs to be passed to healpy.synfast(<a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>None or np.ndarray</em></p></li>
+<li><p><em>The generated CMB map has the same NSIDE as the canvas.pixels map</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.add_noise">
+<code class="sig-name descname">add_noise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Nl</span><span class="o">=</span><span class="default_value">'Planck'</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'TT'</span></em>, <em class="sig-param"><span class="n">frequency</span><span class="o">=</span><span class="default_value">[217]</span></em>, <em class="sig-param"><span class="n">lmax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sigma_n</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fwhm_b</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">apply_beam</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">weight</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.add_noise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add Noise to the pixels.
+The Nl can be either provided directly as an array, or as a keyword using the name of an
+experiment. The list of all available experiments can be found in astropaint/lib/noise.yml.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Nl</strong> – Input Noise Power Spectrum.
+- If Nl is an array, it will be used as the noise power spectrum Nl.
+- If Nl is a string (e.g. ‘Planck’, ‘SO’, or ‘S4’) the noise configuration for
+the selected frequency channel will be read from the noise.yml file. Arbitrary noise
+configurations can be added to this file and then called here (see
+lib.misc.get_experiment_Nl for details).
+- If Nl is set to ‘white’, then sigma_n and fwhm_b will be used to construct a
+white noise power spectrum on the fly (see lib.misc.get_custom_Nl for details).</p></li>
+<li><p><strong>mode</strong> – ‘TT’ for Temperature
+Note: ‘EE’ and ‘BB’ for polarization are currently unavailable</p></li>
+<li><p><strong>[</strong><strong>GHz</strong><strong>]</strong> (<em>frequency</em>) – Frequency channels at which the noise will be calculated.
+If a list is provided, the final noise will be the combination of all channels.</p></li>
+<li><p><strong>lmax</strong> – Maximum ell mode to include in the noise power spectrum</p></li>
+<li><p><strong>sigma_n</strong> – <p>For Nl=’white’, this will be used as the noise level sigma [uK-arcmin], i.e.</p>
+<p>w_inverse = arcmin2rad(sigma_n) ** 2
+Nl = w_inverse (for each ell)</p>
+</p></li>
+<li><p><strong>fwhm_b</strong> – <p>if apply_beam=True, this will be used as the beam Full-Width-Half-Maximum (FWHM), i.e.</p>
+<p>fwhm = arcmin2rad(np.asarray(fwhm))
+sigma_theta = fwhm ** 2 / 8 / np.log(2)
+B2l = np.exp(-L * (L + 1) * sigma_theta</p>
+</p></li>
+<li><p><strong>apply_beam</strong> – If True, the Noise power spectrum will be divided by the Beam spectrum B2l</p></li>
+<li><p><strong>inplace</strong> – If True, the result will be added to canvas.pixels
+Otherwise the generated noise map will be returned as output</p></li>
+<li><p><strong>weight</strong> – The multiplicative factor for the generated CMB pixels</p></li>
+<li><p><strong>args</strong> – <a href="#id9"><span class="problematic" id="id10">*</span></a>args to be passed to healpy.synfast(<a href="#id11"><span class="problematic" id="id12">*</span></a>args)</p></li>
+<li><p><strong>kwargs</strong> – <a href="#id13"><span class="problematic" id="id14">*</span></a>kwargs to be passed to healpy.synfast(<a href="#id15"><span class="problematic" id="id16">**</span></a>kwargs)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>None or np.ndarray</em></p></li>
+<li><p><em>The generated Noise map has the same NSIDE as the canvas.pixels map</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.alm">
+<em class="property">property </em><code class="sig-name descname">alm</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.alm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.almxfl">
+<code class="sig-name descname">almxfl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fl</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.almxfl" title="Permalink to this definition">¶</a></dt>
+<dd><p>wrapper for healpy.almxfl
+multiplies the alms by the array fl (lmin=0, to lmax=3*nside+1)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.beam_smooth">
+<code class="sig-name descname">beam_smooth</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fwhm_b</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">sigma_b</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.beam_smooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smoothes canvas.pixels with a gaussian beam using healpy.sphtfunc.smoothing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fwhm_b</strong> – </p></li>
+<li><p><strong>sigma_b</strong> – </p></li>
+<li><p><strong>args</strong> – </p></li>
+<li><p><strong>kwargs</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.catalog">
+<em class="property">property </em><code class="sig-name descname">catalog</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.catalog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.clean">
+<code class="sig-name descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean the canvas and set all pixels to zero</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.cmap">
+<em class="property">property </em><code class="sig-name descname">cmap</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.cmap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.cutouts">
+<code class="sig-name descname">cutouts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">'all'</span></em>, <em class="sig-param"><span class="n">lon_range</span><span class="o">=</span><span class="default_value">[- 1, 1]</span></em>, <em class="sig-param"><span class="n">lat_range</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">xpix</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">ypix</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">apply_func</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">func_kwargs</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.cutouts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate cutouts of angular size lon_range x lat_range around halo center with xpix &amp; ypix
+pixels on each side.</p>
+<p><a href="#id17"><span class="problematic" id="id18">*</span></a>This method uses Healpy’s projector.CartesianProj class to perform the cartesian
+projection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>halo_list</strong> – index of halos to consider (e.g. [1,2,5,10]).
+goes through all the halos in the catalog when set to “all”.</p></li>
+<li><p><strong>lon_range</strong> – range of longitutes to cut around the halo center in degrees.
+e.g. [-1,1] cuts out 1 degree on each side of the halo.
+same as lon_range in healpy</p></li>
+<li><p><strong>lat_range</strong> – range of longitutes to cut around the halo center in degrees.
+by default (None) it is set equal to lon_range.
+same as lat_range in healpy</p></li>
+<li><p><strong>xpix</strong> – number of pixels on the x axis
+same as xpix in healpy</p></li>
+<li><p><strong>ypix</strong> – number of pixels on the y axis
+by default (None) it is set equal to xrange
+same as ypix in healpy</p></li>
+<li><p><strong>apply_func</strong> – function to apply to the patch after cutting it out. THe first argument of the
+function must be the input patch.</p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt>func_kwargs: dictionary or list of dictionaries</dt><dd><p>dictionary of keyword arguments to pass to apply_func</p>
+<p>Example usage:</p>
+<dl class="simple">
+<dt>cutouts(apply_func=linear_transform,</dt><dd><p>slope=2,
+intercept=1)</p>
+</dd>
+</dl>
+<p>if the func_kwargs are scalars, they will be the same for all the halos in apply_func.
+If they are arrays or lists, their lengths must be the same as the catalog size.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>generator</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.ell">
+<em class="property">property </em><code class="sig-name descname">ell</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.ell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.get_Cl">
+<code class="sig-name descname">get_Cl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">save_alm</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">lmax</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.get_Cl" title="Permalink to this definition">¶</a></dt>
+<dd><p>find the power spectrum of the map (.pixels)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.get_alm_from_pixels">
+<code class="sig-name descname">get_alm_from_pixels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.get_alm_from_pixels" title="Permalink to this definition">¶</a></dt>
+<dd><p>find the alm coefficients of the map</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.get_pixels_from_alm">
+<code class="sig-name descname">get_pixels_from_alm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.get_pixels_from_alm" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the map from the alm coefficients</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.instantiate_discs">
+<code class="sig-name descname">instantiate_discs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.instantiate_discs" title="Permalink to this definition">¶</a></dt>
+<dd><p>instantiate the discs attribute using the Disc class
+Useful when the disc generators are exhausted and need to be reset</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.lmax">
+<em class="property">property </em><code class="sig-name descname">lmax</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.lmax" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.load_map_from_file">
+<code class="sig-name descname">load_map_from_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">suffix</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.load_map_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>save the healpy map to file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – custom file name; overrides the prefix and suffix and default file name</p></li>
+<li><p><strong>prefix</strong> (<em>str</em>) – prefix string to be added to the beginning of the default file name</p></li>
+<li><p><strong>suffix</strong> (<em>str</em>) – suffix string to be added to the end of default file name</p></li>
+<li><p><strong>inplace</strong> (<em>bool</em>) – if True, canvas.pixels will be loaded with the map from file</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.mask_alm">
+<code class="sig-name descname">mask_alm</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lmin</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">lmax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.mask_alm" title="Permalink to this definition">¶</a></dt>
+<dd><p>only keep alms in the range between lmin and lmax (inclusive)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.npix">
+<em class="property">property </em><code class="sig-name descname">npix</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.npix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.nside">
+<em class="property">property </em><code class="sig-name descname">nside</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.nside" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.pixels">
+<em class="property">property </em><code class="sig-name descname">pixels</code><a class="headerlink" href="#astropaint.paint_bucket.Canvas.pixels" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.remove_cmb">
+<code class="sig-name descname">remove_cmb</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.remove_cmb" title="Permalink to this definition">¶</a></dt>
+<dd><p>remove cmb from the pixels</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.remove_noise">
+<code class="sig-name descname">remove_noise</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.remove_noise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove canvas.noise from the pixels</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.save_Cl_to_file">
+<code class="sig-name descname">save_Cl_to_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">prefix</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">suffix</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.save_Cl_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>save the map power spectrum to file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prefix</strong> (<em>str</em>) – prefix string to be added to the beginning of the default file name</p></li>
+<li><p><strong>suffix</strong> (<em>str</em>) – suffix string to be added to the end of default file name</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – custom file name; overrides the prefix and suffix and default file name</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.save_map_to_file">
+<code class="sig-name descname">save_map_to_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">suffix</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">overwrite</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.save_map_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>save the healpy map to file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – custom file name; overrides the prefix and suffix and default file name</p></li>
+<li><p><strong>prefix</strong> (<em>str</em>) – prefix string to be added to the beginning of the default file name</p></li>
+<li><p><strong>suffix</strong> (<em>str</em>) – suffix string to be added to the end of default file name</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.show_discs">
+<code class="sig-name descname">show_discs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">projection</span><span class="o">=</span><span class="default_value">'mollweide'</span></em>, <em class="sig-param"><span class="n">graticule</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.show_discs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.show_halo_centers">
+<code class="sig-name descname">show_halo_centers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">projection</span><span class="o">=</span><span class="default_value">'mollweide'</span></em>, <em class="sig-param"><span class="n">graticule</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">marker</span><span class="o">=</span><span class="default_value">'o'</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">s</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.show_halo_centers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.show_map">
+<code class="sig-name descname">show_map</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">projection</span><span class="o">=</span><span class="default_value">'mollweide'</span></em>, <em class="sig-param"><span class="n">apply_func</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.show_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.stack_cutouts">
+<code class="sig-name descname">stack_cutouts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">'all'</span></em>, <em class="sig-param"><span class="n">lon_range</span><span class="o">=</span><span class="default_value">[- 1, 1]</span></em>, <em class="sig-param"><span class="n">lat_range</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">xpix</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">ypix</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">parallel</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">apply_func</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">func_kwargs</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.stack_cutouts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stack cutouts of angular size lon_range x lat_range around halo center with xpix &amp; ypix
+pixels on each side. apply_func is applied to each cutout before stacking</p>
+<p><a href="#id19"><span class="problematic" id="id20">*</span></a>This method uses Healpy’s projector.CartesianProj class to perform the cartesian
+projection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>halo_list</strong> – index of halos to consider (e.g. [1,2,5,10]).
+goes through all the halos in the catalog when set to “all”.</p></li>
+<li><p><strong>lon_range</strong> – range of longitutes to cut around the halo center in degrees.
+e.g. [-1,1] cuts out 1 degree on each side of the halo.
+same as lon_range in healpy</p></li>
+<li><p><strong>lat_range</strong> – range of longitutes to cut around the halo center in degrees.
+by default (None) it is set equal to lon_range.
+same as lat_range in healpy</p></li>
+<li><p><strong>xpix</strong> – number of pixels on the x axis
+same as xpix in healpy</p></li>
+<li><p><strong>ypix</strong> – number of pixels on the y axis
+by default (None) it is set equal to xrange
+same as ypix in healpy</p></li>
+<li><p><strong>inplace</strong> – if True, the result is saved in canvas.stack. Otherwise the stack is returned as outpu.</p></li>
+<li><p><strong>with_ray</strong> – if True, stacking is be performed in parallel using ray.</p></li>
+<li><p><strong>apply_func</strong> – <p>function to apply to the patch after cutting it out. THe first argument of the
+function must be the input patch.</p>
+<p>Example:</p>
+<dl class="simple">
+<dt>def linear_transform(patch, slope, intercept):</dt><dd><p>return slope * patch + intercept</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>func_kwargs</strong> – <p>keyword arguments to pass to apply_func</p>
+<p>Example usage:</p>
+<dl class="simple">
+<dt>stack_cutouts(halo_list=np.arange(10),</dt><dd><p>apply_func=linear_transform,
+inplace=True,
+slope=2,
+intercept=1)</p>
+</dd>
+</dl>
+<p>This will apply the function linear_transform to the first 10 halos and stacks them
+together in canvas.stack.</p>
+<p>if the func_kwargs are scalars, they will be the same for all the halos in apply_func.
+If they are arrays or lists, their lengths must be the same as the catalog size.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>np.ndarray</em></p></li>
+<li><p><em>or None (if inplace=True)</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Canvas.ud_grade">
+<code class="sig-name descname">ud_grade</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nside_out</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Canvas.ud_grade" title="Permalink to this definition">¶</a></dt>
+<dd><p>“wrapper for healpy.ud_grade() function
+changes the nside of canvas.pixels to nside_out</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nside_out</strong> (<em>int</em>) – nside of the new map</p></li>
+<li><p><strong>inplace</strong> (<em>bool</em>) – if True, change canvas.pixels, otherwise return the new map</p></li>
+<li><p><strong>kwargs</strong> (<em>kwargs</em><em> or </em><em>dict</em>) – kwargs to be passeed to hp.ud_grade()</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="astropaint.paint_bucket.Catalog">
+<em class="property">class </em><code class="sig-prename descclassname">astropaint.paint_bucket.</code><code class="sig-name descname">Catalog</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">calculate_redshifts</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">default_redshift</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>halo catalog containing halo masses, locations, velocities, and redshifts</p>
+<p>x, y, z: [Mpc]
+v_x, v_y, v_z: [km/s]
+M_200c: [M_sun]</p>
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.build_dataframe">
+<code class="sig-name descname">build_dataframe</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">calculate_redshifts</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">default_redshift</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.build_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.cut_D_a">
+<code class="sig-name descname">cut_D_a</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">D_min</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">D_max</span><span class="o">=</span><span class="default_value">inf</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.cut_D_a" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut the catalog according the the given angular diameter distance range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>[</strong><strong>Mpc</strong><strong>]</strong> (<em>D_max</em>) – minimum halo angular diameter  distance to keep</p></li>
+<li><p><strong>[</strong><strong>Mpc</strong><strong>]</strong> – maximum halo angular diameter  distance to keep</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>None</em></p></li>
+<li><p><em>catalog.data will only contain halos with angular diameter distance D_a in the range</em></p></li>
+<li><p><em>D_min &lt; D_a &lt; D_max</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.cut_D_c">
+<code class="sig-name descname">cut_D_c</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">D_min</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">D_max</span><span class="o">=</span><span class="default_value">inf</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.cut_D_c" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut the catalog according the the given comoving distance range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>[</strong><strong>Mpc</strong><strong>]</strong> (<em>D_max</em>) – minimum halo comoving distance to keep</p></li>
+<li><p><strong>[</strong><strong>Mpc</strong><strong>]</strong> – maximum halo comoving distance to keep</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>None</em></p></li>
+<li><p><em>catalog.data will only contain halos with comoving distance D_c in the range D_min &lt; D_c &lt;</em></p></li>
+<li><p><em>D_max</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.cut_M_200c">
+<code class="sig-name descname">cut_M_200c</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mass_min</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">mass_max</span><span class="o">=</span><span class="default_value">inf</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.cut_M_200c" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut the catalog according the the given mass range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>[</strong><strong>M_sun</strong><strong>]</strong> (<em>mass_max</em>) – minimum halo mass to keep</p></li>
+<li><p><strong>[</strong><strong>M_sun</strong><strong>]</strong> – maximum halo mass to keep</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>None</em></p></li>
+<li><p><em>catalog.data will only contain halos with mass M in the range mass_min &lt; M &lt; mass_max</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.cut_R_200c">
+<code class="sig-name descname">cut_R_200c</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R_min</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">R_max</span><span class="o">=</span><span class="default_value">inf</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.cut_R_200c" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut the catalog according the the given radius range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>[</strong><strong>Mpc</strong><strong>]</strong> (<em>R_max</em>) – minimum halo radius to keep</p></li>
+<li><p><strong>[</strong><strong>Mpc</strong><strong>]</strong> – maximum halo radius to keep</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>None</em></p></li>
+<li><p><em>catalog.data will only contain halos with radius R in the range R_min &lt; R &lt; R_max</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.cut_R_ang_200c">
+<code class="sig-name descname">cut_R_ang_200c</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R_ang_min</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">R_ang_max</span><span class="o">=</span><span class="default_value">inf</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.cut_R_ang_200c" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut the catalog according the the given angular radius range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>[</strong><strong>arcmin</strong><strong>]</strong> (<em>R_ang_max</em>) – minimum halo angular radius to keep</p></li>
+<li><p><strong>[</strong><strong>arcmin</strong><strong>]</strong> – maximum halo angular radius to keep</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>None</em></p></li>
+<li><p><em>catalog.data will only contain halos with angular radius R_ang_200c in the range</em></p></li>
+<li><p><em>R_ang_min &lt; R_ang_200c &lt; R_ang_max</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.cut_lon_lat">
+<code class="sig-name descname">cut_lon_lat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lon_range</span><span class="o">=</span><span class="default_value">[0, 360]</span></em>, <em class="sig-param"><span class="n">lat_range</span><span class="o">=</span><span class="default_value">[- 90, 90]</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.cut_lon_lat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut the catalog according the the given longitude and latitude range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>[</strong><strong>deg</strong><strong>]</strong> (<em>lat_range</em>) – range of longitutes to keep</p></li>
+<li><p><strong>[</strong><strong>deg</strong><strong>]</strong> – rane of latitudes to keep</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>None</em></p></li>
+<li><p><em>catalog.data will only contain halos with longitutes in the range lon_range and</em></p></li>
+<li><p><em>latitudes in the range lat_range</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.cut_mask">
+<code class="sig-name descname">cut_mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mask</span></em>, <em class="sig-param"><span class="n">threshold</span><span class="o">=</span><span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.cut_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>cut the catalog according to the input mask
+halos outside of the mask (mask&lt;threshold) will be discarded</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.cut_redshift">
+<code class="sig-name descname">cut_redshift</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">redshift_min</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">redshift_max</span><span class="o">=</span><span class="default_value">inf</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.cut_redshift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut the catalog according the the given redshift range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>redshift_min</strong> – minimum halo redshift to keep</p></li>
+<li><p><strong>redshift_max</strong> – maximum halo redshift to keep</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>None</em></p></li>
+<li><p><em>catalog.data will only contain halos with redshift in the range</em></p></li>
+<li><p><em>redshift_min &lt; redshift &lt; redshift_max</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.cut_theta_phi">
+<code class="sig-name descname">cut_theta_phi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">theta_range</span><span class="o">=</span><span class="default_value">[0, 3.141592653589793]</span></em>, <em class="sig-param"><span class="n">phi_range</span><span class="o">=</span><span class="default_value">[0, 6.283185307179586]</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.cut_theta_phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cut the catalog according the the given longitude and latitude range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>[</strong><strong>rad</strong><strong>]</strong> (<em>phi_range</em>) – range of longitutes to keep</p></li>
+<li><p><strong>[</strong><strong>rad</strong><strong>]</strong> – rane of latitudes to keep</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>None</em></p></li>
+<li><p><em>catalog.data will only contain halos with theta in the range theta_range and</em></p></li>
+<li><p><em>phi in the range phi_range</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.data">
+<em class="property">property </em><code class="sig-name descname">data</code><a class="headerlink" href="#astropaint.paint_bucket.Catalog.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.generate_random_box">
+<code class="sig-name descname">generate_random_box</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">box_size</span><span class="o">=</span><span class="default_value">50</span></em>, <em class="sig-param"><span class="n">v_max</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">mass_min</span><span class="o">=</span><span class="default_value">100000000000000.0</span></em>, <em class="sig-param"><span class="n">mass_max</span><span class="o">=</span><span class="default_value">1000000000000000.0</span></em>, <em class="sig-param"><span class="n">n_tot</span><span class="o">=</span><span class="default_value">50000</span></em>, <em class="sig-param"><span class="n">put_on_shell</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.generate_random_box" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.generate_random_shell">
+<code class="sig-name descname">generate_random_shell</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shell_radius</span><span class="o">=</span><span class="default_value">50</span></em>, <em class="sig-param"><span class="n">v_max</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">mass_min</span><span class="o">=</span><span class="default_value">100000000000000.0</span></em>, <em class="sig-param"><span class="n">mass_max</span><span class="o">=</span><span class="default_value">1000000000000000.0</span></em>, <em class="sig-param"><span class="n">n_tot</span><span class="o">=</span><span class="default_value">50000</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.generate_random_shell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.generate_test_box">
+<code class="sig-name descname">generate_test_box</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">configuration</span><span class="o">=</span><span class="default_value">['all']</span></em>, <em class="sig-param"><span class="n">distance</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">mass</span><span class="o">=</span><span class="default_value">1000000000000000.0</span></em>, <em class="sig-param"><span class="n">inplace</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.generate_test_box" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.load_from_csv">
+<code class="sig-name descname">load_from_csv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_name</span><span class="o">=</span><span class="default_value">'MICE'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.load_from_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>load sample data using the name of dataset</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.move_to_box_center">
+<code class="sig-name descname">move_to_box_center</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.move_to_box_center" title="Permalink to this definition">¶</a></dt>
+<dd><p>move the observer from (0,0,0) to the center of the box (Lx/2, Ly/2, Lz/2) to make
+coordinates symmetric
+<a href="#id21"><span class="problematic" id="id22">*</span></a>Not recommended for light-cone catalogs</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.replicate">
+<code class="sig-name descname">replicate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'rotate'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.replicate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replicate an octant to get a whole-sky box</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mode</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Catalog.save_to_csv">
+<code class="sig-name descname">save_to_csv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sample_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Catalog.save_to_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>load sample data using the name of dataset</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="astropaint.paint_bucket.Painter">
+<em class="property">class </em><code class="sig-prename descclassname">astropaint.paint_bucket.</code><code class="sig-name descname">Painter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">template</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Painter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Painter object sprays a signal over the canvas using a template</p>
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Painter.calculate_template">
+<code class="sig-name descname">calculate_template</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">catalog</span></em>, <em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">template_kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Painter.calculate_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the 1D profile of the template as a function of R [Mpc]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Painter.plot_template">
+<code class="sig-name descname">plot_template</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">catalog</span></em>, <em class="sig-param"><span class="n">halo_list</span><span class="o">=</span><span class="default_value">[0]</span></em>, <em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">template_kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Painter.plot_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>plot the 1D profile of the template as a function of R [Mpc]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Painter.spray">
+<code class="sig-name descname">spray</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">canvas</span></em>, <em class="sig-param"><span class="n">distance_units</span><span class="o">=</span><span class="default_value">'Mpc'</span></em>, <em class="sig-param"><span class="n">n_cpus</span><span class="o">=</span><span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">cache</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">lazy</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">lazy_grid</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">template_kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#astropaint.paint_bucket.Painter.spray" title="Permalink to this definition">¶</a></dt>
+<dd><p>#TODO: add example</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>canvas</strong> – </p></li>
+<li><p><strong>distance_units</strong> – </p></li>
+<li><p><strong>with_ray</strong> – </p></li>
+<li><p><strong>cache</strong> – </p></li>
+<li><p><strong>lazy</strong> – </p></li>
+<li><p><strong>template_kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="astropaint.paint_bucket.Painter.template">
+<em class="property">property </em><code class="sig-name descname">template</code><a class="headerlink" href="#astropaint.paint_bucket.Painter.template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-astropaint">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-astropaint" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">AstroPaint</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">AstroPaint</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">astropaint package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html">setup module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html">tests package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">AstroPaint</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">AstroPaint</a></li>
+      <li>Next: <a href="astropaint.lib.html" title="next chapter">astropaint.lib package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Siavash Yasini.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/source/astropaint.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

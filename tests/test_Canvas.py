@@ -4,7 +4,7 @@ __author__ = "Siavash Yasini"
 __email__ = "yasini@usc.edu"
 
 import pytest
-
+from .conftest import apply_func_to_cutout
 
 def test_alm_Cl_outdated_upon_clean_canvas(test_canvas):
     """Passes if after clean.canvas()
@@ -60,3 +60,40 @@ def test_pixels_are_zero_after_clean(test_canvas):
     test_canvas.clean()
     assert (test_canvas.pixels == 0).all(), f"Pixels not all zero: {test_canvas.pixels}"
 
+
+@pytest.mark.parametrize("mult_by, add_to",
+                         [(1, 1),  # both scalars
+                          (1, [1]),  # one scalar one vector
+                          ([1], [1]),  # two vectors
+                          (1, [1, 2, 3, 4, 5, 6]),  # vectors of different sizes
+                          ])
+def test_cutouts_apply_func_kwarg_types(test_canvas, mult_by, add_to):
+    """Passes if various kwarg types (scalar, list, etc) can be passed to apply func"""
+
+    # get the halo list from catalog
+    halo_list = test_canvas.catalog.data.index
+
+    # cutout patches and apply test function to them
+    cutouts = test_canvas.cutouts(halo_list,
+                                  apply_func=apply_func_to_cutout,
+                                  func_kwargs={"mult_by": mult_by,
+                                               "add_to": add_to})
+    # iterate through the cutouts
+    for _ in cutouts:
+        pass
+
+
+def test_cutouts_apply_multiple_funcs(test_canvas):
+    """Passes if multiple apply funcs can be applied to patch"""
+
+    # get the halo list from catalog
+    halo_list = test_canvas.catalog.data.index
+
+    # cutout patches and apply test function to them
+    cutouts = test_canvas.cutouts(halo_list,
+                                  apply_func=[apply_func_to_cutout]*2,
+                                  func_kwargs=[{"mult_by": 1,
+                                               "add_to": 1}]*2)
+    # iterate through the cutouts
+    for _ in cutouts:
+        pass
