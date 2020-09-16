@@ -4,6 +4,8 @@
 _A python package for painting the sky_ 
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/syasini/AstroPaint/master?filepath=tutorial.ipynb)
+[![Documentation Status](https://readthedocs.org/projects/astropaint/badge/?version=master)](https://astropaint.readthedocs.io/en/master/?badge=master)
+
 
 You can install **AstroPaint** by running the following in the command line:
 
@@ -64,7 +66,7 @@ profile of the astrophysical effect. The package also provides a suite of tools 
 
 # Package Structure 
 
-While there is no external documentation for the code yet, you can use [this
+See our [documentation](https://astropaint.readthedocs.io/) and [this
  chart](https://www.mindmeister.com/1417665103/astropaint-astropaint-py?fullscreen=1)
  to understand the package structure and see what methods are available so
   far. 

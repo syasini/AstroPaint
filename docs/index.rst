@@ -81,7 +81,7 @@ application extends to halos of arbitrary size or even point sources.
 Package Structure
 =================
 
-While there is no external documentation for the code yet, you can use `this chart <https://www.mindmeister.com/1417665103/astropaint-astropaint-py?fullscreen=1>`_
+See our `documentation <https://astropaint.readthedocs.io/>`_ and `this chart <https://www.mindmeister.com/1417665103/astropaint-astropaint-py?fullscreen=1>`_
 to understand the package structure and see what methods are available so far.
 
 Examples
