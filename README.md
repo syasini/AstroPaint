@@ -4,6 +4,8 @@
 _A python package for painting the sky_ 
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/syasini/AstroPaint/master?filepath=tutorial.ipynb)
+[![Documentation Status](https://readthedocs.org/projects/astropaint/badge/?version=master)](https://astropaint.readthedocs.io/en/master/?badge=master)
+![Python package](https://github.com/syasini/AstroPaint/workflows/Python%20package/badge.svg?branch=develop&event=push)
 
 You can install **AstroPaint** by running the following in the command line:
 
@@ -50,10 +52,21 @@ That's it! Now you can check out your masterpiece using
 
 ![BG](images/BG_websky_cover.png)
 
+# What is AstroPaint?
+
+AstroPaint is a python package for generating and visualizing sky maps of a wide range of astrophysical signals 
+originating from dark matter halos or the gas that they host. AstroPaint creates a whole-sky mock map of the 
+target signal/observable, at a desired resolution, by combining an input halo catalog and the radial/angular 
+profile of the astrophysical effect. The package also provides a suite of tools that can facilitate analysis
+ routines such as catalog filtering, map manipulation, and cutout stacking. The simulation suite has an 
+ Object-Oriented design and runs in parallel, making it both easy to use and readily scalable for production 
+ of high resolution maps with large underlying catalogs. Although the package has been primarily developed 
+ to simulate signals pertinent to galaxy clusters, its application extends to halos of arbitrary size or 
+ even point sources.
 
 # Package Structure 
 
-While there is no external documentation for the code yet, you can use [this
+See our [documentation](https://astropaint.readthedocs.io/) and [this
  chart](https://www.mindmeister.com/1417665103/astropaint-astropaint-py?fullscreen=1)
  to understand the package structure and see what methods are available so
   far. 
@@ -112,9 +125,9 @@ canvas.show_map("cartview", lonra=[0,10], latra=[0,10])
 
 _Voila!_
 
+You can use the `n_cpus` argument in the spray function to paint in parallel and speed things up! 
+The default value `n_cpus=-1` uses all the available cpus.   
 
-If you have more than 1 cpu (why wouldn't you?) use `parallel=True` in the
- spray function to paint in parallel and speed things up!
 <p align="center">
 <img src="images/parallel.gif" alt="parallel" width="450"/>
 </p>

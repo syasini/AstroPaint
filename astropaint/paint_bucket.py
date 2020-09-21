@@ -1174,7 +1174,7 @@ class Canvas:
 
         def gen_center_ipix(self, halo_list="All"):
             """generate ipix of the halo centers"""
-            if halo_list is "All":
+            if halo_list =="All":
                 halo_list = range(self.catalog.size)
 
             assert hasattr(halo_list, '__iter__')
@@ -1188,7 +1188,7 @@ class Canvas:
             """generate the angle (theta, phi) of the halo centers
             if snap2pixel is True, the angular coordinate of the halo center pixel will be
             returned"""
-            if halo_list is "All":
+            if halo_list == "All":
                 halo_list = range(self.catalog.size)
 
             assert hasattr(halo_list, '__iter__')
@@ -1203,7 +1203,7 @@ class Canvas:
                            self.catalog.data.phi[halo])
 
         def gen_center_vec(self, halo_list="All"):
-            if halo_list is "All":
+            if halo_list == "All":
                 halo_list = range(self.catalog.size)
 
             assert hasattr(halo_list, '__iter__')
@@ -1213,7 +1213,7 @@ class Canvas:
                                  self.catalog.data.phi[halo])
 
         def gen_pixel_index(self, halo_list="All"):
-            if halo_list is "All":
+            if halo_list == "All":
                 halo_list = range(self.catalog.size)
 
             assert hasattr(halo_list, '__iter__')
@@ -1229,7 +1229,7 @@ class Canvas:
                               )
 
         def gen_pixel_ang(self, halo_list="All"):
-            if halo_list is "All":
+            if halo_list == "All":
                 halo_list = range(self.catalog.size)
 
             assert hasattr(halo_list, '__iter__')
@@ -1245,7 +1245,7 @@ class Canvas:
             -------
             None
             """
-            if halo_list is "All":
+            if halo_list == "All":
                 halo_list = range(self.catalog.size)
 
             assert hasattr(halo_list, '__iter__')
@@ -1254,7 +1254,7 @@ class Canvas:
                 yield np.asarray(hp.pix2vec(self.nside, index)).T
 
         def gen_cent2pix_rad(self, halo_list="All"):
-            if halo_list is "All":
+            if halo_list == "All":
                 halo_list = range(self.catalog.size)
 
             assert hasattr(halo_list, '__iter__')
@@ -1264,7 +1264,7 @@ class Canvas:
                 yield hp.rotator.angdist(np.squeeze(pixel_ang), center_ang)
 
         def gen_cent2pix_mpc(self, halo_list="All"):
-            if halo_list is "All":
+            if halo_list == "All":
                 halo_list = range(self.catalog.size)
 
             assert hasattr(halo_list, '__iter__')
@@ -1273,7 +1273,7 @@ class Canvas:
                 yield self.center_D_a[halo] * pix2cent_rad
 
         def gen_cent2pix_hat(self, halo_list="All"):
-            if halo_list is "All":
+            if halo_list == "All":
                 halo_list = range(self.catalog.size)
 
             for (pix_vec, cent_vec) in zip(self.gen_pixel_vec(halo_list),
@@ -1281,7 +1281,7 @@ class Canvas:
                 yield Canvas._normalize_vec(pix_vec - cent_vec)
 
         def gen_cent2pix_mpc_vec(self, halo_list="All"):
-            if halo_list is "All":
+            if halo_list == "All":
                 halo_list = range(self.catalog.size)
 
             for (halo, pix_vec, cent_vec) in zip(halo_list,
@@ -1446,7 +1446,8 @@ class Canvas:
 
         [set_to_1(disc) for disc in self.discs.gen_pixel_index()]
 
-        if graticule: hp.graticule()
+        if graticule:
+            hp.graticule()
 
         self._viewer(junk_pixels,
                      projection=projection,
@@ -1662,17 +1663,23 @@ class Canvas:
 
         if lat_range is None:
             lat_range = lon_range
-        if halo_list is "all":
-            halo_list = range(self.catalog.size)
+        try:
+            if halo_list == "all":
+                halo_list = range(self.catalog.size)
+        except ValueError:
+            ...
         #pdb.set_trace()
 
         # make sure that apply func and func_kwargs are lists for consistency
+        # each element indicates a function (to be applied to the cutout) and its corresponding kwargs
         if apply_func is not None:
+            # maybe a single function was passed instead of a list
             if not isinstance(apply_func, list):
+                # in that case turn it into a list
                 apply_func = [apply_func]
-                # make sure func_kwargs is not a list
+                # and make sure func_kwargs is not a list already
                 assert not isinstance(func_kwargs, list)
-                # and then turn it into a list
+                # and then turn that into a list as well
                 func_kwargs = [func_kwargs]
 
             else:
@@ -1683,6 +1690,7 @@ class Canvas:
         # if func_kwargs are scalars, extend then to the size of the catalog
         # TODO: rewrite using _check_template_args()?
 
+        # make a list of
         func_kwargs_df_list = []
         for f_kw in func_kwargs:
             for key, value in f_kw.items():
@@ -1690,16 +1698,16 @@ class Canvas:
                     f_kw[key] = [value]
 
 
-            func_kwargs_df = pd.DataFrame(f_kw)
-            if len(func_kwargs_df) == 1:
-                func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
-                                           ignore_index=True)
-
-            # make sure the df index matches the halo_list
-            if len(func_kwargs_df.index) == len(halo_list):
-                func_kwargs_df.index = halo_list
-
-            func_kwargs_df_list.append(func_kwargs_df)
+            # func_kwargs_df = pd.DataFrame(f_kw)
+            # if len(func_kwargs_df) == 1:
+            #     func_kwargs_df = pd.concat([func_kwargs_df]*len(halo_list),
+            #                                ignore_index=True)
+            #
+            # # make sure the df index matches the halo_list
+            # if len(func_kwargs_df.index) == len(halo_list):
+            #     func_kwargs_df.index = halo_list
+            #
+            # func_kwargs_df_list.append(func_kwargs_df)
 
         cart_projector = hp.projector.CartesianProj(lonra=lon_range, latra=lat_range,
                                                     xsize=xpix, ysize=ypix,
@@ -1809,7 +1817,7 @@ class Canvas:
 
         # None values of lat_range  will be fixed in cutouts()
 
-        if halo_list is "all":
+        if halo_list == "all":
             halo_list = range(self.catalog.size)
 
         if ypix is None:
@@ -2010,7 +2018,7 @@ class Canvas:
 
         if lmax is None:
             lmax = 3 * self.nside -1
-        if Cl is "LCDM":
+        if Cl == "LCDM":
             # TODO: add lmax implementation
             Cl_file = utils.get_CMB_Cl(lmax=lmax, mode=mode)
             Cl = Cl_file
@@ -2288,8 +2296,7 @@ class Painter:
     def spray(self,
               canvas,
               distance_units="Mpc",
-              #with_ray=False,
-              parallel=True,
+              n_cpus=-1,
               cache=False,
               lazy=False,
               lazy_grid=None,
@@ -2336,14 +2343,14 @@ class Painter:
 
         R_mode = self.template_args_list[self.R_arg_indx]
 
-        if R_mode is "R":
+        if R_mode == "R":
             R_pix2cent = canvas.discs.gen_cent2pix_mpc
-        if R_mode is "R_vec":
+        if R_mode == "R_vec":
             R_pix2cent = canvas.discs.gen_cent2pix_mpc_vec
 
 
         if cache:
-            assert R_mode is "R", "cache method is not available for profiles that " \
+            assert R_mode == "R", "cache method is not available for profiles that " \
                                   "use 'R_vec'"
 
             from joblib import Memory
@@ -2366,9 +2373,9 @@ class Painter:
 
                 spray_df.loc[:, column] = snap2grid(data, column_grid)
 
-
-        if not parallel:
-
+        if n_cpus == 0:
+            raise ValueError(f"n_cpus = {n_cpus} is not valid. Please enter a value > 0 for n_cpus or -1 to run on all cores.")
+        if n_cpus == 1:
 
             for halo, R, pixel_index in tqdm(zip(range(canvas.catalog.size),
                                                   R_pix2cent(),
@@ -2382,8 +2389,7 @@ class Painter:
                           template(**spray_dict))
 
 
-        elif parallel:
-
+        else:
             # FIXME: Add memmap support for the pixels
             # pixel_memmap_filename = os.path.join(path_dir, 'output_memmap')
             # output = np.memmap(pixel_memmap_filename, dtype=canvas.pixels.dtype,
@@ -2393,8 +2399,9 @@ class Painter:
             print("Spraying in parallel...")
 
             # count the number of available cpus
-            # import psutil
-            n_cpus = (os.cpu_count())
+            if n_cpus == -1 or n_cpus > (os.cpu_count()):
+                n_cpus = (os.cpu_count())
+
             canvas_memory_size = getsizeof(canvas.pixels)
             print(f"\ncanvas memory size [GB]: {canvas_memory_size / 1024 ** 3}\n")
             print(f"n_cpus = {n_cpus}")
