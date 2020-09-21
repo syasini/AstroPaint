@@ -1663,8 +1663,11 @@ class Canvas:
 
         if lat_range is None:
             lat_range = lon_range
-        if halo_list == "all":
-            halo_list = range(self.catalog.size)
+        try:
+            if halo_list == "all":
+                halo_list = range(self.catalog.size)
+        except ValueError:
+            ...
         #pdb.set_trace()
 
         # make sure that apply func and func_kwargs are lists for consistency
