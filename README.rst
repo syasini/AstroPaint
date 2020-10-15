@@ -1,19 +1,15 @@
-.. AstroPaint documentation master file, created by
-   sphinx-quickstart on Tue Sep  8 14:47:06 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 .. role:: raw-html-m2r(raw)
    :format: html
 
 
-.. image:: ./images/logo.PNG
-   :target: ./images/logo.PNG
-   :height: 250
+.. image:: docs/images/logo.PNG
+   :target: docs/images/logo.PNG
+   :height: 100
 
 AstroPaint
 ==========
 
-*A python package for painting the sky*
+*A python package for painting the sky* 
 
 
 .. image:: https://mybinder.org/badge_logo.svg
@@ -27,7 +23,7 @@ You can install **AstroPaint** by running the following in the command line:
 
 ``cd AstroPaint``
 
-``pip install [-e] .``
+``pip install [-e] .`` 
 
 the ``-e`` argument will install the package in editable mode which is suitable for developement. If you want to modify the code use this option.
 
@@ -63,8 +59,8 @@ That's it! Now you can check out your masterpiece using
 ``canvas.show_map()``
 
 
-.. image:: ./images/BG_websky_cover.png
-   :target: ./images/BG_websky_cover.png
+.. image:: docs/images/BG_websky_cover.png
+   :target: docs/images/BG_websky_cover.png
    :alt: BG
 
 What is AstroPaint?
@@ -81,7 +77,7 @@ application extends to halos of arbitrary size or even point sources.
 Package Structure
 =================
 
-See our `documentation <https://astropaint.readthedocs.io/>`_ and `this chart <https://www.mindmeister.com/1417665103/astropaint-astropaint-py?fullscreen=1>`_
+While there is no external documentation for the code yet, you can use `this chart <https://www.mindmeister.com/1417665103/astropaint-astropaint-py?fullscreen=1>`_
 to understand the package structure and see what methods are available so far.
 
 Examples
@@ -115,14 +111,14 @@ patch of the ``Sehgal`` catalog:
    # pass the template to the painter
    painter = Painter(template=a_nonsense_template)
 
-   # plot the template for halos #0, #10, and #100 for R between 0 to 5 Mpc
+   # plot the template for halos #0, #10, and #100 for R between 0 to 5 Mpc 
    R = np.linspace(0,5,100)
    painter.plot_template(R, catalog, halo_list=[0,10,100])
 
 
 
-.. image:: ./images/a_random_template.png
-   :target: ./images/a_random_template.png
+.. image:: docs/images/a_random_template.png
+   :target: docs/images/a_random_template.png
    :height: 300
    :align: center
 
@@ -139,8 +135,8 @@ with. Let's spray ths canvas now:
    canvas.show_map("cartview", lonra=[0,10], latra=[0,10])
 
 
-.. image:: ./images/a_random_map.png
-   :target: ./images/a_random_map.png
+.. image:: docs/images/a_random_map.png
+   :target: docs/images/a_random_map.png
    :height: 300
    :align: center
 
@@ -152,8 +148,8 @@ Setting `n_cpus=-1` uses all the available cpus.
 
 
 
-.. image:: ./images/parallel.gif
-   :target: ./images/parallel.gif
+.. image:: docs/images/parallel.gif
+   :target: docs/images/parallel.gif
    :height: 450
    :align: center
 
@@ -176,9 +172,9 @@ You can easily stack cutouts of the map using the following:
 
 
 
-.. image:: ./images/a_random_stack.png
-   :target: ./images/a_random_stack.png
-   :height: 300
+.. image:: docs/images/a_random_stack.png
+   :target: docs/images/a_random_stack.png
+   :height: 200
    :align: center
 
 
@@ -206,7 +202,7 @@ For example, here's how you can turn a 3D top hat profile
        """Equals 1 inside R_200c and 0 outside"""
 
        tophat = np.ones_like(r)
-       tophat[r > R_200c]=0
+       tophat[r > R_200c]=0 
 
        return tophat
 
@@ -246,9 +242,9 @@ This is much faster, but the speed comes at a small price. If your 3D profile
 is not smooth, the interpolated 2D projection will slightly deviate from the
 exact integration.
 
-.. image:: ./images/tophat_interp.png
+.. image:: docs/images/tophat_interp.png
    :align: center
-   :height: 300
+   :height: 200
 
 You can minimize this deviation by increasing the `n_samples` argument of the
 `@interpolate` decorator, but that will obviously decrease the painting speed.
@@ -270,9 +266,9 @@ kinetic Sunyaev-Zeldovich (kSZ) on the WebSky catalog halos.
 
 Since the shape of the profile is smooth, we won't lose accuracy by using the interpolator.
 
-.. image:: ./images/battaglia16_tau.png
-   :target: ./images/battaglia16_tau.png
-   :height: 300
+.. image:: docs/images/battaglia16_tau.png
+   :target: docs/images/battaglia16_tau.png
+   :height: 200
    :align: center
 
 
@@ -290,9 +286,9 @@ cut of 8E13 M_sun.
    tau_painter.spray(canvas)
 
 
-.. image:: ./images/tau_map_battaglia.png
-   :target: ./images/tau_map_battaglia.png
-   :height: 300
+.. image:: docs/images/tau_map_battaglia.png
+   :target: docs/images/tau_map_battaglia.png
+   :height: 200
    :align: center
 
 The `Battaglia16.kSZ_T` function uses this tau and multiplies it by the
@@ -305,9 +301,9 @@ dimensionless velocity of the halos to get the kSZ signal.
 
 And here is what it looks like:
 
-.. image:: ./images/ksz_map_battaglia.png
-   :target: ./images/ksz_map_battaglia.png
-   :height: 300
+.. image:: docs/images/ksz_map_battaglia.png
+   :target: docs/images/ksz_map_battaglia.png
+   :height: 200
    :align: center
 
 
@@ -322,17 +318,7 @@ hands dirty with some paint.
 
 **Made with AstroPaint**
 
-|img1| |img2| |img3|
-
-.. |img1| image:: ./images/blue_drops.png
-   :width: 30%
-
-.. |img2| image:: ./images/spongy_terror.png
-   :width: 30%
-
-.. |img3| image:: ./images/burning_twilight.png
-   :width: 30%
-
+:raw-html-m2r:`<img src="docs/images/blue_drops.png" height="250">`  :raw-html-m2r:`<img src="docs/images/spongy_terror.png" height="250">`  :raw-html-m2r:`<img src="docs/images/burning_twilight.png" height="250">`
 
 How to contribute
 =================
@@ -348,20 +334,4 @@ If you would like to contribute to AstroPaint, take the following steps:
 
 See `this repository <https://github.com/firstcontributions/first-contributions>`_ or `Kevin Markham's step-by-step guide <https://www.dataschool.io/how-to-contribute-on-github/>`_ for more detailed instructions.
 
-Developement happens on the ``develop`` branch, so make sure you are always in sync with the latest version and submit your pull requests to this branch.
-
-
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   source/modules.rst
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+Developement happens on the ``develop`` branch, so make sure you are always in sync with the latest version and submit your pull requests to this branch. 
