@@ -148,7 +148,7 @@ with. Let's spray ths canvas now:
 *Voila!*
 
 You can use the `n_cpus` argument in the spray function to paint in parallel and speed things up!
-The default value `n_cpus=-1` uses all the available cpus.
+Setting `n_cpus=-1` uses all the available cpus.
 
 
 
