@@ -2296,7 +2296,7 @@ class Painter:
     def spray(self,
               canvas,
               distance_units="Mpc",
-              n_cpus=-1,
+              n_cpus=1,
               cache=False,
               lazy=False,
               lazy_grid=None,
