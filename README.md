@@ -236,7 +236,7 @@ Let's paint this on a 5x5 sqr deg patch of the WebSky catalog with a mass
  cut of 8E13 M_sun. 
  
  ```python
-catalog = Catalog("websky_lite_redshift")
+catalog = Catalog("WebSky_lite")
 catalog.cut_lon_lat(lon_range=[5,10], lat_range=[5,10])
 catalog.cut_M_200c(8E13)
 
