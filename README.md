@@ -5,7 +5,7 @@ _A python package for painting the sky_
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/syasini/AstroPaint/master?filepath=tutorial.ipynb)
 [![Documentation Status](https://readthedocs.org/projects/astropaint/badge/?version=master)](https://astropaint.readthedocs.io/en/master/?badge=master)
-
+![Python package](https://github.com/syasini/AstroPaint/workflows/Python%20package/badge.svg?branch=develop&event=push)
 
 You can install **AstroPaint** by running the following in the command line:
 
@@ -126,7 +126,7 @@ canvas.show_map("cartview", lonra=[0,10], latra=[0,10])
 _Voila!_
 
 You can use the `n_cpus` argument in the spray function to paint in parallel and speed things up! 
-The default value `n_cpus=-1` uses all the available cpus.   
+Setting `n_cpus=-1` uses all the available cpus.   
 
 <p align="center">
 <img src="images/parallel.gif" alt="parallel" width="450"/>
@@ -236,7 +236,7 @@ Let's paint this on a 5x5 sqr deg patch of the WebSky catalog with a mass
  cut of 8E13 M_sun. 
  
  ```python
-catalog = Catalog("websky_lite_redshift")
+catalog = Catalog("WebSky_lite")
 catalog.cut_lon_lat(lon_range=[5,10], lat_range=[5,10])
 catalog.cut_M_200c(8E13)
 
