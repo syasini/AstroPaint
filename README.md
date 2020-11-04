@@ -6,6 +6,7 @@ _A python package for painting the sky_
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/syasini/AstroPaint/master?filepath=tutorial.ipynb)
 [![Documentation Status](https://readthedocs.org/projects/astropaint/badge/?version=master)](https://astropaint.readthedocs.io/en/master/?badge=master)
 ![Python package](https://github.com/syasini/AstroPaint/workflows/Python%20package/badge.svg?branch=develop&event=push)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4243176.svg)](https://doi.org/10.5281/zenodo.4243176)
 
 You can install **AstroPaint** by running the following in the command line:
 
