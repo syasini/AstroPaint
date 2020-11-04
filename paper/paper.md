@@ -77,8 +77,8 @@ Studying the large scale structure of the universe heavily relies on
      maps of various astrophysical effects to emulate both the signal and
       noise (foregrounds) components. For example, in a study that aims	
 	to evaluate the detection significance of the Birkinshaw-Gull (BG)
-	effect–––a probe of the transverse
-	velocities of halos [@Birkinshaw:1983; @Yasini:2018]–––using the Simons
+	effect – a probe of the transverse
+	velocities of halos [@Birkinshaw:1983; @Yasini:2018] – using the Simons
 	Observatory [@SO:2019] or CMB-S4 [@CMB-S4:2019], one needs a mock
 	map of the BG effect
 	\autoref{fig:BG}
