@@ -21,6 +21,8 @@ AstroPaint
    :alt: Binder
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4243176.svg
    :target: https://doi.org/10.5281/zenodo.4243176
+.. image:: https://joss.theoj.org/papers/10.21105/joss.02608/status.svg
+   :target: https://doi.org/10.21105/joss.02608
 
 You can install **AstroPaint** by running the following in the command line:
 
