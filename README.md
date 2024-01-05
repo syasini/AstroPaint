@@ -15,9 +15,9 @@ You can install **AstroPaint** by running the following in the command line:
 
 `cd AstroPaint`
 
-`pip install [-e] .` 
+`pip install -e .` 
 
-the `-e` argument will install the package in editable mode which is suitable for developement. If you want to modify the code use this option.
+the `-e` argument will install the package in editable mode which is suitable for development. If you want to modify the code use this option.
 
 **Important Note**:
 If you want the sample catalogs to be cloned automatically
